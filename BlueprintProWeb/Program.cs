@@ -7,6 +7,7 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 //Hello Nicole Tacugan!
+//Fuck you
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
