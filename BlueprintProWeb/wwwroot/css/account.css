@@ -1,4 +1,4 @@
-﻿account-container {
+﻿.account-container {
     background-image: url('/images/account-bg.png');
     background-size: cover;
     background-position: center;
@@ -9,7 +9,7 @@
     min-height: 100vh;
     padding: 2rem 0;
 }
-account-box {
+.account-box {
     background-color: #ffffff;
     padding: 30px;
     border-radius: 10px;

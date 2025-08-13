@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using BlueprintProWeb.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BlueprintProWeb.Controllers
@@ -17,7 +18,7 @@ namespace BlueprintProWeb.Controllers
         {
             return View();
         }
-
+        [Authorize]
         public IActionResult Privacy()
         {
             return View();
