@@ -17,6 +17,7 @@ namespace BlueprintProWeb.ViewModels
         public string Password { get; set; }
         [Required(ErrorMessage = "Confirm Password is required.")]
         [DataType(DataType.Password)]
+        [Display(Name = "Confirm Password.")]
         public string ConfirmPassword { get; set; }
     }
 }
