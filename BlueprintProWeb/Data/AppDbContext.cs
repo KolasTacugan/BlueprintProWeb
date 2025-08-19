@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BlueprintProWeb.Data
 {
-    public class AppDbContext : IdentityDbContext<Client>
+    public class AppDbContext : IdentityDbContext<User>
     {
         public AppDbContext(DbContextOptions<AppDbContext> options)
             : base(options)

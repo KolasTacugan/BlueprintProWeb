@@ -1,0 +1,23 @@
+﻿@{
+    ViewData["Title"] = "Choose Account Type";
+    Layout = "~/Views/Shared/_AccountLayout.cshtml";
+}
+
+<div class="account-container">
+    <div class="account-box text-center">
+        <h2 class="mb-4">Choose Your Account Type</h2>
+
+        <div class="d-grid gap-3">
+            <a asp-controller="Account" asp-action="Register" asp-route-role="Client" class="btn btn-outline-success p-3">
+                I'm a Client
+            </a>
+            <a asp-controller="Account" asp-action="Register" asp-route-role="Architect" class="btn btn-outline-primary p-3">
+                I'm an Architect
+            </a>
+        </div>
+
+        <div class="text-center mt-4">
+            <a asp-controller="Home" asp-action="Index" class="text-decoration-none">Back</a>
+        </div>
+    </div>
+</div>

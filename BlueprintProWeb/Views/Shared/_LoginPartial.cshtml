@@ -1,5 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Identity;
-@inject SignInManager<Client> signInManager;
+@inject SignInManager<User> signInManager;
 
 <ul class="navbar-nav ms-auto">
 	@if (signInManager.IsSignedIn(User))
@@ -15,7 +15,7 @@
 			<a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Login</a>
 		</li>
 		<li class="nav-item">
-			<a class="nav-link text-dark" asp-controller="Account" asp-action="Register">Register</a>
+			<a class="nav-link text-dark" asp-controller="Account" asp-action="ChooseRole">Register</a>
 		</li>
 	}
 

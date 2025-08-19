@@ -20,5 +20,14 @@ namespace BlueprintProWeb.ViewModels
         [Display(Name = "Confirm Password")]
         [Compare("Password", ErrorMessage = "Password does not match.")]
         public string ConfirmPassword { get; set; }
+
+        public string Role { get; set; }
+
+
+        public string? LicenseNo { get; set; }
+        public string? Style { get; set; }
+        public string? Specialization { get; set; }
+        public string? Location { get; set; }
+        public string? LaborCost { get; set; }
     }
 }

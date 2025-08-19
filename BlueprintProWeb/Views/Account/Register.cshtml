@@ -12,6 +12,10 @@
         <form asp-action="Register" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
+            <!-- Hidden Role (set from ChooseAccountType) -->
+            <input type="hidden" asp-for="Role" />
+
+            <!-- Common Fields (Client + Architect) -->
             <div class="mb-3">
                 <label asp-for="LastName" class="form-label"></label>
                 <input asp-for="LastName" class="form-control" />
@@ -42,15 +46,69 @@
                 <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
             </div>
 
+            
+            @if (Model.Role == "Architect")
+            {
+                <div class="mb-3">
+                    <label asp-for="LicenseNo" class="form-label"></label>
+                    <input asp-for="LicenseNo" class="form-control" />
+                    <span asp-validation-for="LicenseNo" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Style" class="form-label">Preferred Style</label>
+                    <select asp-for="Style" class="form-select">
+                        <option value="">-- Select Style --</option>
+                        <option>Modern</option>
+                        <option>Traditional</option>
+                        <option>Contemporary</option>
+                        <option>Minimalist</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Specialization" class="form-label">Specialization</label>
+                    <select asp-for="Specialization" class="form-select">
+                        <option value="">-- Select Specialization --</option>
+                        <option>Residential</option>
+                        <option>Commercial</option>
+                        <option>Industrial</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Location" class="form-label">Location Availability</label>
+                    <select asp-for="Location" class="form-select">
+                        <option value="">-- Select Location --</option>
+                        <option>Urban</option>
+                        <option>Suburban</option>
+                        <option>Rural</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="LaborCost" class="form-label">Labor Cost</label>
+                    <select asp-for="LaborCost" class="form-select">
+                        <option value="">-- Select Labor Cost --</option>
+                        <option>Low</option>
+                        <option>Medium</option>
+                        <option>High</option>
+                    </select>
+                </div>
+
+            }
+
+            <!-- Submit -->
             <input type="submit" value="Register" class="btn btn-success w-100 p-2" />
 
+            <!-- Links -->
             <p class="text-center mt-2">
                 Already have an account?
                 <a asp-controller="Account" asp-action="Login" class="text-decoration-none">Login</a>
             </p>
 
             <div class="text-center">
-                <a asp-controller="Home" asp-action="Index" class="text-decoration-none mt-3">Back</a>
+                <a asp-controller="Account" asp-action="ChooseRole" class="text-decoration-none mt-3">Back</a>
             </div>
         </form>
     </div>

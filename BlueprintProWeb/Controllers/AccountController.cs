@@ -1,5 +1,6 @@
 ﻿using BlueprintProWeb.Models;
 using BlueprintProWeb.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -8,10 +9,10 @@ namespace BlueprintProWeb.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly SignInManager<Client> signInManager;
-        private readonly UserManager<Client> userManager;
+        private readonly SignInManager<User> signInManager;
+        private readonly UserManager<User> userManager;
 
-        public AccountController(SignInManager<Client> signInManager, UserManager<Client> userManager)
+        public AccountController(SignInManager<User> signInManager, UserManager<User> userManager)
         {
             this.signInManager = signInManager;
             this.userManager = userManager;
@@ -40,9 +41,20 @@ namespace BlueprintProWeb.Controllers
             return View(model);
         }
 
-        public IActionResult Register()
+        [AllowAnonymous]
+        public IActionResult ChooseRole()
         {
             return View();
+        }
+
+        [HttpGet]
+        public IActionResult Register( string role)
+        {
+            var model = new RegisterViewModel
+            {
+                Role = role 
+            };
+            return View(model);
         }
 
         [HttpPost]
@@ -51,14 +63,26 @@ namespace BlueprintProWeb.Controllers
         {
             if (ModelState.IsValid)
             {
-                Client client = new Client
+                User client = new User
                 {
-                    FirstName = model.FirstName,
-                    LastName = model.LastName,
+                    user_fname = model.FirstName,
+                    user_lname = model.LastName,
                     Email = model.Email,
                     UserName = model.Email,
-
+                    user_role = model.Role
                 };
+
+                // Only assign Architect-specific fields if role is Architect
+                if (model.Role == "Architect")
+                {
+                    client.user_licenseNo = model.LicenseNo;
+                    client.user_Style = model.Style;
+                    client.user_Specialization = model.Specialization;
+                    client.user_Location = model.Location;
+                    client.user_Budget = model.LaborCost;
+                }
+
+
                 var result = await userManager.CreateAsync(client, model.Password);
                 if (result.Succeeded)
                 {
