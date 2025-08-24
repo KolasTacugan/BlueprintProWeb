@@ -28,18 +28,18 @@
             overflow: hidden; /* just in case */
         }
 
-            body::before {
-                content: "";
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat;
-                opacity: 0.4;
-                z-index: 0;
-                pointer-events: none;
-            }
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat;
+            opacity: 0.4;
+            z-index: 0;
+            pointer-events: none;
+        }
 
         .sidebar {
             width: 270px;
@@ -52,9 +52,9 @@
             z-index: 1000;
         }
 
-            .sidebar.collapsed {
-                width: 85px;
-            }
+        .sidebar.collapsed {
+            width: 85px;
+        }
 
         .sidebar-header {
             position: relative;
@@ -64,31 +64,31 @@
             justify-content: space-between;
         }
 
-            .sidebar-header .header-logo {
-                display: flex; /* so it hugs the img */
-                align-items: center;
-                justify-content: center;
-                padding: 0; /* remove extra padding */
-                margin: 0; /* remove extra margin */
-            }
+        .sidebar-header .header-logo {
+            display: flex; /* so it hugs the img */
+            align-items: center;
+            justify-content: center;
+            padding: 0; /* remove extra padding */
+            margin: 0; /* remove extra margin */
+        }
 
-                .sidebar-header .header-logo img {
-                    width: 46px;
-                    height: 46px;
-                    display: block;
-                    object-fit: contain;
-                    border-radius: 50%;
-                }
+        .sidebar-header .header-logo img {
+            width: 46px;
+            height: 46px;
+            display: block;
+            object-fit: contain;
+            border-radius: 50%;
+        }
 
-            .sidebar-header .system-name {
-                font-size: 1.2rem; /* bigger than nav-labels */
-                font-weight: 700; /* bold */
-                color: #fff;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                transition: opacity 0.4s ease, width 0.4s ease;
-            }
+        .sidebar-header .system-name {
+            font-size: 1.2rem; /* bigger than nav-labels */
+            font-weight: 700; /* bold */
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: opacity 0.4s ease, width 0.4s ease;
+        }
 
         .system-name {
             margin-right: 24px;
@@ -124,13 +124,13 @@
             transform: translate(5px, 0px);
         }
 
-            .sidebar.collapsed .sidebar-header .toggler span {
-                transform: rotate(180deg);
-                border-radius: 50%;
-                outline: 4px solid #071744;
-                outline-offset: 4px;
-                transition: transform ease-in-out.4s ease;
-            }
+        .sidebar.collapsed .sidebar-header .toggler span {
+            transform: rotate(180deg);
+            border-radius: 50%;
+            outline: 4px solid #071744;
+            outline-offset: 4px;
+            transition: transform ease-in-out.4s ease;
+        }
 
         .sidebar-header .system-name {
             transition: opacity 1.5s ease;
@@ -165,14 +165,14 @@
             transition: 0.4s ease;
         }
 
-            .sidebar-nav .nav-link:hover {
-                background: #fff;
-                color: #071744;
-            }
+        .sidebar-nav .nav-link:hover {
+            background: #fff;
+            color: #071744;
+        }
 
-            .sidebar-nav .nav-link .nav-label {
-                transition: opacity 0.4s ease;
-            }
+        .sidebar-nav .nav-link .nav-label {
+            transition: opacity 0.4s ease;
+        }
 
         .sidebar.collapsed .sidebar-nav .nav-link .nav-label {
             opacity: 0;
@@ -188,37 +188,45 @@
         .navbar {
             position: fixed;
             top: 15px;
-            left: 15px; /* offset from left */
-            right: 15px; /* offset from right */
+            left: 15px;
+            right: 15px;
             height: 60px;
             background: #fff;
             z-index: 90;
             display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            border-radius: 8px; /* optional */
+            justify-content: flex-end; /* keeps items to the right */
+            align-items: center; /* vertical centering */
+            border-radius: 8px;
         }
 
         .navbar-div {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
+            align-items: center; /* ensures children align vertically */
+            height: 100%; /* match navbar height */
+        }
+
+        .navbar-list {
+            display: flex; /* make list horizontal */
+            align-items: center; /* vertically center li’s */
+            margin: 0;
+            padding: 0;
         }
 
         .top-nav-item {
             list-style: none;
-            display: inline-block;
         }
 
-            .top-nav-item a {
-                display: flex; /* ✅ makes the link content align better */
-                align-items: center; /* centers text inside */
-                justify-content: center;
-                color: #071744;
-                margin-right: 25px;
-                text-decoration: none;
-                height: 100%; /* stretch link to match navbar height */
-            }
+        .top-nav-item a {
+            display: flex;
+            align-items: center; /* centers icon + text */
+            justify-content: center;
+            color: #071744;
+            margin-right: 25px;
+            text-decoration: none;
+            height: 100%; /* match navbar height */
+            gap: 6px; /* spacing between icon and text */
+        }
+
     </style>
 </head>
 <body>

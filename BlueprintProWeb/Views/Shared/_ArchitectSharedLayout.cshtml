@@ -164,33 +164,43 @@
         .navbar {
             position: fixed;
             top: 15px;
-            left: 15px;     /* offset from left */
-            right: 15px;    /* offset from right */
+            left: 15px;
+            right: 15px;
             height: 60px;
             background: #fff;
             z-index: 90;
             display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            border-radius: 8px; /* optional */
+            justify-content: flex-end; /* keeps items to the right */
+            align-items: center; /* vertical centering */
+            border-radius: 8px;
         }
-        .navbar-div{
+
+        .navbar-div {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
+            align-items: center; /* ensures children align vertically */
+            height: 100%; /* match navbar height */
         }
-        .top-nav-item{
+
+        .navbar-list {
+            display: flex; /* make list horizontal */
+            align-items: center; /* vertically center li’s */
+            margin: 0;
+            padding: 0;
+        }
+
+        .top-nav-item {
             list-style: none;
-            display: inline-block;
         }
-        .top-nav-item a{
-            display: flex;               /* ✅ makes the link content align better */
-            align-items: center;         /* centers text inside */
+
+        .top-nav-item a {
+            display: flex;
+            align-items: center; /* centers icon + text */
             justify-content: center;
             color: #071744;
             margin-right: 25px;
             text-decoration: none;
-            height: 100%;                /* stretch link to match navbar height */
+            height: 100%; /* match navbar height */
+            gap: 6px; /* spacing between icon and text */
         }
     </style>
 </head>
