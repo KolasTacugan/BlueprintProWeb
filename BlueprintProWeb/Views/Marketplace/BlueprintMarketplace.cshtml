@@ -1,0 +1,69 @@
+﻿@{
+	ViewData["Title"] = "BlueprintMarketplace";
+	Layout = "~/Views/Shared/_BlueprintLayout.cshtml";
+}
+<div class="container-fluid mt-5 pt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="fw-bold">Blueprint Marketplace</h2>
+        <button class="btn btn-light border">
+            Cart
+            <span id="cartCount" class="badge bg-primary ms-1">0</span>
+        </button>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item"><a class="nav-link active" href="#">Residential</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Commercial</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Industrial</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Interior</a></li>
+    </ul>
+
+    <!-- Cards -->
+    <div class="row">
+        <!-- Card 1 -->
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm">
+                <img src="~/images/blueprint1.png" class="card-img-top" alt="Blueprint">
+                <div class="card-body">
+                    <h5 class="fw-bold">$1,200</h5>
+                    <p class="mb-1">White House</p>
+                    <small class="text-muted">4 beds | 3 baths | 2 stories</small>
+                    <div class="d-flex align-items-center my-2">
+                        <span class="text-warning">★★★★★</span>
+                        <small class="ms-2">(3)</small>
+                    </div>
+                    <button class="btn btn-primary w-100 add-to-cart">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm">
+                <img src="~/images/blueprint2.png" class="card-img-top" alt="Blueprint">
+                <div class="card-body">
+                    <h5 class="fw-bold">$1,000</h5>
+                    <p class="mb-1">Office Floor Plan</p>
+                    <small class="text-muted">4 rooms | 3 baths | 2 stories</small>
+                    <div class="d-flex align-items-center my-2">
+                        <span class="text-warning">★★★★☆</span>
+                        <small class="ms-2">(6)</small>
+                    </div>
+                    <button class="btn btn-primary w-100 add-to-cart">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.add-to-cart').forEach(btn => {
+            btn.addEventListener('click', () => {
+                let cartCount = document.getElementById('cartCount');
+                cartCount.innerText = parseInt(cartCount.innerText) + 1;
+            });
+        });
+    </script>
+}
