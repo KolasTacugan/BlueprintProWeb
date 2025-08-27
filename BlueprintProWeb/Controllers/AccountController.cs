@@ -112,6 +112,11 @@ namespace BlueprintProWeb.Controllers
             return View(model);
         }
 
+        public IActionResult EditProfile()
+        {
+            return View();
+        }
+
         public IActionResult VerifyEmail()
         {
             return View();

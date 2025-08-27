@@ -151,7 +151,6 @@
 </style>
 
 <div class="profile-container">
-    <!-- Everything inside the main card -->
     <div class="profile-main-card">
         <div class="page-header">
             <h2>Profile</h2>
@@ -170,7 +169,7 @@
                         <div class="phone">0923 456 7890</div>
                     </div>
                 </div>
-                <button class="edit-btn">✏ Edit</button>
+                <a asp-controller="Account" asp-action="EditProfile" class="edit-btn">✏ Edit</a>
             </div>
 
             <div class="side-buttons">
