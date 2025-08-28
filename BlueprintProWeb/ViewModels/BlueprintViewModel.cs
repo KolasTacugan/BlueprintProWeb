@@ -1,11 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace BlueprintProWeb.Models
+namespace BlueprintProWeb.ViewModels
 {
-    public class Blueprint
+    public class BlueprintViewModel
     {
-        public int blueprintId { get; set; }
-        public string blueprintImage { get; set; }
+        public IFormFile? BlueprintImage { get; set; }
+
         [MaxLength(60)]
         public string blueprintName { get; set; } = "";
         public int blueprintPrice { get; set; }
