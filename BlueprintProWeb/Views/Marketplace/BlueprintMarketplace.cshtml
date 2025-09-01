@@ -1,0 +1,55 @@
+﻿@model IEnumerable<BlueprintProWeb.Models.Blueprint>
+@{
+    ViewData["Title"] = "Blueprint Marketplace";
+    Layout = "~/Views/Shared/_BlueprintLayout.cshtml";
+}
+<div class="container-fluid mt-5 pt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="fw-bold">Blueprint Marketplace</h2>
+        <button class="btn btn-light border">
+            Cart
+            <span id="cartCount" class="badge bg-primary ms-1">0</span>
+        </button>
+    </div>
+
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item"><a class="nav-link active" href="#">Residential</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Commercial</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Industrial</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Interior</a></li>
+    </ul>
+
+    <div class="row">
+        @foreach (var item in Model)
+        {
+            <div class="col-md-3 mb-4">
+                <div class="card shadow-sm">
+                    <img src="~/images/@item.blueprintImage" class="card-img-top" alt="@item.blueprintName" asp-append-version="true">
+                    <div class="card-body">
+                        <h5 class="fw-bold">₱@item.blueprintPrice</h5>
+                        <p class="mb-1">@item.blueprintName</p>
+                        <small class="text-muted">@item.blueprintDescription</small>
+
+                        <div class="d-flex align-items-center my-2">
+                            <span class="text-warning">★★★★★</span>
+                            <small class="ms-2">(0)</small>
+                        </div>
+
+                        <button class="btn btn-primary w-100 add-to-cart">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.add-to-cart').forEach(btn => {
+            btn.addEventListener('click', () => {
+                let cartCount = document.getElementById('cartCount');
+                cartCount.innerText = parseInt(cartCount.innerText) + 1;
+            });
+        });
+    </script>
+}
