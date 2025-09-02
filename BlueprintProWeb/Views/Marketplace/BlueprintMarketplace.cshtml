@@ -1,12 +1,12 @@
 ﻿@model IEnumerable<BlueprintProWeb.Models.Blueprint>
 @{
     ViewData["Title"] = "Blueprint Marketplace";
-    Layout = "~/Views/Shared/_BlueprintLayout.cshtml";
+    Layout = "~/Views/Shared/_ClientSharedLayout.cshtml";
 }
-<div class="container-fluid mt-5 pt-4">
+<div>
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="fw-bold">Blueprint Marketplace</h2>
-        <button class="btn btn-light border">
+        <h2 class="fw-bold mt-5 pt-4">Blueprint Marketplace</h2>
+        <button class="btn btn-light border mt-5">
             Cart
             <span id="cartCount" class="badge bg-primary ms-1">0</span>
         </button>
