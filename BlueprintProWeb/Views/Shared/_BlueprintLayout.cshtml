@@ -1,0 +1,315 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - BlueprintProWeb</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/BlueprintProWeb.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    @*STYLES*@
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Poppins", sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background-color: #D6D9E0; /* base color */
+            margin: 0;
+            position: relative;
+            overflow: hidden; /* just in case */
+        }
+
+            body::before {
+                content: "";
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat;
+                opacity: 0.4;
+                z-index: 0;
+                pointer-events: none;
+            }
+
+        .sidebar {
+            width: 270px;
+            position: fixed;
+            margin: -8px 16px 16px 16px;
+            border-radius: 10px;
+            background: #071744;
+            height: calc(100vh - 32px);
+            transition: 0.4s ease;
+            z-index: 1000;
+        }
+
+            .sidebar.collapsed {
+                width: 85px;
+            }
+
+        .sidebar-header {
+            position: relative;
+            display: flex;
+            padding: 25px 20px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+            .sidebar-header .header-logo {
+                display: flex; /* so it hugs the img */
+                align-items: center;
+                justify-content: center;
+                padding: 0; /* remove extra padding */
+                margin: 0; /* remove extra margin */
+            }
+
+                .sidebar-header .header-logo img {
+                    width: 46px;
+                    height: 46px;
+                    display: block;
+                    object-fit: contain;
+                    border-radius: 50%;
+                }
+
+            .sidebar-header .system-name {
+                font-size: 1.2rem; /* bigger than nav-labels */
+                font-weight: 700; /* bold */
+                color: #fff;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                transition: opacity 0.4s ease, width 0.4s ease;
+            }
+
+        .system-name {
+            margin-right: 24px;
+            margin-top: 10px;
+        }
+
+        .sidebar-nav .nav-list {
+            list-style: none;
+            display: flex;
+            gap: 4px;
+            padding: 0 15px;
+            flex-direction: column;
+            transform: translateY(15px);
+        }
+
+        .sidebar-header .toggler {
+            position: absolute;
+            right: -15px;
+            height: 35px;
+            width: 35px;
+            border: none;
+            color: #071744;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 50%;
+            background: #fff;
+            transition: 0.4s ease;
+        }
+
+        .sidebar.collapsed .sidebar-header .toggler {
+            transform: translate(5px, 0px);
+        }
+
+            .sidebar.collapsed .sidebar-header .toggler span {
+                transform: rotate(180deg);
+                border-radius: 50%;
+                outline: 4px solid #071744;
+                outline-offset: 4px;
+                transition: transform ease-in-out.4s ease;
+            }
+
+        .sidebar-header .system-name {
+            transition: opacity 1.5s ease;
+        }
+
+        .sidebar.collapsed .sidebar-header .system-name {
+            opacity: 0;
+            width: 0;
+            pointer-events: none;
+        }
+
+        .sidebar-header .toggler:hover {
+            background: #dde4fb;
+        }
+
+        .sidebar-header .toggler span {
+            font-size: 1.75rem;
+            border-radius: 50%;
+            outline: 4px solid #071744;
+            outline-offset: 4px;
+            transition: transform 0.4s ease, outline 0.4s ease;
+        }
+
+        .sidebar-nav .nav-link {
+            display: flex;
+            align-items: center;
+            color: #fff;
+            text-decoration: none;
+            gap: 50px;
+            padding: 12px 15px;
+            border-radius: 8px;
+            transition: 0.4s ease;
+        }
+
+            .sidebar-nav .nav-link:hover {
+                background: #fff;
+                color: #071744;
+            }
+
+            .sidebar-nav .nav-link .nav-label {
+                transition: opacity 0.4s ease;
+            }
+
+        .sidebar.collapsed .sidebar-nav .nav-link .nav-label {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .sidebar-nav {
+            position: absolute;
+            width: 100%;
+            padding-top: 20px;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            height: 60px;
+            background: #fff;
+            z-index: 90;
+            display: flex;
+            justify-content: flex-end; /* keeps items to the right */
+            align-items: center; /* vertical centering */
+            border-radius: 8px;
+        }
+
+        .navbar-div {
+            display: flex;
+            align-items: center; /* ensures children align vertically */
+            height: 100%; /* match navbar height */
+        }
+
+        .navbar-list {
+            display: flex; /* make list horizontal */
+            align-items: center; /* vertically center li’s */
+            margin: 0;
+            padding: 0;
+        }
+
+        .top-nav-item {
+            list-style: none;
+        }
+
+            .top-nav-item a {
+                display: flex;
+                align-items: center; /* centers icon + text */
+                justify-content: center;
+                color: #071744;
+                margin-right: 25px;
+                text-decoration: none;
+                height: 100%; /* match navbar height */
+                gap: 6px; /* spacing between icon and text */
+            }
+
+    </style>
+</head>
+<body>
+    @* SIDEBAR *@
+    <aside class="sidebar ">
+        @* SideBar Header *@
+        <header class="sidebar-header">
+            <a href="#" class="header-logo">
+                <img src="~/images/BBP Logo.png" alt="BPP" />
+            </a>
+            <h1 class="system-name">BlueprintPro</h1>
+            <button class="toggler sidebar-toggler">
+                <span class="material-symbols-rounded">chevron_left</span>
+            </button>
+        </header>
+        <nav class="sidebar-nav">
+            @* SideBar Contents *@
+            <ul class="nav-list primary-nav">
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <span class="nav-icon material-symbols-rounded">monitoring</span>
+                        <span class="nav-label">Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <span class="nav-icon material-symbols-rounded">handshake</span>
+                        <span class="nav-label">Match</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <span class="nav-icon material-symbols-rounded">house</span>
+                        <span class="nav-label">Marketplace</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <span class="material-symbols-rounded">note_stack</span>
+                        <span class="nav-label">Projects</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+    @*NAVBAR*@
+    <nav class="navbar">
+        <div class="navbar-div">
+            <ul class="navbar-list">
+                <li class="top-nav-item">
+                    <a href="#" class="top-nav-link">
+                        <span class="material-symbols-rounded">chat_bubble</span>
+                    </a>
+                </li>
+                <li class="top-nav-item">
+                    <a href="#" class="top-nav-link">
+                        <span class="material-symbols-rounded">notifications</span>
+                    </a>
+                </li>
+                <li class="top-nav-item">
+                    <a href="#" class="top-nav-link">
+                        <span class="material-symbols-rounded">account_circle</span>
+                        <span class="profile-name">Clark</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <main class="container mt-4">
+        @RenderBody()
+    </main>
+
+    @RenderSection("Scripts", required: false)
+
+    @*SCRIPTS*@
+    <script>
+        const sidebar = document.querySelector(".sidebar");
+        const sidebarToggler = document.querySelector(".sidebar-toggler");
+
+        @*Collapsed state*@
+        sidebarToggler.addEventListener("click", ()=>{
+            sidebar.classList.toggle("collapsed")
+        });
+    </script> 
+</body>
+</html>

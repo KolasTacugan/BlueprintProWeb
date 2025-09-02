@@ -4,80 +4,151 @@
     ViewData["Title"] = "ArchitectDashboard";
     Layout = "~/Views/Shared/_ArchitectSharedLayout.cshtml";
 }
-@section Styles{
-	<style>
-		.blueprint-title{
-			position: relative;
-			top: 80px;
-			left: 200px;
-			font-weight: 700;
-		}
-		.add-bp{
-			position: relative;
-			color: #fff;
-			background: #071744;
-			transition: 0.2s ease;
-		}
-		.add-bp:hover{
-			background: #fff;
-			color: #071744;
-			border-color: #071744;
-		}
-        .blueprint-inputs{
+
+@section Styles {
+    <style>
+        .blueprint-title {
+            position: relative;
+            top: 80px;
+            left: 200px;
+            font-weight: 700;
+        }
+
+        .add-bp {
+            position: relative;
+            color: #fff;
+            background: #071744;
+            transition: 0.2s ease;
+        }
+
+            .add-bp:hover {
+                background: #fff;
+                color: #071744;
+                border-color: #071744;
+            }
+
+        .blueprint-inputs {
             position: relative;
             top: 80px;
             left: 200px;
         }
+
         .bp-desc {
-            height: 120px; 
-            resize: vertical; 
+            height: 120px;
+            resize: vertical;
             word-wrap: break-word;
         }
-	</style>
+    </style>
 }
-<h1 class="blueprint-title">Add Blueprint</h1>
+
+
+
 <div class="blueprint-inputs row">
     <div class="col-md-4">
-        <form asp-action="AddBlueprints" method="post" enctype="multipart/form-data">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group mb-3">
-                <label asp-for="BlueprintImage" class="control-label">Blueprint</label>
-                <input asp-for="BlueprintImage" type="file" class="form-control" required/>
-                <span asp-validation-for="BlueprintImage" class="text-danger"></span>
-            </div>
-            <div class="form-group mb-3">
-                <label asp-for="blueprintName" class="control-label">Blueprint Name</label>
-                <input asp-for="blueprintName" class="form-control" />
-                <span asp-validation-for="blueprintName" class="text-danger"></span>
-            </div>
-            <div class="form-group mb-3">
-                <label asp-for="blueprintPrice" class="control-label">Price(in Pesos)</label>
-                <input asp-for="blueprintPrice" class="form-control" />
-                <span asp-validation-for="blueprintPrice" class="text-danger"></span>
-            </div>
-            <div class="form-group mb-3">
-                <label asp-for="blueprintDescription" class="control-label">Description</label>
-                <textarea asp-for="blueprintDescription" class="bp-desc form-control"></textarea>
-                <span asp-validation-for="blueprintDescription" class="text-danger"></span>
-            </div>
-            <div class="form-group mb-3">
-                <label asp-for="blueprintStyle" class="control-label">Style</label>
-                <select asp-for="blueprintStyle" class="form-control">
-                    <option value="Modern">Modern</option>
-                    <option value="Traditional">Traditional</option>
-                    <option value="Contemporary">Contemporary</option>
-                    <option value="Minimalist">Minimalist</option>
-                </select>
-                <span asp-validation-for="blueprintStyle" class="text-danger"></span>
+        <!-- Tabs Navigation -->
+        <ul class="nav nav-tabs" id="blueprintTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="marketplace-tab"
+                        data-bs-toggle="tab" data-bs-target="#marketplace"
+                        type="button" role="tab" aria-controls="marketplace" aria-selected="true">
+                    For Marketplace
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="project-tab"
+                        data-bs-toggle="tab" data-bs-target="#project"
+                        type="button" role="tab" aria-controls="project" aria-selected="false">
+                    For Project
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tabs Content -->
+        <div class="tab-content mt-3" id="blueprintTabsContent">
+
+            <!-- Marketplace Form -->
+            <div class="tab-pane fade show active" id="marketplace" role="tabpanel" aria-labelledby="marketplace-tab">
+                <form asp-action="AddBlueprints" method="post" enctype="multipart/form-data">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="BlueprintImage" class="control-label">Blueprint</label>
+                        <input asp-for="BlueprintImage" type="file" class="form-control" required />
+                        <span asp-validation-for="BlueprintImage" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="blueprintName" class="control-label">Blueprint Name</label>
+                        <input asp-for="blueprintName" class="form-control" />
+                        <span asp-validation-for="blueprintName" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="blueprintPrice" class="control-label">Price (in Pesos)</label>
+                        <input asp-for="blueprintPrice" class="form-control" />
+                        <span asp-validation-for="blueprintPrice" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="blueprintDescription" class="control-label">Description</label>
+                        <textarea asp-for="blueprintDescription" class="bp-desc form-control"></textarea>
+                        <span asp-validation-for="blueprintDescription" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="blueprintStyle" class="control-label">Style</label>
+                        <select asp-for="blueprintStyle" class="form-control">
+                            <option value="Modern">Modern</option>
+                            <option value="Traditional">Traditional</option>
+                            <option value="Contemporary">Contemporary</option>
+                            <option value="Minimalist">Minimalist</option>
+                        </select>
+                        <span asp-validation-for="blueprintStyle" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <input type="submit" value="Upload to Marketplace" class="add-bp btn" />
+                    </div>
+                </form>
             </div>
 
-            <div class="form-group mb-3">
-                <input type="submit" value="Upload" class="add-bp btn" />
+            <!-- Project Form -->
+            <div class="tab-pane fade" id="project" role="tabpanel" aria-labelledby="project-tab">
+                <form asp-action="AddProjectBlueprints" method="post" enctype="multipart/form-data">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="BlueprintImage" class="control-label">Blueprint</label>
+                        <input asp-for="BlueprintImage" type="file" class="form-control" required />
+                        <span asp-validation-for="BlueprintImage" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="blueprintName" class="control-label">Project Name</label>
+                        <input asp-for="blueprintName" class="form-control" />
+                        <span asp-validation-for="blueprintName" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="blueprintDescription" class="control-label">Project Description</label>
+                        <textarea asp-for="blueprintDescription" class="bp-desc form-control"></textarea>
+                        <span asp-validation-for="blueprintDescription" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <input type="submit" value="Upload for Project" class="add-bp btn" />
+                    </div>
+                </form>
             </div>
-        </form>
+
+        </div>
     </div>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <!-- Make sure Bootstrap JS is loaded -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 }
