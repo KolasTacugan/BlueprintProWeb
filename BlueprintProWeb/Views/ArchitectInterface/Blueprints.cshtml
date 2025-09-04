@@ -39,7 +39,6 @@
 
 		.blueprint-table tr {
 			background: #fff;
-			border-radius: 30px;
 			overflow: hidden;
 			vertical-align: middle;
 			box-shadow: 0 2px 6px rgba(0,0,0,0.05);
@@ -51,13 +50,12 @@
 		}
 
 		.bp-image {
-			width: 80px;
-			height: auto;
+			width: 160px;
+			height: 80px;
 			border-radius: 8px;
 			object-fit: cover;
-			opacity: 1; /* ensures full opacity */
+			opacity: 1;
 		}
-
 
 		.bp-image-col {
 			width: 120px;
@@ -69,6 +67,40 @@
 			padding: 4px 10px;
 		}
 
+		.track-btn {
+			margin-right: 50px;
+			color: #071744;
+			background: #fff;
+			border-color: #071744;
+			transition: 0.2s ease;
+		}
+
+		.track-btn:hover {
+			background: #071744;
+			color: #fff;
+		}
+
+		.bp-name {
+			margin-left: 40px;
+		}
+
+		.bp-row {
+			cursor: pointer;
+		}
+
+		.delete-title{
+			font-weight: 600;
+		}
+		.save-btn{
+			color: #fff;
+			background: #071744;
+			border-color: #fff;
+			transition: 0.2s ease;
+		}
+		.save-btn:hover{
+			background: #fff;
+			color: #071744;
+		}
 	</style>
 }
 
@@ -87,23 +119,162 @@
 			<tbody>
 				@foreach (var item in Model)
 				{
-					<tr>
+					<tr class="bp-row"
+						role="button"
+						tabindex="0"
+						data-id="@item.blueprintId"
+						data-name="@item.blueprintName"
+						data-price="@item.blueprintPrice"
+						data-style="@item.blueprintStyle">
 						<td>
 							<div class="d-flex align-items-center">
 								<img src="~/images/@item.blueprintImage" class="bp-image me-2" asp-append-version="true" />
-								<span>@item.blueprintName</span>
+								<span class="bp-name">@item.blueprintName</span>
 							</div>
 						</td>
 						<td class="text-end">
-							@Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }, new { @class = "btn btn-sm btn-outline-primary me-1" })
-							@Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }, new { @class = "btn btn-sm btn-outline-secondary me-1" })
-							@Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ }, new { @class = "btn btn-sm btn-outline-danger" })
+							<input type="submit" value="Track" class="track-btn btn"/>
 						</td>
 					</tr>
 				}
 			</tbody>
 		</table>
+
+		<!-- HIDDEN MODAL FOR EDITING BP -->
+		<div class="modal fade" id="editBlueprintModal" tabindex="-1" aria-labelledby="editBlueprintLabel" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered">
+				<div class="modal-content">
+					<form asp-action="EditBlueprint" method="post" enctype="multipart/form-data">
+						@Html.AntiForgeryToken()
+						<div class="modal-header">
+							<h5 class="modal-title" id="editBlueprintLabel">Edit Blueprint</h5>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+						</div>
+
+						<div class="modal-body">
+							<input type="hidden" name="blueprintId" id="edit-id" />
+
+							<div class="mb-3">
+								<label class="form-label">Name</label>
+								<input type="text" class="form-control" name="blueprintName" id="edit-name" required />
+							</div>
+
+							<div class="mb-3">
+								<label class="form-label">Price (₱)</label>
+								<input type="number" class="form-control" name="blueprintPrice" id="edit-price" required />
+							</div>
+
+							<div class="mb-3">
+								<label class="form-label">Style</label>
+								<select class="form-select" name="blueprintStyle" id="edit-style">
+									<option value="Modern">Modern</option>
+									<option value="Traditional">Traditional</option>
+									<option value="Contemporary">Contemporary</option>
+									<option value="Minimalist">Minimalist</option>
+								</select>
+							</div>
+
+							<div class="mb-3">
+								<label class="form-label">Change Image</label>
+								<input type="file" class="form-control" name="BlueprintImage" id="edit-file" />
+								<small class="text-muted">Leave empty to keep the current image.</small>
+							</div>
+						</div>
+
+						<div class="modal-footer">
+							<button type="button" class="btn btn-danger me-auto" id="delete-btn">Delete</button>
+							<button type="submit" class="save-btn btn btn-primary">Save Changes</button>
+						</div>
+					</form>
+
+					<form id="delete-form" method="post" asp-action="DeleteBlueprint" style="display:none;">
+						@Html.AntiForgeryToken()
+						<input type="hidden" name="blueprintId" id="delete-id" />
+					</form>
+				</div>
+			</div>
+		</div>
 	</div>
 </div>
+
+<!-- MODAL FOR CONFIRM DELETION OF MODAL -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="delete-title modal-title text-danger">WARNING!</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+			</div>
+			<div class="modal-body">
+				Are you sure you want to delete this blueprint? This action cannot be undone.
+			</div>
+			<div class="modal-footer">
+				<form id="deleteForm" method="post" asp-action="DeleteBlueprint" asp-controller="ArchitectInterface">
+					<input type="hidden" name="blueprintId" id="deleteBlueprintId" />
+					<button type="submit" class="btn btn-danger">Delete</button>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+@section Scripts {
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+	<script>
+		// Bootstrap modal instances
+		const editModalEl   = document.getElementById('editBlueprintModal');
+		const deleteModalEl = document.getElementById('deleteConfirmModal');
+
+		const editModal   = new bootstrap.Modal(editModalEl);
+		const deleteModal = new bootstrap.Modal(deleteModalEl);
+
+		// Open Edit Modal when clicking row
+		function openEditFromRow(row) {
+			// Fill fields from row's data-*
+			document.getElementById('edit-id').value    = row.dataset.id;
+			document.getElementById('edit-name').value  = row.dataset.name;
+			document.getElementById('edit-price').value = row.dataset.price;
+			document.getElementById('edit-style').value = row.dataset.style;
+
+			// Reset file input
+			const fileInput = document.getElementById('edit-file');
+			if (fileInput) fileInput.value = '';
+
+			// Also update hidden delete id
+			document.getElementById('deleteBlueprintId').value = row.dataset.id;
+
+			// Show modal
+			editModal.show();
+		}
+
+		// Wire up all rows
+		document.querySelectorAll('.bp-row').forEach(row => {
+			// Click handler
+			row.addEventListener('click', (e) => {
+				if (e.target.closest('.no-row-open,button,a,input,label,select,textarea')) return;
+				openEditFromRow(row);
+			});
+
+			// Keyboard: Enter or Space opens modal
+			row.addEventListener('keydown', (e) => {
+				if (e.key === 'Enter' || e.key === ' ') {
+					e.preventDefault();
+					openEditFromRow(row);
+				}
+			});
+		});
+
+		// Delete button inside edit modal opens the delete confirmation modal
+		document.getElementById('delete-btn')?.addEventListener('click', function () {
+			// Close the edit modal first (optional)
+			editModal.hide();
+			// Show the delete confirmation modal
+			deleteModal.show();
+		});
+	</script>
+}
+
 
 
