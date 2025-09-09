@@ -38,6 +38,9 @@ namespace BlueprintProWeb.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("blueprintIsForSale")
+                        .HasColumnType("bit");
+
                     b.Property<string>("blueprintName")
                         .IsRequired()
                         .HasMaxLength(60)
