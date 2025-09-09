@@ -1,0 +1,159 @@
+﻿@model IEnumerable<BlueprintProWeb.Models.User>
+
+@{
+    ViewData["Title"] = "Architect Match";
+    Layout = "~/Views/Shared/_ClientSharedLayout.cshtml";
+}
+
+<div class="container-fluid px-4 py-3">
+    <div class="row" style="height: 85vh;">
+        <!-- LEFT SIDE: Architect Results -->
+        <div class="col-md-8 border-end overflow-auto" id="architectResults">
+            <h4 class="fw-bold mb-3">Architect Matches</h4>
+            <div id="resultsContainer" class="row">
+                @foreach (var architect in Model)
+                {
+                    <div class="col-md-6 mb-4">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-body d-flex flex-column">
+                                <div class="d-flex align-items-center mb-3">
+                                    <img src="~/images/@(architect.user_profilePhoto ?? "default-profile.png")"
+                                         class="rounded-circle me-3 border" width="50" height="50"
+                                         alt="@($"{architect.user_fname} {architect.user_lname}")" />
+                                    <div>
+                                        <h6 class="fw-bold mb-0">@($"{architect.user_fname} {architect.user_lname}")</h6>
+                                        <small class="text-muted">@architect.user_Specialization ?? "General Architect"</small>
+                                    </div>
+                                </div>
+                                <p class="text-muted small flex-grow-1">
+                                    Style: @architect.user_Style ?? "Various" <br>
+                                    Location: @architect.user_Location ?? "Flexible" <br>
+                                    Budget: @architect.user_Budget ?? "Flexible"
+                                </p>
+                                <div class="d-flex align-items-center mb-2">
+                                    <span class="text-warning">★★★★★</span>
+                                    <small class="ms-2">(@(architect.user_Rating?.ToString("0.0") ?? "0"))</small>
+                                </div>
+                                <button class="btn btn-outline-primary w-100 mt-auto match-btn"
+                                        data-id="@architect.Id">
+                                    Match
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- RIGHT SIDE: Chat -->
+        <div class="col-md-4 d-flex flex-column">
+            <h4 class="fw-bold mb-3">Chat</h4>
+            <!-- Chat history -->
+            <div id="chatWindow" class="flex-grow-1 border rounded p-3 bg-light overflow-auto mb-2">
+                <div class="d-flex mb-3">
+                    <div class="p-3 bg-secondary text-white rounded-3 shadow-sm">
+                        👋 Hi! Tell me what kind of architect you are looking for.
+                    </div>
+                </div>
+            </div>
+            <!-- Chat input -->
+            <div>
+                <div class="input-group">
+                    <textarea id="clientPrompt" class="form-control" rows="1"
+                              placeholder="Describe what you’re looking for..."></textarea>
+                    <button class="btn btn-primary" id="searchArchitects">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const chatWindow = document.getElementById('chatWindow');
+        const inputBox = document.getElementById('clientPrompt');
+        const searchBtn = document.getElementById('searchArchitects');
+        const resultsContainer = document.getElementById('resultsContainer');
+
+        function appendUserMessage(message) {
+            let msg = document.createElement('div');
+            msg.className = "d-flex justify-content-end mb-3";
+            msg.innerHTML = `<div class="p-3 bg-primary text-white rounded-3 shadow-sm">${message}</div>`;
+            chatWindow.appendChild(msg);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        function renderArchitects(architects) {
+            resultsContainer.innerHTML = ""; // clear old results
+
+            if (architects.length === 0) {
+                resultsContainer.innerHTML = `
+                    <div class="col-12">
+                        <div class="alert alert-warning">No architects found. Try refining your description.</div>
+                    </div>`;
+                return;
+            }
+
+            architects.forEach(a => {
+                let card = document.createElement('div');
+                card.className = "col-md-6 mb-4";
+                card.innerHTML = `
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body d-flex flex-column">
+                            <div class="d-flex align-items-center mb-3">
+                                <img src="/images/${a.user_profilePhoto ?? "default-profile.png"}"
+                                     class="rounded-circle me-3 border" width="50" height="50"
+                                     alt="${a.user_fname} ${a.user_lname}" />
+                                <div>
+                                    <h6 class="fw-bold mb-0">${a.user_fname} ${a.user_lname}</h6>
+                                    <small class="text-muted">${a.user_Specialization ?? "General Architect"}</small>
+                                </div>
+                            </div>
+                            <p class="text-muted small flex-grow-1">
+                                Style: ${a.user_Style ?? "Various"} <br>
+                                Location: ${a.user_Location ?? "Flexible"} <br>
+                                Budget: ${a.user_Budget ?? "Flexible"}
+                            </p>
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="text-warning">★★★★★</span>
+                                <small class="ms-2">(${a.user_Rating?.toFixed(1) ?? "0"})</small>
+                            </div>
+                            <button class="btn btn-outline-primary w-100 mt-auto match-btn"
+                                    data-id="${a.id}">
+                                Match
+                            </button>
+                        </div>
+                    </div>`;
+                resultsContainer.appendChild(card);
+            });
+
+            // rebind match buttons
+            resultsContainer.querySelectorAll('.match-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    let architectId = this.getAttribute('data-id');
+                    alert("Matched with Architect ID: " + architectId);
+                });
+            });
+        }
+
+        searchBtn.addEventListener('click', function () {
+            let prompt = inputBox.value.trim();
+            if (!prompt) {
+                alert("Please describe your desired architect.");
+                return;
+            }
+
+            appendUserMessage(prompt);
+            inputBox.value = "";
+
+            // Fetch new results
+            fetch(`/ClientInterface/SearchArchitects?query=${encodeURIComponent(prompt)}`)
+                .then(res => res.json())
+                .then(data => renderArchitects(data))
+                .catch(err => {
+                    console.error("Search failed:", err);
+                    renderArchitects([]);
+                });
+        });
+    </script>
+}
