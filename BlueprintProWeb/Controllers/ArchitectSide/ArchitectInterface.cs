@@ -25,7 +25,9 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
 
         public IActionResult Blueprints()
         {
-            var blueprints = context.Blueprints.ToList();
+            var blueprints = context.Blueprints
+                .Where(bp => bp.blueprintIsForSale)
+                .ToList();
             return View(blueprints);
         }
         public IActionResult AddBlueprints()
@@ -42,7 +44,8 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 blueprintName = vm.blueprintName,
                 blueprintPrice = vm.blueprintPrice,
                 blueprintDescription = vm.blueprintDescription,
-                blueprintStyle = vm.blueprintStyle
+                blueprintStyle = vm.blueprintStyle,
+                blueprintIsForSale = vm.blueprintIsForSale
             };
             context.Blueprints.Add(blueprint);
             context.SaveChanges();
