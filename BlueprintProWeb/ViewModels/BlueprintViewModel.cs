@@ -12,5 +12,6 @@ namespace BlueprintProWeb.ViewModels
         public int blueprintPrice { get; set; }
         public string blueprintDescription { get; set; } = "";
         public string blueprintStyle { get; set; } = "";
+        public Boolean blueprintIsForSale { get; set; }
     }
 }
