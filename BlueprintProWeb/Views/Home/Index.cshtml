@@ -2,7 +2,24 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+@section Hero {
+    <div class="hero-section" style="background-image:url('@Url.Content("~/images/landing-bg.png")')">
+        <!-- Logo -->
+        <div class="logo">
+            <img src="~/images/logo.png" alt="BlueprintPro Logo">
+        </div>
+
+        <!-- Overlay -->
+        <div class="overlay"></div>
+
+        <!-- Content -->
+        <div class="hero-content container">
+            <h1 class="brand-title">Blueprint<span class="pro">Pro</span></h1>
+            <h2 class="tagline">Connect. Share. Build.</h2>
+            <p class="description">
+                Connecting people, designs, and progress—architecture made simple.
+            </p>
+            <a href="#" class="get-started-btn">Get Started</a>
+        </div>
+    </div>
+}
