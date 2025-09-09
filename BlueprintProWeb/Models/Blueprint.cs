@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BlueprintProWeb.Models
 {
@@ -12,12 +11,6 @@ namespace BlueprintProWeb.Models
         public int blueprintPrice { get; set; }
         public string blueprintDescription { get; set; } = "";
         public string blueprintStyle { get; set; } = "";
-        public DateTime Blueprint_CreatedDate { get; set; } = DateTime.UtcNow;
-        
-        [ForeignKey("Architect")]
-        public string ArchitectId { get; set; }
-
-        // Navigation property
-        public User Architect { get; set; }
+        public Boolean blueprintIsForSale { get; set; } 
     }
 }

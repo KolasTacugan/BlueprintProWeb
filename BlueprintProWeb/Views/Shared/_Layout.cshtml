@@ -40,12 +40,16 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="ClientInterface" asp-action="Matches">Matches</a>
                         </li>
-                        <partial name="_LoginPartial"/>
+                        <partial name="_LoginPartial" />
                     </ul>
                 </div>
             </div>
         </nav>
     </header>
+
+    <!-- Hero Section slot (outside container so it can be full-width) -->
+    @RenderSection("Hero", required: false)
+
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
