@@ -5,6 +5,7 @@ namespace BlueprintProWeb.ViewModels
     public class BlueprintViewModel
     {
         public int blueprintId { get; set; }
+        public string architectId { get; set; }
         public IFormFile? BlueprintImage { get; set; }
 
         [MaxLength(60)]

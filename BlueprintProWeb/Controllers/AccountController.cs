@@ -30,7 +30,21 @@ namespace BlueprintProWeb.Controllers
                 var result = await signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, false);
                 if (result.Succeeded)
                 {
-                    return RedirectToAction("Index", "Home");
+                    var user = await userManager.FindByEmailAsync(model.Email);
+
+                    if (user.user_role == "Architect")
+                    {
+                        return RedirectToAction("ArchitectDashboard", "ArchitectInterface");
+                    }
+                    else if (user.user_role == "Client")
+                    {
+                        return RedirectToAction("ClientDashboard", "ClientInterface");
+                    }
+                    else
+                    {
+                        // fallback if role not recognized
+                        return RedirectToAction("Index", "Home");
+                    }
                 }
                 else
                 {
