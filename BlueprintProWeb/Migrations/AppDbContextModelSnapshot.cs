@@ -30,6 +30,13 @@ namespace BlueprintProWeb.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("blueprintId"));
 
+                    b.Property<string>("ArchitectId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("Blueprint_CreatedDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("blueprintDescription")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -51,6 +58,8 @@ namespace BlueprintProWeb.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("blueprintId");
+
+                    b.HasIndex("ArchitectId");
 
                     b.ToTable("Blueprints");
                 });
@@ -287,6 +296,17 @@ namespace BlueprintProWeb.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("BlueprintProWeb.Models.Blueprint", b =>
+                {
+                    b.HasOne("BlueprintProWeb.Models.User", "Architect")
+                        .WithMany()
+                        .HasForeignKey("ArchitectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Architect");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
