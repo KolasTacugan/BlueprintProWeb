@@ -5,6 +5,7 @@ namespace BlueprintProWeb.Models
     public class Blueprint
     {
         public int blueprintId { get; set; }
+        public string architectId { get; set; }
         public string blueprintImage { get; set; }
         [MaxLength(60)]
         public string blueprintName { get; set; } = "";

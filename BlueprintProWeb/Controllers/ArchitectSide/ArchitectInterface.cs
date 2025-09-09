@@ -1,6 +1,7 @@
 ﻿using BlueprintProWeb.Data;
 using BlueprintProWeb.Models;
 using BlueprintProWeb.ViewModels;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
@@ -9,12 +10,14 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
     public class ArchitectInterface : Controller
     {
         private readonly AppDbContext context;
-
+        private readonly UserManager<User> _userManager;
         public IWebHostEnvironment WebHostEnvironment;
 
-        public ArchitectInterface(AppDbContext context, IWebHostEnvironment webHostEnvironment) {
+        public ArchitectInterface(AppDbContext context, IWebHostEnvironment webHostEnvironment, UserManager<User> userManager)
+        {
             this.context = context;
             WebHostEnvironment = webHostEnvironment;
+            _userManager = userManager;
         }
 
         public IActionResult ArchitectDashboard()
@@ -34,9 +37,12 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             return View();
         }
         [HttpPost]
-        public IActionResult AddBlueprints(BlueprintViewModel vm)
+        public async Task<IActionResult> AddBlueprints(BlueprintViewModel vm)
         {
             string stringFileName = UploadFile(vm);
+            var user = await _userManager.GetUserAsync(User);
+            var userId = user.Id;
+
             var blueprint = new Blueprint
             {
                 blueprintImage = stringFileName,         
@@ -44,10 +50,11 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 blueprintPrice = vm.blueprintPrice,
                 blueprintDescription = vm.blueprintDescription,
                 blueprintStyle = vm.blueprintStyle,
-                blueprintIsForSale = vm.blueprintIsForSale
+                blueprintIsForSale = vm.blueprintIsForSale,
+                architectId = userId
             };
             context.Blueprints.Add(blueprint);
-            context.SaveChanges();
+            await context.SaveChangesAsync();
 
             return RedirectToAction("Blueprints");
         }

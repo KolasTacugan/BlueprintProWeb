@@ -30,6 +30,10 @@ namespace BlueprintProWeb.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("blueprintId"));
 
+                    b.Property<string>("architectId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("blueprintDescription")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
