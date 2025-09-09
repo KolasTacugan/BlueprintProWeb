@@ -45,8 +45,8 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
 
             var blueprint = new Blueprint
             {
-                blueprintImage = stringFileName,         
-                blueprintName = vm.blueprintName,             
+                blueprintImage = stringFileName,
+                blueprintName = vm.blueprintName,
                 blueprintPrice = vm.blueprintPrice,
                 blueprintDescription = vm.blueprintDescription,
                 blueprintStyle = vm.blueprintStyle,
@@ -65,9 +65,10 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             if (vm.BlueprintImage != null)
             {
                 string uploadDir = Path.Combine(WebHostEnvironment.WebRootPath, "images");
-                fileName = Guid.NewGuid().ToString()+"-"+vm.BlueprintImage.FileName;
+                fileName = Guid.NewGuid().ToString() + "-" + vm.BlueprintImage.FileName;
                 string filePath = Path.Combine(uploadDir, fileName);
-                using (var fileStream = new FileStream(filePath, FileMode.Create)) {
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
                     vm.BlueprintImage.CopyTo(fileStream);
                 }
             }

@@ -1,0 +1,142 @@
+﻿@{
+    ViewData["Title"] = "Settings";
+}
+
+<style>
+    @@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+    body {
+        background: url('/images/account-bg.png') no-repeat center center fixed;
+        background-size: cover;
+        font-family: 'Poppins', sans-serif;
+        margin: 0;
+        min-height: 100vh;
+    }
+
+    .settings-container {
+        max-width: 1440px;
+        margin: 0 auto;
+        width: 100%;
+        padding-top: 40px;
+    }
+
+    .main-card {
+        background: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(15px);
+        border-radius: 24px;
+        padding: 40px;
+        margin: 0 20px;
+        box-shadow: 0 12px 40px rgba(13, 60, 128, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+        /* Make Settings title bold */
+        .main-card h2 {
+            color: #0D3C80;
+            font-weight: 700; /* Bold */
+        }
+
+    .search-box {
+        width: 100%;
+        padding: 16px 20px;
+        margin-top: 20px;
+        margin-bottom: 30px;
+        border: 2px solid #EBF1FD;
+        border-radius: 12px;
+        font-size: 1rem;
+        background: rgba(255, 255, 255, 0.95);
+        color: #666;
+    }
+
+    .settings-item {
+        background: rgba(255, 255, 255, 0.85);
+        border-radius: 16px;
+        padding: 20px 24px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(235, 241, 253, 0.6);
+        box-shadow: 0px 4px 12px rgba(13, 60, 128, 0.08);
+    }
+
+        .settings-item:hover {
+            background: rgba(235, 241, 253, 0.9);
+            transform: translateY(-1px);
+        }
+
+    .settings-icon {
+        width: 24px;
+        height: 24px;
+        color: #0D3C80;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .settings-text {
+        font-size: 1rem;
+        font-weight: 500;
+        color: #0D3C80;
+    }
+
+    .settings-arrow {
+        color: #666;
+        font-size: 1.2rem;
+    }
+</style>
+
+<div class="settings-container">
+    <div class="main-card">
+        <h2>Settings</h2>
+
+        <div class="search-container">
+            <input type="text" class="search-box" placeholder="Search for a setting...">
+        </div>
+
+        <div class="settings-list">
+            <div class="settings-item" onclick="location.href='/Settings/Notification'">
+                <div class="settings-item-left">
+                    <div class="settings-icon">🔔</div>
+                    <div class="settings-text">Notification</div>
+                </div>
+                <div class="settings-arrow">›</div>
+            </div>
+
+            <div class="settings-item" onclick="location.href='/Settings/Appearance'">
+                <div class="settings-item-left">
+                    <div class="settings-icon">👁</div>
+                    <div class="settings-text">Appearance</div>
+                </div>
+                <div class="settings-arrow">›</div>
+            </div>
+
+            <div class="settings-item" onclick="location.href='/Settings/Privacy'">
+                <div class="settings-item-left">
+                    <div class="settings-icon">🔒</div>
+                    <div class="settings-text">Privacy & Security</div>
+                </div>
+                <div class="settings-arrow">›</div>
+            </div>
+
+            <div class="settings-item" onclick="location.href='/Settings/Support'">
+                <div class="settings-item-left">
+                    <div class="settings-icon">🎧</div>
+                    <div class="settings-text">Help and Support</div>
+                </div>
+                <div class="settings-arrow">›</div>
+            </div>
+
+            <div class="settings-item" onclick="location.href='/Settings/About'">
+                <div class="settings-item-left">
+                    <div class="settings-icon">❓</div>
+                    <div class="settings-text">About</div>
+                </div>
+                <div class="settings-arrow">›</div>
+            </div>
+        </div>
+    </div>
+</div>
