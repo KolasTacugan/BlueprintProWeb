@@ -32,6 +32,13 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 .ToList();
             return View(blueprints);
         }
+        public IActionResult Projects()
+        {
+            var blueprints = context.Blueprints
+                .Where(bp => !bp.blueprintIsForSale)
+                .ToList();
+            return View(blueprints);
+        }
         public IActionResult AddBlueprints()
         {
             return View();
@@ -57,6 +64,32 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             await context.SaveChangesAsync();
 
             return RedirectToAction("Blueprints");
+        }
+        public IActionResult AddProjectBlueprints()
+        {
+            return View();
+        }
+        [HttpPost]
+        public async Task<IActionResult> AddProjectBlueprints(BlueprintViewModel vm)
+        {
+            string stringFileName = UploadFile(vm);
+            var user = await _userManager.GetUserAsync(User);
+            var userId = user.Id;
+
+            var blueprint = new Blueprint
+            {
+                blueprintImage = stringFileName,
+                blueprintName = vm.blueprintName,
+                blueprintPrice = vm.blueprintPrice,
+                blueprintDescription = vm.blueprintDescription,
+                blueprintStyle = vm.blueprintStyle,
+                blueprintIsForSale = vm.blueprintIsForSale,
+                architectId = userId
+            };
+            context.Blueprints.Add(blueprint);
+            await context.SaveChangesAsync();
+
+            return RedirectToAction("Projects");
         }
 
         private string UploadFile(BlueprintViewModel vm)
