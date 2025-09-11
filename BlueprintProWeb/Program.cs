@@ -2,6 +2,7 @@ using BlueprintProWeb.Data;
 using BlueprintProWeb.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using OpenAI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,7 +25,13 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
 })
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
-   
+
+builder.Services.AddSingleton<OpenAIClient>(sp =>
+{
+    var apiKey = builder.Configuration["OpenAI:ApiKey"];
+    return new OpenAIClient(apiKey);
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
