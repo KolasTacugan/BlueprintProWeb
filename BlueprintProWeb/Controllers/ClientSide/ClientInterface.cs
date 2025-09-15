@@ -99,7 +99,8 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 .OrderByDescending(a => a.user_Rating)
                 .Select(a => new MatchViewModel
                 {
-                    MatchId = 0,
+                    MatchId = null,
+
                     ClientId = currentUser.Id,
                     ClientName = $"{currentUser.user_fname} {currentUser.user_lname}",
                     ArchitectId = a.Id,
@@ -161,7 +162,8 @@ namespace BlueprintProWeb.Controllers.ClientSide
             // ✅ Convert to MatchViewModel so JSON matches your JS
             var results = architects.Select(a => new MatchViewModel
             {
-                MatchId = 0,
+                MatchId = null,
+
                 ClientId = "AI", // or currentUser.Id if logged in
                 ClientName = "AI Search",
                 ArchitectId = a.Id,

@@ -2,22 +2,20 @@
 {
     public class MatchViewModel
     {
-        public int MatchId { get; set; }
+        public string MatchId { get; set; }
 
-        // Client details
+        // IDs to track relationships
         public string ClientId { get; set; }
-        public string ClientName { get; set; }
-
-        // Architect details
         public string ArchitectId { get; set; }
+
+        // Optional: display names instead of IDs in the UI
+        public string ClientName { get; set; }
         public string ArchitectName { get; set; }
+
+        public string MatchStatus { get; set; }
+        public DateTime MatchDate { get; set; }
         public string ArchitectStyle { get; set; }
         public string ArchitectLocation { get; set; }
         public string ArchitectBudget { get; set; }
-        public double ArchitectRating { get; set; }
-
-        // Match details
-        public string MatchStatus { get; set; }   // "Pending", "Accepted", etc.
-        public DateTime MatchDate { get; set; }
     }
 }
