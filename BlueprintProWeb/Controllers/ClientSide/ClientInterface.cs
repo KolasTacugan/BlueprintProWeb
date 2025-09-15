@@ -100,6 +100,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 .Select(a => new MatchViewModel
                 {
                     MatchId = null,
+
                     ClientId = currentUser.Id,
                     ClientName = $"{currentUser.user_fname} {currentUser.user_lname}",
                     ArchitectId = a.Id,
@@ -162,6 +163,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
             var results = architects.Select(a => new MatchViewModel
             {
                 MatchId = null,
+
                 ClientId = "AI", // or currentUser.Id if logged in
                 ClientName = "AI Search",
                 ArchitectId = a.Id,
