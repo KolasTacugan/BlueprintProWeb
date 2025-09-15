@@ -1,13 +1,10 @@
-﻿@{
+﻿@model BlueprintProWeb.ViewModels.ProfileViewModel
+@{
+    Layout = ViewData["Layout"]?.ToString();
     ViewData["Title"] = "Edit Profile";
 }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Profile</title>
+@section Styles {
     <style>
         @@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
@@ -17,7 +14,6 @@
             font-family: 'Poppins', sans-serif;
             margin: 0;
             min-height: 100vh;
-            padding: 20px;
         }
 
         .container {
@@ -27,7 +23,6 @@
             padding-top: 40px;
         }
 
-        /* Main card (matches Profile page) */
         .main-card {
             background: rgba(255, 255, 255, 0.4);
             backdrop-filter: blur(12px);
@@ -53,6 +48,7 @@
             margin-right: 16px;
             padding: 8px 12px;
             border-radius: 8px;
+            text-decoration: none;
         }
 
         .page-header h2 {
@@ -61,7 +57,6 @@
             margin: 0;
         }
 
-        /* Cards inside form */
         .form-section,
         .credentials-section {
             background: rgba(255, 255, 255, 0.85);
@@ -90,28 +85,28 @@
             margin-bottom: 16px;
         }
 
-            .form-group label {
-                display: block;
-                margin-bottom: 6px;
-                font-weight: 600;
-                color: #0D3C80;
-            }
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #0D3C80;
+        }
 
-            .form-group input,
-            .form-group textarea {
-                width: 100%;
-                padding: 12px;
-                border: 1px solid #EBF1FD;
-                border-radius: 8px;
-                font-family: 'Poppins', sans-serif;
-                font-size: 0.95rem;
-                background: #fff;
-            }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #EBF1FD;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem;
+            background: #fff;
+        }
 
-            .form-group textarea {
-                min-height: 120px;
-                resize: vertical;
-            }
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
 
         .avatar-section {
             text-align: center;
@@ -127,11 +122,11 @@
             background: #eee;
         }
 
-            .avatar-preview img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-            }
+        .avatar-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
 
         .upload-btn {
             background: rgba(255, 255, 255, 0.85);
@@ -144,10 +139,10 @@
             font-weight: 600;
         }
 
-            .upload-btn:hover {
-                background: #0D3C80;
-                color: white;
-            }
+        .upload-btn:hover {
+            background: #0D3C80;
+            color: white;
+        }
 
         .form-actions {
             display: flex;
@@ -165,9 +160,9 @@
             cursor: pointer;
         }
 
-            .btn-primary:hover {
-                background: #0A2F66;
-            }
+        .btn-primary:hover {
+            background: #0A2F66;
+        }
 
         .btn-secondary {
             background: rgba(255, 255, 255, 0.85);
@@ -176,12 +171,13 @@
             padding: 10px 20px;
             border-radius: 8px;
             cursor: pointer;
+            text-decoration: none;
         }
 
-            .btn-secondary:hover {
-                background: #0D3C80;
-                color: white;
-            }
+        .btn-secondary:hover {
+            background: #0D3C80;
+            color: white;
+        }
 
         .file-input {
             display: none;
@@ -193,75 +189,71 @@
             }
         }
     </style>
-</head>
-<body>
-    <div class="container">
-        <div class="main-card">
-            <div class="page-header">
-                <button class="back-btn" onclick="goBack()">←</button>
-                <h2>Edit Profile</h2>
+}
+
+<div class="container">
+    <div class="main-card">
+        <div class="page-header">
+            <a asp-action="Profile" class="back-btn">←</a>
+            <h2>Edit Profile</h2>
+        </div>
+
+        <form asp-action="EditProfile" method="post">
+            <div class="edit-form">
+                <div class="form-section">
+                    <h3>Personal Information</h3>
+
+                    <div class="form-group">
+                        <label asp-for="FirstName"></label>
+                        <input asp-for="FirstName" />
+                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="LastName"></label>
+                        <input asp-for="LastName" />
+                        <span asp-validation-for="LastName" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Email"></label>
+                        <input asp-for="Email" type="email" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="PhoneNumber"></label>
+                        <input asp-for="PhoneNumber" type="tel" />
+                        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="avatar-section form-section">
+                    <h3>Profile Picture</h3>
+                    <div class="avatar-preview" id="avatarPreview">
+                        <img src="~/images/profile.jpg" alt="Profile Picture">
+                    </div>
+                    <input type="file" id="fileInput" class="file-input" accept="image/*" onchange="previewImage(event)">
+                    <button type="button" class="upload-btn" onclick="document.getElementById('fileInput').click()">📷 Change Photo</button>
+                </div>
             </div>
 
-            <form onsubmit="handleSubmit(event)">
-                <div class="edit-form">
-                    <div class="form-section">
-                        <h3>Personal Information</h3>
-
-                        <div class="form-group">
-                            <label for="name">Full Name</label>
-                            <input id="name" name="name" type="text" value="Clark Moore" />
-                        </div>
-
-                        <div class="form-group">
-                            <label for="email">Email Address</label>
-                            <input id="email" name="email" type="email" value="clarkmoore@gmail.com" />
-                        </div>
-
-                        <div class="form-group">
-                            <label for="phone">Phone Number</label>
-                            <input id="phone" name="phone" type="tel" value="0923 456 7890" />
-                        </div>
-                    </div>
-
-                    <div class="avatar-section form-section">
-                        <h3>Profile Picture</h3>
-                        <div class="avatar-preview" id="avatarPreview">
-                            <img src="~/images/profile.jpg" alt="Profile Picture">
-                        </div>
-                        <input type="file" id="fileInput" class="file-input" accept="image/*" onchange="previewImage(event)">
-                        <button type="button" class="upload-btn" onclick="document.getElementById('fileInput').click()">📷 Change Photo</button>
-                    </div>
+            <div class="credentials-section">
+                <h3>Architect Credentials</h3>
+                <div class="form-group">
+                    <textarea id="credentials" name="credentials"></textarea>
                 </div>
+            </div>
 
-                <div class="credentials-section">
-                    <h3>Architect Credentials</h3>
-                    <div class="form-group">
-                        <textarea id="credentials" name="credentials">Licensed Architect (RA)
-Bachelor of Architecture, University of the Philippines
-Member, United Architects of the Philippines (UAP)
-LEED Accredited Professional
-10+ years experience in residential and commercial design</textarea>
-                    </div>
-                </div>
-
-                <div class="form-actions">
-                    <button type="button" class="btn-secondary" onclick="goBack()">Cancel</button>
-                    <button type="submit" class="btn-primary">Save Changes</button>
-                </div>
-            </form>
-        </div>
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">Save Changes</button>
+            </div>
+        </form>
     </div>
+</div>
 
+@section Scripts {
     <script>
-        function goBack() {
-            alert('Going back to Profile page');
-        }
-
-        function handleSubmit(event) {
-            event.preventDefault();
-            alert('Profile updated successfully!');
-        }
-
         function previewImage(event) {
             const file = event.target.files[0];
             const preview = document.getElementById('avatarPreview');
@@ -275,5 +267,6 @@ LEED Accredited Professional
             }
         }
     </script>
-</body>
-</html>
+
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

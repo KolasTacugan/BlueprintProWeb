@@ -3,6 +3,7 @@ using BlueprintProWeb.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace BlueprintProWeb.Controllers
@@ -27,10 +28,22 @@ namespace BlueprintProWeb.Controllers
         {
             if (ModelState.IsValid)
             {
+                var user = await userManager.FindByEmailAsync(model.Email);
+                if (user == null)
+                {
+                    ModelState.AddModelError("", "Email or password is incorrect.");
+                    return View(model);
+                }
+
                 var result = await signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, false);
                 if (result.Succeeded)
                 {
-                    var user = await userManager.FindByEmailAsync(model.Email);
+                    var claims = new List<Claim>
+            {
+                new Claim("FirstName", user.user_fname ?? user.Email)
+            };
+
+                    await signInManager.SignInWithClaimsAsync(user, model.RememberMe, claims);
 
                     if (user.user_role == "Architect")
                     {
@@ -42,7 +55,6 @@ namespace BlueprintProWeb.Controllers
                     }
                     else
                     {
-                        // fallback if role not recognized
                         return RedirectToAction("Index", "Home");
                     }
                 }
@@ -54,6 +66,7 @@ namespace BlueprintProWeb.Controllers
             }
             return View(model);
         }
+
 
         [AllowAnonymous]
         public IActionResult ChooseRole()
@@ -81,6 +94,7 @@ namespace BlueprintProWeb.Controllers
                 {
                     user_fname = model.FirstName,
                     user_lname = model.LastName,
+                    PhoneNumber = model.PhoneNumber,
                     Email = model.Email,
                     UserName = model.Email,
                     user_role = model.Role
@@ -117,18 +131,115 @@ namespace BlueprintProWeb.Controllers
 
         }
 
-        
-        [HttpGet]
-        [AllowAnonymous] 
-        public IActionResult Profile()
+        [HttpPost]
+        public async Task<IActionResult> Profile(ProfileViewModel model)
         {
-            var model = new ProfileViewModel();
+            var user = await userManager.GetUserAsync(User);
+
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Example if you allow updates
+            user.user_fname = model.FirstName;
+            user.user_lname = model.LastName;
+            user.PhoneNumber = model.PhoneNumber;
+
+            await userManager.UpdateAsync(user);
+
+            // Reload updated values in the view
+            return RedirectToAction("Profile");
+        }
+
+        [HttpGet]
+        [Authorize] // Require login
+        public async Task<IActionResult> Profile()
+        {
+            var user = await userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var model = new ProfileViewModel
+            {
+                FirstName = user.user_fname,
+                LastName = user.user_lname,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                Role = user.user_role,
+                ProfilePhoto = user.user_profilePhoto,
+                LicenseNo = user.user_licenseNo,
+                Style = user.user_Style,
+                Specialization = user.user_Specialization,
+                Location = user.user_Location,
+                Budget = user.user_Budget
+            };
+
+            ViewData["Layout"] = user.user_role == "Architect"
+                ? "~/Views/Shared/_ArchitectSharedLayout.cshtml"
+                : "~/Views/Shared/_ClientSharedLayout.cshtml";
+
             return View(model);
         }
 
-        public IActionResult EditProfile()
+
+        [HttpGet]
+        public async Task<IActionResult> EditProfile()
         {
-            return View();
+            var user = await userManager.GetUserAsync(User);
+            if (user == null)
+                return RedirectToAction("Login", "Account");
+
+            // Pick layout depending on role
+            ViewData["Layout"] = user.user_role == "Architect"
+                ? "~/Views/Shared/_ArchitectSharedLayout.cshtml"
+                : "~/Views/Shared/_ClientSharedLayout.cshtml";
+
+            var model = new ProfileViewModel
+            {
+                FirstName = user.user_fname,
+                LastName = user.user_lname,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber
+            };
+
+            return View(model);
+        }
+
+        // POST: Edit Profile
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditProfile(ProfileViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var user = await userManager.GetUserAsync(User);
+            if (user == null)
+                return RedirectToAction("Login", "Account");
+
+            // Update user properties
+            user.user_fname = model.FirstName;
+            user.user_lname = model.LastName;
+            user.Email = model.Email;
+            user.UserName = model.Email; // keep username in sync
+            user.PhoneNumber = model.PhoneNumber;
+
+            var result = await userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                    ModelState.AddModelError(string.Empty, error.Description);
+
+                return View(model);
+            }
+
+            // Refresh sign-in so new claims/values are applied
+            await signInManager.RefreshSignInAsync(user);
+
+            return RedirectToAction("Profile", "Account");
         }
 
         public IActionResult VerifyEmail()
