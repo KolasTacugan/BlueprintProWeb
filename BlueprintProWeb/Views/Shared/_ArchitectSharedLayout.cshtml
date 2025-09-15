@@ -170,20 +170,20 @@
             background: #fff;
             z-index: 90;
             display: flex;
-            justify-content: flex-end; /* keeps items to the right */
-            align-items: center; /* vertical centering */
+            justify-content: flex-end; 
+            align-items: center; 
             border-radius: 8px;
         }
 
         .navbar-div {
             display: flex;
-            align-items: center; /* ensures children align vertically */
-            height: 100%; /* match navbar height */
+            align-items: center; 
+            height: 100%; 
         }
 
         .navbar-list {
-            display: flex; /* make list horizontal */
-            align-items: center; /* vertically center li’s */
+            display: flex; 
+            align-items: center; 
             margin: 0;
             padding: 0;
         }
@@ -194,13 +194,40 @@
 
         .top-nav-item a {
             display: flex;
-            align-items: center; /* centers icon + text */
+            align-items: center; 
             justify-content: center;
             color: #071744;
             margin-right: 25px;
             text-decoration: none;
-            height: 100%; /* match navbar height */
-            gap: 6px; /* spacing between icon and text */
+            height: 100%; 
+            gap: 6px; 
+        }
+
+        .logout-form {
+            position: absolute;
+            bottom: 20px;
+            width: calc(100% - 30px);
+            left: 15px;
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: #e63946; /* red */
+            color: #fff;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: #d62828;
         }
     </style>
     @RenderSection("Styles", required: false)
@@ -247,6 +274,11 @@
                 </li>
             </ul>
         </nav>
+        <form asp-controller="Account" asp-action="Logout" method="post" class="logout-form">
+            <button type="submit" class="logout-btn nav-link">
+                <span class="material-symbols-rounded">logout</span>
+            </button>
+        </form>
     </aside>
     @*NAVBAR*@
     <nav class="navbar">
@@ -263,9 +295,9 @@
                     </a>
                 </li>
                 <li class="top-nav-item">
-                    <a href="#" class="top-nav-link">
+                    <a asp-controller="Account" asp-action="Profile" class="top-nav-link">
                         <span class="material-symbols-rounded">account_circle</span>
-                        <span class="profile-name">Clark</span>
+                        <span class="profile-name">@User.FindFirst("FirstName")?.Value</span>
                     </a>
                 </li>
             </ul>

@@ -2,11 +2,20 @@
 {
     public class ProfileViewModel
     {
-        public string FullName { get; set; } = "Jane Doe";
-        public string Email { get; set; } = "jane@example.com";
-        public string PhoneNumber { get; set; } = "+63 900 000 0000";
-        public DateTime? BirthDate { get; set; } = new DateTime(1999, 1, 1);
-        public string Address { get; set; } = "Makati, Metro Manila";
-        public string? AvatarUrl { get; set; } = "~/images/avatar-placeholder.png";
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string FullName => $"{FirstName} {LastName}";
+        public string Email { get; set; } = string.Empty;
+        public string? PhoneNumber { get; set; }
+
+        public string Role { get; set; } = string.Empty;
+        public string? ProfilePhoto { get; set; } = "~/images/avatar-placeholder.png";
+
+        // Architect-specific
+        public string? LicenseNo { get; set; }
+        public string? Style { get; set; }
+        public string? Specialization { get; set; }
+        public string? Location { get; set; }
+        public string? Budget { get; set; }
     }
 }

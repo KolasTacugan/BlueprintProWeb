@@ -227,6 +227,32 @@
             gap: 6px; /* spacing between icon and text */
         }
 
+        .logout-form {
+            position: absolute;
+            bottom: 20px;
+            width: calc(100% - 30px);
+            left: 15px;
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: #e63946; /* red */
+            color: #fff;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: #d62828;
+        }
     </style>
 </head>
 <body>
@@ -271,6 +297,11 @@
                 </li>
             </ul>
         </nav>
+        <form asp-controller="Account" asp-action="Logout" method="post" class="logout-form">
+            <button type="submit" class="nav-link logout-btn">
+                <span class="material-symbols-rounded">logout</span>
+            </button>
+        </form>
     </aside>
     @*NAVBAR*@
     <nav class="navbar">
@@ -287,9 +318,9 @@
                     </a>
                 </li>
                 <li class="top-nav-item">
-                    <a href="#" class="top-nav-link">
+                    <a asp-controller="Account" asp-action="Profile" class="top-nav-link">
                         <span class="material-symbols-rounded">account_circle</span>
-                        <span class="profile-name">Clark</span>
+                        <span class="profile-name">@User.FindFirst("FirstName")?.Value</span>
                     </a>
                 </li>
             </ul>
