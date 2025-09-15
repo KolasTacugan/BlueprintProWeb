@@ -62,6 +62,35 @@ namespace BlueprintProWeb.Migrations
                     b.ToTable("Blueprints");
                 });
 
+            modelBuilder.Entity("BlueprintProWeb.Models.Match", b =>
+                {
+                    b.Property<string>("MatchId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ArchitectId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ClientId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("MatchDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("MatchStatus")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("MatchId");
+
+                    b.HasIndex("ArchitectId");
+
+                    b.HasIndex("ClientId");
+
+                    b.ToTable("Matches");
+                });
+
             modelBuilder.Entity("BlueprintProWeb.Models.User", b =>
                 {
                     b.Property<string>("Id")
@@ -294,6 +323,25 @@ namespace BlueprintProWeb.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("BlueprintProWeb.Models.Match", b =>
+                {
+                    b.HasOne("BlueprintProWeb.Models.User", "Architect")
+                        .WithMany()
+                        .HasForeignKey("ArchitectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BlueprintProWeb.Models.User", "Client")
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Architect");
+
+                    b.Navigation("Client");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
