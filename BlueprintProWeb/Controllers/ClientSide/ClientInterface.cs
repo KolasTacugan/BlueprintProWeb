@@ -29,7 +29,9 @@ namespace BlueprintProWeb.Controllers.ClientSide
 
         public IActionResult BlueprintMarketplace()
         {
-            var blueprints = context.Blueprints.ToList();
+            var blueprints = context.Blueprints
+                .Where(bp => bp.blueprintIsForSale)
+                .ToList();
             return View("BlueprintMarketplace", blueprints);
         }
 
