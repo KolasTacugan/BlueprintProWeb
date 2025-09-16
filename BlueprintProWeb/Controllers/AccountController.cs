@@ -1,6 +1,7 @@
 ﻿using BlueprintProWeb.Models;
 using BlueprintProWeb.ViewModels;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -12,11 +13,13 @@ namespace BlueprintProWeb.Controllers
     {
         private readonly SignInManager<User> signInManager;
         private readonly UserManager<User> userManager;
+        public IWebHostEnvironment WebHostEnvironment;
 
-        public AccountController(SignInManager<User> signInManager, UserManager<User> userManager)
+        public AccountController(SignInManager<User> signInManager, UserManager<User> userManager, IWebHostEnvironment webHostEnvironment)
         {
             this.signInManager = signInManager;
             this.userManager = userManager;
+            WebHostEnvironment = webHostEnvironment;
         }
 
         public IActionResult Login()
@@ -174,7 +177,8 @@ namespace BlueprintProWeb.Controllers
                 Style = user.user_Style,
                 Specialization = user.user_Specialization,
                 Location = user.user_Location,
-                Budget = user.user_Budget
+                Budget = user.user_Budget,
+                CredentialsFilePath = user.user_CredentialsFile
             };
 
             ViewData["Layout"] = user.user_role == "Architect"
@@ -183,7 +187,6 @@ namespace BlueprintProWeb.Controllers
 
             return View(model);
         }
-
 
         [HttpGet]
         public async Task<IActionResult> EditProfile()
@@ -202,13 +205,13 @@ namespace BlueprintProWeb.Controllers
                 FirstName = user.user_fname,
                 LastName = user.user_lname,
                 Email = user.Email,
-                PhoneNumber = user.PhoneNumber
+                PhoneNumber = user.PhoneNumber,
+                Role= user.user_role
             };
 
             return View(model);
         }
 
-        // POST: Edit Profile
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditProfile(ProfileViewModel model)
@@ -227,6 +230,22 @@ namespace BlueprintProWeb.Controllers
             user.UserName = model.Email; // keep username in sync
             user.PhoneNumber = model.PhoneNumber;
 
+            // Handle PDF upload
+            if (model.CredentialsFile != null)
+            {
+                string uploadDir = Path.Combine(WebHostEnvironment.WebRootPath, "credentials");
+                Directory.CreateDirectory(uploadDir);
+                string fileName = Guid.NewGuid().ToString() + "-" + model.CredentialsFile.FileName;
+                string filePath = Path.Combine(uploadDir, fileName);
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await model.CredentialsFile.CopyToAsync(fileStream);
+                }
+
+                // Save path to the database (you need a field in User model)
+                user.user_CredentialsFile = fileName;
+            }
+
             var result = await userManager.UpdateAsync(user);
             if (!result.Succeeded)
             {
@@ -238,7 +257,6 @@ namespace BlueprintProWeb.Controllers
 
             // Refresh sign-in so new claims/values are applied
             await signInManager.RefreshSignInAsync(user);
-
             return RedirectToAction("Profile", "Account");
         }
 
@@ -246,6 +264,7 @@ namespace BlueprintProWeb.Controllers
         {
             return View();
         }
+
         [HttpPost]
         public async Task<IActionResult> VerifyEmail(VerifyEmailViewModel model)
         {
@@ -264,6 +283,7 @@ namespace BlueprintProWeb.Controllers
             }
             return View(model);
         }
+
         public IActionResult ChangePassword(string username)
         {
             if (string.IsNullOrEmpty(username))
@@ -272,6 +292,7 @@ namespace BlueprintProWeb.Controllers
             }
             return View(new ChangePasswordViewModel { Email = username });
         }
+
         [HttpPost]
         public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
         {
