@@ -88,7 +88,6 @@ namespace BlueprintProWeb.Controllers
         }
 
         [HttpPost]
-
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
             if (ModelState.IsValid)
@@ -112,7 +111,6 @@ namespace BlueprintProWeb.Controllers
                     client.user_Location = model.Location;
                     client.user_Budget = model.LaborCost;
                 }
-
 
                 var result = await userManager.CreateAsync(client, model.Password);
                 if (result.Succeeded)
