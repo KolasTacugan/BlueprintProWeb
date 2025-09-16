@@ -198,7 +198,7 @@
             <h2>Edit Profile</h2>
         </div>
 
-        <form asp-action="EditProfile" method="post">
+        <form asp-action="EditProfile" method="post" enctype="multipart/form-data">
             <div class="edit-form">
                 <div class="form-section">
                     <h3>Personal Information</h3>
@@ -238,10 +238,18 @@
                 </div>
             </div>
 
-            <div class="credentials-section">
-                <h3>Architect Credentials</h3>
+            <div class="credentials-section form-section">
+                <h3>Architect Credentials (PDF)</h3>
                 <div class="form-group">
-                    <textarea id="credentials" name="credentials"></textarea>
+                    @if (Model.Role == "Architect")
+                    {
+                        <input type="file" id="credentialsFile" name="CredentialsFile" accept="application/pdf" class="form-control" />
+                    }
+                    else
+                    {
+                        <input type="file" id="credentialsFile" name="CredentialsFile" class="form-control" disabled />
+                        <small class="text-muted">Only architects can upload credentials.</small>
+                    }
                 </div>
             </div>
 

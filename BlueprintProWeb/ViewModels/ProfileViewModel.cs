@@ -1,4 +1,6 @@
-﻿namespace BlueprintProWeb.ViewModels
+﻿using Microsoft.AspNetCore.Http;
+
+namespace BlueprintProWeb.ViewModels
 {
     public class ProfileViewModel
     {
@@ -17,5 +19,7 @@
         public string? Specialization { get; set; }
         public string? Location { get; set; }
         public string? Budget { get; set; }
+        public IFormFile? CredentialsFile { get; set; }
+        public string? CredentialsFilePath { get; set; }
     }
 }

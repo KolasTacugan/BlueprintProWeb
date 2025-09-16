@@ -183,7 +183,20 @@
 
         <div class="credentials-card">
             <h4>Architect Credentials</h4>
-            <textarea readonly>N/A</textarea>
+
+            @if (!string.IsNullOrEmpty(Model.CredentialsFilePath))
+            {
+                var fullFileName = System.IO.Path.GetFileName(Model.CredentialsFilePath);
+                var displayName = fullFileName.Length > 37 ? fullFileName.Substring(37) : fullFileName;
+
+                <p>
+                    <a href="~/credentials/@fullFileName" target="_blank">@displayName</a>
+                </p>
+            }
+            else
+            {
+                <p>N/A</p>
+            }
         </div>
     </div>
 </div>
