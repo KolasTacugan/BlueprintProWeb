@@ -12,6 +12,7 @@ namespace BlueprintProWeb.Models
         public int blueprintPrice { get; set; }
         public string blueprintDescription { get; set; } = "";
         public string blueprintStyle { get; set; } = "";
-        public Boolean blueprintIsForSale { get; set; } 
+        public Boolean blueprintIsForSale { get; set; }
+        public DateTime blueprintCreatedDate { get; set; } = DateTime.UtcNow;
     }
 }
