@@ -34,6 +34,9 @@ namespace BlueprintProWeb.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("blueprintCreatedDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("blueprintDescription")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -89,6 +92,50 @@ namespace BlueprintProWeb.Migrations
                     b.HasIndex("ClientId");
 
                     b.ToTable("Matches");
+                });
+
+            modelBuilder.Entity("BlueprintProWeb.Models.Project", b =>
+                {
+                    b.Property<string>("project_Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("blueprint_Id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("project_Budget")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("project_Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("project_Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("project_endDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("project_startDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("user_architectId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("user_clientId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("project_Id");
+
+                    b.HasIndex("blueprint_Id");
+
+                    b.HasIndex("user_architectId");
+
+                    b.HasIndex("user_clientId");
+
+                    b.ToTable("Projects");
                 });
 
             modelBuilder.Entity("BlueprintProWeb.Models.User", b =>
@@ -343,6 +390,33 @@ namespace BlueprintProWeb.Migrations
                         .IsRequired();
 
                     b.Navigation("Architect");
+
+                    b.Navigation("Client");
+                });
+
+            modelBuilder.Entity("BlueprintProWeb.Models.Project", b =>
+                {
+                    b.HasOne("BlueprintProWeb.Models.Blueprint", "Blueprint")
+                        .WithMany()
+                        .HasForeignKey("blueprint_Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BlueprintProWeb.Models.User", "Architect")
+                        .WithMany()
+                        .HasForeignKey("user_architectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BlueprintProWeb.Models.User", "Client")
+                        .WithMany()
+                        .HasForeignKey("user_clientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Architect");
+
+                    b.Navigation("Blueprint");
 
                     b.Navigation("Client");
                 });
