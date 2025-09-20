@@ -36,7 +36,7 @@ namespace BlueprintProWeb.Migrations
 
                     b.Property<DateTime>("blueprintCreatedDate")
                         .HasColumnType("datetime2");
-
+                        
                     b.Property<string>("blueprintDescription")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -62,7 +62,7 @@ namespace BlueprintProWeb.Migrations
 
                     b.HasKey("blueprintId");
 
-                    b.ToTable("Blueprints");
+                    b.ToTable("Blueprints", (string)null);
                 });
 
             modelBuilder.Entity("BlueprintProWeb.Models.Match", b =>
