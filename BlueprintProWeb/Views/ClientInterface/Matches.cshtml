@@ -84,6 +84,7 @@
         const searchBtn = document.getElementById('searchArchitects');
         const resultsContainer = document.getElementById('resultsContainer');
 
+        // Append user messages to chat
         function appendUserMessage(message) {
             let msg = document.createElement('div');
             msg.className = "d-flex justify-content-end mb-3";
@@ -92,6 +93,16 @@
             chatWindow.scrollTop = chatWindow.scrollHeight;
         }
 
+        // Append system/assistant messages to chat
+        function appendSystemMessage(message) {
+            let msg = document.createElement('div');
+            msg.className = "d-flex mb-3";
+            msg.innerHTML = `<div class="p-3 bg-secondary text-white rounded-3 shadow-sm">${message}</div>`;
+            chatWindow.appendChild(msg);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        // Render architect cards dynamically
         function renderArchitects(matches) {
             resultsContainer.innerHTML = "";
 
@@ -100,10 +111,13 @@
                     <div class="col-12">
                         <div class="alert alert-warning">No architects found. Try refining your description.</div>
                     </div>`;
+                appendSystemMessage("😕 No matches found. Try describing differently.");
                 return;
             }
 
             matches.forEach(m => {
+                const date = m.matchDate ? new Date(m.matchDate).toLocaleDateString() : "";
+
                 let card = document.createElement('div');
                 card.className = "col-md-6 mb-4";
                 card.innerHTML = `
@@ -112,20 +126,20 @@
                             <div class="d-flex align-items-center mb-3">
                                 <img src="/images/default-profile.png"
                                      class="rounded-circle me-3 border" width="50" height="50"
-                                     alt="${m.architectName}" />
+                                     alt="${m.architectName || "Architect"}" />
                                 <div>
-                                    <h6 class="fw-bold mb-0">${m.architectName}</h6>
-                                    <small class="text-muted">${m.architectStyle ?? "General Architect"}</small>
+                                    <h6 class="fw-bold mb-0">${m.architectName || "Unnamed Architect"}</h6>
+                                    <small class="text-muted">${m.architectStyle || "General Architect"}</small>
                                 </div>
                             </div>
                             <p class="text-muted small flex-grow-1">
-                                Style: ${m.architectStyle ?? "Various"} <br>
-                                Location: ${m.architectLocation ?? "Flexible"} <br>
-                                Budget: ${m.architectBudget ?? "Flexible"}
+                                Style: ${m.architectStyle || "Various"} <br>
+                                Location: ${m.architectLocation || "Flexible"} <br>
+                                Budget: ${m.architectBudget || "Flexible"}
                             </p>
                             <div class="mb-2">
                                 <small>Status: <span class="badge bg-info">${m.matchStatus}</span></small><br />
-                                <small>Date: ${m.matchDate ?? ""}</small>
+                                <small>Date: ${date}</small>
                             </div>
                             <button class="btn btn-outline-primary w-100 mt-auto match-btn"
                                     data-id="${m.architectId}">
@@ -136,6 +150,7 @@
                 resultsContainer.appendChild(card);
             });
 
+            // Attach match button actions
             resultsContainer.querySelectorAll('.match-btn').forEach(btn => {
                 btn.addEventListener('click', function () {
                     let architectId = this.getAttribute('data-id');
@@ -144,6 +159,7 @@
             });
         }
 
+        // Handle search button
         searchBtn.addEventListener('click', function () {
             let prompt = inputBox.value.trim();
             if (!prompt) {
@@ -152,13 +168,21 @@
             }
 
             appendUserMessage(prompt);
+            appendSystemMessage("🔎 Searching for architects...");
+
             inputBox.value = "";
 
-            fetch(`/ClientInterface/SearchArchitects?query=${encodeURIComponent(prompt)}`)
+            fetch(`/ClientInterface/Matches?query=${encodeURIComponent(prompt)}`, {
+                headers: { "X-Requested-With": "XMLHttpRequest" }
+            })
                 .then(res => res.json())
-                .then(data => renderArchitects(data))
+                .then(data => {
+                    appendSystemMessage(`✅ Found ${data.length} potential matches.`);
+                    renderArchitects(data);
+                })
                 .catch(err => {
                     console.error("Search failed:", err);
+                    appendSystemMessage("❌ Search failed. Please try again.");
                     renderArchitects([]);
                 });
         });
