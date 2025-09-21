@@ -118,32 +118,58 @@
                 <form asp-action="AddProjectBlueprints" method="post" enctype="multipart/form-data">
                     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
+                    <!-- Blueprint Upload -->
                     <div class="form-group mb-3">
                         <label asp-for="BlueprintImage" class="control-label">Blueprint</label>
                         <input asp-for="BlueprintImage" type="file" class="form-control" required />
                         <span asp-validation-for="BlueprintImage" class="text-danger"></span>
                     </div>
 
+                    <!-- Project Name -->
                     <div class="form-group mb-3">
                         <label asp-for="blueprintName" class="control-label">Project Name</label>
                         <input asp-for="blueprintName" class="form-control" />
                         <span asp-validation-for="blueprintName" class="text-danger"></span>
                     </div>
 
+                    <!-- Project Budget -->
+                    <div class="form-group mb-3">
+                        <label asp-for="blueprintPrice" class="control-label">Budget (in Pesos)</label>
+                        <input asp-for="blueprintPrice" class="form-control" />
+                        <span asp-validation-for="blueprintPrice" class="text-danger"></span>
+                    </div>
+
+                    <!-- Client Dropdown -->
+                    <div class="form-group mb-3">
+                        <label for="clientDropdown" class="control-label">Select Client</label>
+                        <select asp-for="clentId" class="form-control" id="clientDropdown">
+                            <option value="">-- Select Client --</option>
+                            @foreach (var client in Model.Clients)
+                            {
+                                <option value="@client.Value">@client.Text</option>
+                            }
+                        </select>
+                        <span asp-validation-for="clentId" class="text-danger"></span>
+                    </div>
+
+
+                    <!-- Project Description -->
                     <div class="form-group mb-3">
                         <label asp-for="blueprintDescription" class="control-label">Project Description</label>
                         <textarea asp-for="blueprintDescription" class="bp-desc form-control"></textarea>
                         <span asp-validation-for="blueprintDescription" class="text-danger"></span>
                     </div>
 
+                    <!-- Hidden Fields -->
                     <input type="hidden" asp-for="blueprintIsForSale" value="false" />
-                    <input type="hidden" asp-for="blueprintPrice" value="0" />
                     <input type="hidden" asp-for="blueprintStyle" value="###" />
+
                     <div class="form-group mb-3">
                         <input type="submit" value="Upload for Project" class="add-bp btn" />
                     </div>
                 </form>
             </div>
+
 
         </div>
     </div>
