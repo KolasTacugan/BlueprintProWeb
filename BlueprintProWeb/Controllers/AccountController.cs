@@ -12,7 +12,6 @@ using OpenAI.Embeddings;
 using System.Globalization;
 using System.Security.Claims;
 using System.Text;
-using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -86,7 +85,8 @@ namespace BlueprintProWeb.Controllers
         [HttpPost]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
-            if (!ModelState.IsValid) return View(model);
+            if (!ModelState.IsValid)
+                return View(model);
 
             var user = new User
             {
@@ -107,15 +107,30 @@ namespace BlueprintProWeb.Controllers
                 user.user_Budget = model.LaborCost;
             }
 
-                var result = await userManager.CreateAsync(client, model.Password);
-                if (result.Succeeded)
-                {
+            // ✅ Corrected: use 'user' instead of 'client'
+            var result = await _userManager.CreateAsync(user, model.Password);
 
+            if (result.Succeeded)
+            {
+                // Optionally auto sign-in after registration
+                await _signInManager.SignInAsync(user, isPersistent: false);
+
+                // Redirect based on role
+                return user.user_role switch
+                {
+                    "Architect" => RedirectToAction("ArchitectDashboard", "ArchitectInterface"),
+                    "Client" => RedirectToAction("ClientDashboard", "ClientInterface"),
+                    _ => RedirectToAction("Index", "Home")
+                };
+            }
+
+            // Collect and show errors if not succeeded
             foreach (var error in result.Errors)
                 ModelState.AddModelError("", error.Description);
 
             return View(model);
         }
+
 
         // ---------------- PROFILE ----------------
         [HttpGet, Authorize]
