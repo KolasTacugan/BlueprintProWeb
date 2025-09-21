@@ -2,6 +2,7 @@
 using BlueprintProWeb.Models;
 using BlueprintProWeb.ViewModels;
 using iText.Commons.Actions.Contexts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -138,6 +139,35 @@ namespace BlueprintProWeb.Controllers.ClientSide
 
             return View(ranked);
 
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Client")]
+        public async Task<IActionResult> RequestMatch(string architectId)
+        {
+            var currentUser = await userManager.GetUserAsync(User);
+            if (currentUser == null)
+                return Json(new { success = false, message = "Not logged in." });
+
+            // Check if already matched
+            var existing = await context.Matches
+                .FirstOrDefaultAsync(m => m.ClientId == currentUser.Id && m.ArchitectId == architectId);
+
+            if (existing != null)
+                return Json(new { success = false, message = "Match request already sent." });
+
+            var match = new Match
+            {
+                ClientId = currentUser.Id,
+                ArchitectId = architectId,
+                MatchStatus = "Pending",
+                MatchDate = DateTime.UtcNow
+            };
+
+            context.Matches.Add(match);
+            await context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "✅ Match request sent successfully." });
         }
 
 
