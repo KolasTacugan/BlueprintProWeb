@@ -3,6 +3,8 @@ using BlueprintProWeb.Models;
 using BlueprintProWeb.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using System.Net;
 
 namespace BlueprintProWeb.Controllers.ArchitectSide
@@ -39,10 +41,25 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 .ToList();
             return View(blueprints);
         }
-        public IActionResult AddBlueprints()
+        [HttpGet]
+        public async Task<IActionResult> AddBlueprints()
         {
-            return View();
+            var clients = await _userManager.Users
+                .Where(u => u.user_role == "Client")
+                .ToListAsync();
+
+            var vm = new BlueprintViewModel
+            {
+                Clients = clients.Select(c => new SelectListItem
+                {
+                    Value = c.Id, // will become Project.user_clientId
+                    Text = $"{c.user_fname} {c.user_lname}"
+                }).ToList()
+            };
+
+            return View(vm);
         }
+
         [HttpPost]
         public async Task<IActionResult> AddBlueprints(BlueprintViewModel vm)
         {
@@ -65,6 +82,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
 
             return RedirectToAction("Blueprints");
         }
+
         public IActionResult AddProjectBlueprints()
         {
             return View();
@@ -80,7 +98,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             {
                 blueprintImage = stringFileName,
                 blueprintName = vm.blueprintName,
-                blueprintPrice = vm.blueprintPrice,
+                blueprintPrice = 0,
                 blueprintDescription = vm.blueprintDescription,
                 blueprintStyle = vm.blueprintStyle,
                 blueprintIsForSale = vm.blueprintIsForSale,
@@ -88,6 +106,19 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             };
             context.Blueprints.Add(blueprint);
             await context.SaveChangesAsync();
+
+            var project = new Project
+            {
+                blueprint_Id = blueprint.blueprintId,              
+                project_Title = vm.blueprintName,                  
+                user_architectId = userId,                         
+                user_clientId = vm.clentId,                              
+                project_Status = "Draft",
+                project_Budget = vm.blueprintPrice.ToString()
+            };
+            context.Projects.Add(project);
+            await context.SaveChangesAsync();
+
 
             return RedirectToAction("Projects");
         }
