@@ -107,9 +107,9 @@ namespace BlueprintProWeb.Controllers
                 user.user_Budget = model.LaborCost;
             }
 
-            var result = await _userManager.CreateAsync(user, model.Password);
-            if (result.Succeeded)
-                return RedirectToAction("Login", "Account");
+                var result = await userManager.CreateAsync(client, model.Password);
+                if (result.Succeeded)
+                {
 
             foreach (var error in result.Errors)
                 ModelState.AddModelError("", error.Description);

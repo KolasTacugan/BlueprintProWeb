@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel.DataAnnotations;
 
 namespace BlueprintProWeb.ViewModels
 {
@@ -14,5 +15,7 @@ namespace BlueprintProWeb.ViewModels
         public string blueprintDescription { get; set; } = "";
         public string blueprintStyle { get; set; } = "";
         public Boolean blueprintIsForSale { get; set; }
+        public string clentId { get; set; }
+        public List<SelectListItem> Clients { get; set; } = new();
     }
 }
