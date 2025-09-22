@@ -2,6 +2,9 @@ using BlueprintProWeb.Data;
 using BlueprintProWeb.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using OpenAI;
+using OpenAI.Embeddings;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,7 +27,38 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
 })
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
-   
+
+// make sure this is included
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    });
+
+builder.Services.AddSingleton(sp =>
+{
+    var cfg = sp.GetRequiredService<IConfiguration>();
+    var apiKey = cfg["OpenAI:ApiKey"]; // make sure appsettings.json has OpenAI:ApiKey
+    if (string.IsNullOrWhiteSpace(apiKey))
+        throw new InvalidOperationException("OpenAI:ApiKey not configured.");
+
+    // keep an OpenAIClient if you also use chat, etc.
+    var openAiClient = new OpenAIClient(apiKey);
+    return openAiClient;
+});
+
+// Register EmbeddingClient directly (recommended)
+builder.Services.AddSingleton(sp =>
+{
+    var cfg = sp.GetRequiredService<IConfiguration>();
+    var apiKey = cfg["OpenAI:ApiKey"];
+    // model name is the first arg
+    return new EmbeddingClient("text-embedding-3-small", apiKey);
+});
+
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

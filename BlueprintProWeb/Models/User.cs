@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BlueprintProWeb.Models
 {
@@ -17,5 +18,26 @@ namespace BlueprintProWeb.Models
         public double? user_Rating { get; set; }
         public string? user_CredentialsFile { get; set; }
 
+        public string? PortfolioText { get; set; }
+        public string? PortfolioEmbedding { get; set; } // store comma-separated floats
+
+        [NotMapped]
+        public float[] PortfolioEmbeddingVector
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(PortfolioEmbedding))
+                    return Array.Empty<float>();
+
+                return PortfolioEmbedding
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(s => float.Parse(s.Trim()))
+                    .ToArray();
+            }
+            set
+            {
+                PortfolioEmbedding = string.Join(",", value);
+            }
+        }
     }
 }

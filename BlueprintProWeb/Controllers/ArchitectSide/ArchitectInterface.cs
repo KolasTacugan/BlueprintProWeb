@@ -1,6 +1,7 @@
 ﻿using BlueprintProWeb.Data;
 using BlueprintProWeb.Models;
 using BlueprintProWeb.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -184,6 +185,44 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             context.SaveChanges();
 
             return RedirectToAction("Blueprints");
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Architect")]
+        public async Task<IActionResult> RespondMatch(string matchId, bool approve)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null) return Unauthorized();
+
+            var match = await context.Matches.FindAsync(matchId);
+            if (match == null) return NotFound();
+
+            if (match.ArchitectId != currentUser.Id) return Forbid();
+
+            match.MatchStatus = approve ? "Approved" : "Declined";
+            await context.SaveChangesAsync();
+
+            return Json(new { success = true, status = match.MatchStatus });
+        }
+
+        [Authorize(Roles = "Architect")]
+        public IActionResult PendingMatches()
+        {
+            var currentUserId = _userManager.GetUserId(User);
+
+            var pending = context.Matches
+                .Where(m => m.ArchitectId == currentUserId && m.MatchStatus == "Pending")
+                .Select(m => new MatchViewModel
+                {
+                    MatchId = m.MatchId,
+                    ClientId = m.ClientId,
+                    ClientName = m.Client.user_fname + " " + m.Client.user_lname,
+                    MatchDate = m.MatchDate,
+                    MatchStatus = m.MatchStatus
+                })
+                .ToList();
+
+            return View(pending);
         }
 
     }
