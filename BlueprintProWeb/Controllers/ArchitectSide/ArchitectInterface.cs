@@ -150,17 +150,15 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             blueprint.blueprintPrice = vm.blueprintPrice;
             blueprint.blueprintStyle = vm.blueprintStyle;
 
-            // Replace image only if a new one was selected
             if (vm.BlueprintImage != null)
             {
-                // optional: delete old file
                 if (!string.IsNullOrEmpty(blueprint.blueprintImage))
                 {
                     var oldPath = Path.Combine(WebHostEnvironment.WebRootPath, "images", blueprint.blueprintImage);
                     if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
                 }
 
-                string newFile = UploadFile(vm); // reuse your existing method
+                string newFile = UploadFile(vm);
                 blueprint.blueprintImage = newFile;
             }
 
