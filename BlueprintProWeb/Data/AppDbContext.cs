@@ -14,6 +14,7 @@ namespace BlueprintProWeb.Data
         public DbSet<Blueprint> Blueprints { get; set; }
         public DbSet<Match> Matches { get; set; }
         public DbSet<Project> Projects { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

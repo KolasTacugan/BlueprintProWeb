@@ -3,6 +3,7 @@
     ViewData["Title"] = "Blueprint Marketplace";
     Layout = "~/Views/Shared/_ClientSharedLayout.cshtml";
 }
+
 <div>
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="fw-bold mt-5 pt-4">Blueprint Marketplace</h2>
@@ -24,7 +25,12 @@
         {
             <div class="col-md-3 mb-4">
                 <div class="card shadow-sm">
-                    <img src="~/images/@item.blueprintImage" class="card-img-top" alt="@item.blueprintName" asp-append-version="true">
+                    <img src="~/images/@item.blueprintImage"
+                         class="card-img-top protected-img"
+                         alt="@item.blueprintName"
+                         asp-append-version="true"
+                         draggable="false" />
+
                     <div class="card-body">
                         <h5 class="fw-bold">₱@item.blueprintPrice</h5>
                         <p class="mb-1">@item.blueprintName</p>
@@ -43,6 +49,21 @@
     </div>
 </div>
 
+@section Styles {
+    <style>
+        /* Prevent dragging/selection of protected images */
+        .protected-img {
+            -webkit-user-drag: none;
+            user-drag: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            cursor: default;
+        }
+    </style>
+}
+
 @section Scripts {
     <script>
         document.querySelectorAll('.add-to-cart').forEach(btn => {
@@ -51,5 +72,47 @@
                 cartCount.innerText = parseInt(cartCount.innerText) + 1;
             });
         });
+
+        // Protection script
+        (function () {
+            'use strict';
+
+            const protectedSelector = '.card .protected-img';
+
+            // Disable context menu + drag for protected images
+            document.querySelectorAll(protectedSelector).forEach(img => {
+                img.addEventListener('contextmenu', e => e.preventDefault());
+                img.addEventListener('dragstart', e => e.preventDefault());
+                img.setAttribute('draggable', 'false');
+            });
+
+            // Disable copy
+            document.addEventListener('copy', function (e) {
+                if (e.clipboardData) {
+                    e.clipboardData.clearData();
+                }
+                e.preventDefault();
+            });
+
+            // Block Ctrl+S and Ctrl+Shift+S
+            document.addEventListener('keydown', function (e) {
+                const key = e.key || e.code;
+                if ((e.ctrlKey || e.metaKey) && (key === 's' || key === 'S')) {
+                    e.preventDefault();
+                }
+                if ((e.ctrlKey || e.metaKey) && e.shiftKey && (key === 's' || key === 'S')) {
+                    e.preventDefault();
+                }
+            });
+
+            // Optional: block context menu for whole card (except buttons/inputs)
+            document.querySelectorAll('.card').forEach(card => {
+                card.addEventListener('contextmenu', function (e) {
+                    if (e.target.closest('button, a, input, textarea, select, label')) return;
+                    e.preventDefault();
+                }, true);
+            });
+
+        })();
     </script>
 }
