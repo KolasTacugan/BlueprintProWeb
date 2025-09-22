@@ -91,7 +91,7 @@ namespace BlueprintProWeb.Migrations
 
                     b.HasIndex("ClientId");
 
-                    b.ToTable("Matches");
+                    b.ToTable("Matches", (string)null);
                 });
 
             modelBuilder.Entity("BlueprintProWeb.Models.Project", b =>

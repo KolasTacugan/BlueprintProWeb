@@ -1,5 +1,6 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
+    ViewData["HideNavigation"] = true;
 }
 
 @section Hero {
@@ -19,7 +20,7 @@
             <p class="description">
                 Connecting people, designs, and progress—architecture made simple.
             </p>
-            <a href="#" class="get-started-btn">Get Started</a>
+            <a asp-controller="Account" asp-action="Login" class="get-started-btn">Get Started</a>
         </div>
     </div>
 }

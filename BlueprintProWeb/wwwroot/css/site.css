@@ -1,14 +1,23 @@
 /* =====================
+   Landing Page Specific Styles
+   ===================== */
+.landing-page {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* =====================
    Hero Section
    ===================== */
 .hero-section {
     position: relative;
-    min-height: calc(100vh - 64px); /* full screen minus navbar */
-    width: 100vw;
-    left: 50%;
-    margin-left: -50vw;
-    right: 50%;
-    margin-right: -50vw;
+    min-height: 100vh; /* Full viewport height when no navigation */
+    width: 100vw; /* Full viewport width */
+    left: 0;
+    margin: 0;
+    right: 0;
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
@@ -16,6 +25,16 @@
     align-items: center;
     justify-content: flex-start;
     overflow: hidden;
+}
+
+/* When navigation is present, adjust hero section height */
+body:not(.landing-page) .hero-section {
+    min-height: calc(100vh - 64px); /* full screen minus navbar */
+    width: 100vw;
+    left: 50%;
+    margin-left: -50vw;
+    right: 50%;
+    margin-right: -50vw;
 }
 
 .overlay {
@@ -37,26 +56,6 @@
     color: #142632;
     max-width: 600px;
 }
-
-@media (max-width: 768px) {
-    .brand-title {
-        font-size: 2.5rem;
-    }
-
-    .tagline {
-        font-size: 1.5rem;
-    }
-
-    .description {
-        font-size: 1rem;
-    }
-
-    .hero-content {
-        left: 20px;
-        bottom: 20px;
-    }
-}
-
 
 .brand-title {
     font-size: 3.5rem;
@@ -98,8 +97,10 @@
 
     .get-started-btn:hover {
         background-color: #344678;
+        color: #FFFFFF;
         transform: translateY(-2px);
         box-shadow: 0 5px 15px rgba(52, 70, 120, 0.3);
+        text-decoration: none;
     }
 
 /* Logo top right */
@@ -129,6 +130,17 @@
     }
 
     .hero-content {
+        left: 20px;
+        bottom: 20px;
         padding-left: 20px;
+    }
+
+    .logo {
+        top: 20px;
+        right: 20px;
+    }
+
+    .logo img {
+        height: 50px;
     }
 }
