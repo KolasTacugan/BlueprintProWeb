@@ -227,7 +227,23 @@
         }
 
         .logout-btn:hover {
-            background: #d62828;
+            background: #fff;
+            border-color: #d62828;
+        }
+
+        #notificationPanel {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 8px 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9rem;
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
         }
     </style>
     @RenderSection("Styles", required: false)
@@ -255,7 +271,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a asp-controller="ArchitectInterface" asp-action="PendingMatches" class="nav-link">
                         <span class="nav-icon material-symbols-rounded">handshake</span>
                         <span class="nav-label">Matches</span>
                     </a>
@@ -298,6 +314,17 @@
                     <a asp-controller="Account" asp-action="Profile" class="top-nav-link">
                         <span class="material-symbols-rounded">account_circle</span>
                     </a>
+
+                    <!-- Notification Panel -->
+                    <div id="notificationPanel"
+                         class="position-absolute end-0 mt-2 p-3 bg-white border rounded shadow"
+                         style="display:none; min-width: 280px; z-index:2000;">
+                        <div id="notificationList">
+                            <div id="emptyNotification" class="text-muted small text-center">
+                                Notification's empty at the moment...
+                            </div>
+                        </div>
+                    </div>
                 </li>
             </ul>
         </div>
@@ -317,6 +344,31 @@
         sidebarToggler.addEventListener("click", ()=>{
             sidebar.classList.toggle("collapsed")
         });
+
+        const bell = document.getElementById("notificationBell");
+        const panel = document.getElementById("notificationPanel");
+        const list = document.getElementById("notificationList");
+        const emptyState = document.getElementById("emptyNotification");
+
+        // Toggle panel on bell click
+        bell.addEventListener("click", (e) => {
+            e.preventDefault();
+            panel.style.display = (panel.style.display === "none" || panel.style.display === "")
+                ? "block"
+                : "none";
+        });
+
+        // Add a new notification
+        function addNotification(message) {
+            if (emptyState) emptyState.style.display = "none";
+
+            const item = document.createElement("div");
+            item.className = "notification-item";
+            item.textContent = message;
+
+            list.appendChild(item);
+        }
+
     </script>
 </body>
 </html>

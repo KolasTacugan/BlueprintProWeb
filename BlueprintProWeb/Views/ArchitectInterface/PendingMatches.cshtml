@@ -1,0 +1,196 @@
+﻿@model IEnumerable<BlueprintProWeb.ViewModels.MatchViewModel>
+
+@{
+    ViewData["Title"] = "Pending Matches";
+    Layout = "~/Views/Shared/_ArchitectSharedLayout.cshtml";
+}
+
+@section Styles {
+    <style>
+        .match-title {
+            position: relative;
+            top: 80px;
+            left: 55px;
+            font-weight: 700;
+        }
+
+        .match-card {
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            overflow: hidden;
+            transition: transform 0.2s ease;
+            background: #fff;
+        }
+
+        .match-body {
+            padding: 16px;
+        }
+
+        .client-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .client-info {
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .btn-accept {
+            width: 48%;
+            background: #198754;
+            color: #fff;
+            font-weight: 600;
+            transition: 0.2s ease;
+        }
+
+        .btn-accept:hover {
+            background: #fff;
+            border-color: #198754;
+            color: #198754;
+        }
+
+        .btn-decline {
+            width: 48%;
+            background: #dc3545;
+            color: #fff;
+            font-weight: 600;
+            transition: 0.2s ease;
+        }
+
+        .btn-decline:hover {
+            background: #fff;
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+
+        .cards-row {
+            margin-top: 120px;
+        }
+
+        .modal-btn {
+            width: 70px;
+            height: 50px;
+            color: #fff;
+            background: #071744;
+            border-color: #fff;
+            border-radius: 10px;
+            transition: 0.2s ease;
+        }
+
+        .modal-btn:hover {
+            background: #fff;
+            color: #071744;
+            border-color: #071744;
+        }
+    </style>
+}
+
+<div class="row mb-5 align-items-center">
+    <div class="col">
+        <h1 class="match-title">Pending Matches</h1>
+    </div>
+</div>
+
+<div class="row px-5 cards-row">
+    @if (!Model.Any())
+    {
+        <div class="col-12 text-center">
+            <p class="text-muted">No pending matches at the moment.</p>
+        </div>
+    }
+    else
+    {
+        @foreach (var item in Model)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card match-card">
+                    <div class="match-body">
+                        <h5 class="client-name">@item.ClientName</h5>
+                        <p class="client-info">
+                            <strong>Date Requested:</strong> @item.MatchDate.ToShortDateString()<br />
+                            <strong>Status:</strong> @item.MatchStatus
+                        </p>
+
+                        <div class="d-flex justify-content-between mt-3">
+                            <button class="btn btn-accept respond-btn"
+                                    data-id="@item.MatchId"
+                                    data-approve="true">
+                                Accept
+                            </button>
+                            <button class="btn btn-decline respond-btn"
+                                    data-id="@item.MatchId"
+                                    data-approve="false">
+                                Decline
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+<!-- Match Result Modal -->
+<div class="modal fade" id="matchResultModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="matchResultTitle">Match Result</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="matchResultMessage">
+                <!-- Message goes here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="modal-btn" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const resultModalEl = document.getElementById("matchResultModal");
+        const resultModal = new bootstrap.Modal(resultModalEl);
+
+        document.querySelectorAll('.respond-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const matchId = this.dataset.id;
+                const approve = this.dataset.approve === "true";
+
+                fetch('/ArchitectInterface/RespondMatch', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                    },
+                    body: JSON.stringify({ matchId, approve })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById("matchResultTitle").innerText = "✅ Success";
+                        document.getElementById("matchResultMessage").innerText = `Match ${data.status}`;
+                    } else {
+                        document.getElementById("matchResultTitle").innerText = "❌ Error";
+                        document.getElementById("matchResultMessage").innerText = "Failed to update match.";
+                    }
+
+                    resultModal.show();
+                    if (data.success) {
+                        resultModalEl.addEventListener("hidden.bs.modal", () => {
+                            location.reload();
+                        }, { once: true });
+                    }
+                })
+                .catch(() => {
+                    document.getElementById("matchResultTitle").innerText = "❌ Error";
+                    document.getElementById("matchResultMessage").innerText = "Error responding to match.";
+                    resultModal.show();
+                });
+            });
+        });
+    </script>
+}

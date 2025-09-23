@@ -3,6 +3,28 @@
     ViewData["HideNavigation"] = true;
 }
 
+@section Styles{
+    <style>
+        .get-started-btn {
+            background-color: #000; 
+            color: #fff; 
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s ease; 
+            display: inline-block;
+        }
+
+        .get-started-btn:hover {
+            background-color: #fff; 
+            color: #000;
+            border: 1px solid #000;
+        }
+
+    </style>
+}
+
 @section Hero {
     <div class="hero-section" style="background-image:url('@Url.Content("~/images/landing-bg.png")')">
         <!-- Logo -->

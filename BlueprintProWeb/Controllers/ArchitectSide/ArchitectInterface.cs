@@ -1,6 +1,7 @@
 ﻿using BlueprintProWeb.Data;
 using BlueprintProWeb.Models;
 using BlueprintProWeb.ViewModels;
+using iText.Commons.Actions.Contexts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -28,37 +29,51 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             return View();
         }
 
-        public IActionResult Blueprints()
+        public async Task<IActionResult> Blueprints()
         {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
             var blueprints = context.Blueprints
-                .Where(bp => bp.blueprintIsForSale)
+                .Where(bp => bp.blueprintIsForSale && bp.architectId == user.Id)
                 .ToList();
+
             return View(blueprints);
         }
-        public IActionResult Projects()
+        public async Task<IActionResult> Projects()
         {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
             var blueprints = context.Blueprints
-                .Where(bp => !bp.blueprintIsForSale)
+                .Where(bp => !bp.blueprintIsForSale && bp.architectId == user.Id)
                 .ToList();
+
             return View(blueprints);
         }
+
         [HttpGet]
         public async Task<IActionResult> AddBlueprints()
         {
-            var clients = await _userManager.Users
-                .Where(u => u.user_role == "Client")
+            var user = await _userManager.GetUserAsync(User); 
+
+            var approvedMatches = await context.Matches
+                .Where(m => m.ArchitectId == user.Id && m.MatchStatus == "Approved")
+                .Include(m => m.Client) 
                 .ToListAsync();
 
-            var vm = new BlueprintViewModel
+            var clients = approvedMatches.Select(m => new SelectListItem
             {
-                Clients = clients.Select(c => new SelectListItem
-                {
-                    Value = c.Id, // will become Project.user_clientId
-                    Text = $"{c.user_fname} {c.user_lname}"
-                }).ToList()
+                Value = m.Client.Id,
+                Text = $"{m.Client.user_fname} {m.Client.user_lname}"
+            }).ToList();
+
+            var viewModel = new BlueprintViewModel
+            {
+                Clients = clients
             };
 
-            return View(vm);
+            return View(viewModel);
         }
 
         [HttpPost]
@@ -187,25 +202,29 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             return RedirectToAction("Blueprints");
         }
 
-        [HttpPost]
-        [Authorize(Roles = "Architect")]
-        public async Task<IActionResult> RespondMatch(string matchId, bool approve)
+        [HttpPost("ArchitectInterface/RespondMatch")]
+        public async Task<IActionResult> RespondMatch([FromBody] MatchResponseDto dto)
         {
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null) return Unauthorized();
 
-            var match = await context.Matches.FindAsync(matchId);
+            var match = await context.Matches.FindAsync(dto.MatchId);
             if (match == null) return NotFound();
 
             if (match.ArchitectId != currentUser.Id) return Forbid();
 
-            match.MatchStatus = approve ? "Approved" : "Declined";
+            match.MatchStatus = dto.Approve ? "Approved" : "Declined";
             await context.SaveChangesAsync();
 
             return Json(new { success = true, status = match.MatchStatus });
         }
 
-        [Authorize(Roles = "Architect")]
+        public class MatchResponseDto
+        {
+            public string MatchId { get; set; }
+            public bool Approve { get; set; }
+        }
+
         public IActionResult PendingMatches()
         {
             var currentUserId = _userManager.GetUserId(User);
