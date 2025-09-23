@@ -1,45 +1,77 @@
-﻿@model IEnumerable<BlueprintProWeb.Models.User>
+﻿@model IEnumerable<BlueprintProWeb.ViewModels.MatchViewModel>
 
 @{
     ViewData["Title"] = "Architect Match";
     Layout = "~/Views/Shared/_ClientSharedLayout.cshtml";
 }
 
+<form id="tokenForm">
+    @Html.AntiForgeryToken()
+</form>
+
+@section Styles{
+    <style>
+        .match-btn, .send-btn{
+            position: relative;
+            color: #fff;
+            background: #071744;
+            transition: 0.2s ease;
+        }
+
+        .match-btn:hover, .send-btn:hover {
+            background: #fff;
+            color: #071744;
+            border-color: #071744;
+        }
+    </style>
+}
+
 <div class="container-fluid px-4 py-3">
     <div class="row" style="height: 85vh;">
-        <!-- LEFT SIDE: Architect Results -->
+
+        <!-- LEFT SIDE: Architect Matches -->
         <div class="col-md-8 border-end overflow-auto" id="architectResults">
             <h4 class="fw-bold mb-3">Architect Matches</h4>
             <div id="resultsContainer" class="row">
-                @foreach (var architect in Model)
+                @if (Model != null && Model.Any())
                 {
-                    <div class="col-md-6 mb-4">
-                        <div class="card shadow-sm h-100">
-                            <div class="card-body d-flex flex-column">
-                                <div class="d-flex align-items-center mb-3">
-                                    <img src="~/images/@(architect.user_profilePhoto ?? "default-profile.png")"
-                                         class="rounded-circle me-3 border" width="50" height="50"
-                                         alt="@($"{architect.user_fname} {architect.user_lname}")" />
-                                    <div>
-                                        <h6 class="fw-bold mb-0">@($"{architect.user_fname} {architect.user_lname}")</h6>
-                                        <small class="text-muted">@architect.user_Specialization ?? "General Architect"</small>
+                    foreach (var match in Model)
+                    {
+                        <div class="col-md-6 mb-4">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body d-flex flex-column">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <img src="~/images/default-profile.png"
+                                             class="rounded-circle me-3 border"
+                                             width="50" height="50"
+                                             alt="@match.ArchitectName" />
+                                        <div>
+                                            <h6 class="fw-bold mb-0">@match.ArchitectName</h6>
+                                            <small class="text-muted">@match.ArchitectStyle ?? "General Architect"</small>
+                                        </div>
                                     </div>
+                                    <p class="text-muted small flex-grow-1">
+                                        Style: @match.ArchitectStyle ?? "Various" <br />
+                                        Location: @match.ArchitectLocation ?? "Flexible" <br />
+                                        Budget: @match.ArchitectBudget ?? "Flexible"
+                                    </p>
+                                    <div class="mb-2">
+                                        <small>Status: <span class="badge bg-info">@match.MatchStatus</span></small><br />
+                                        <small>Date: @match.MatchDate.ToString("yyyy-MM-dd")</small>
+                                    </div>
+                                    <button class="btn btn-outline-primary w-100 mt-auto match-btn"
+                                            data-architect-id="@match.ArchitectId">
+                                        Match
+                                    </button>
                                 </div>
-                                <p class="text-muted small flex-grow-1">
-                                    Style: @architect.user_Style ?? "Various" <br>
-                                    Location: @architect.user_Location ?? "Flexible" <br>
-                                    Budget: @architect.user_Budget ?? "Flexible"
-                                </p>
-                                <div class="d-flex align-items-center mb-2">
-                                    <span class="text-warning">★★★★★</span>
-                                    <small class="ms-2">(@(architect.user_Rating?.ToString("0.0") ?? "0"))</small>
-                                </div>
-                                <button class="btn btn-outline-primary w-100 mt-auto match-btn"
-                                        data-id="@architect.Id">
-                                    Match
-                                </button>
                             </div>
                         </div>
+                    }
+                }
+                else
+                {
+                    <div class="col-12">
+                        <div class="alert alert-warning">No matches found yet.</div>
                     </div>
                 }
             </div>
@@ -48,6 +80,7 @@
         <!-- RIGHT SIDE: Chat -->
         <div class="col-md-4 d-flex flex-column">
             <h4 class="fw-bold mb-3">Chat</h4>
+
             <!-- Chat history -->
             <div id="chatWindow" class="flex-grow-1 border rounded p-3 bg-light overflow-auto mb-2">
                 <div class="d-flex mb-3">
@@ -56,25 +89,45 @@
                     </div>
                 </div>
             </div>
+
             <!-- Chat input -->
             <div>
                 <div class="input-group">
                     <textarea id="clientPrompt" class="form-control" rows="1"
                               placeholder="Describe what you’re looking for..."></textarea>
-                    <button class="btn btn-primary" id="searchArchitects">Send</button>
+                    <button class="send-btn btn btn-primary" id="searchArchitects">Send</button>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- NOTIFICATION MODAL -->
+<div class="modal fade" id="notificationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 id="notificationTitle" class="modal-title"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="notificationMessage">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         const chatWindow = document.getElementById('chatWindow');
         const inputBox = document.getElementById('clientPrompt');
         const searchBtn = document.getElementById('searchArchitects');
         const resultsContainer = document.getElementById('resultsContainer');
 
+        // Append user messages
         function appendUserMessage(message) {
             let msg = document.createElement('div');
             msg.className = "d-flex justify-content-end mb-3";
@@ -83,77 +136,105 @@
             chatWindow.scrollTop = chatWindow.scrollHeight;
         }
 
-        function renderArchitects(architects) {
-            resultsContainer.innerHTML = ""; // clear old results
+        // Append system/assistant messages
+        function appendSystemMessage(message) {
+            let msg = document.createElement('div');
+            msg.className = "d-flex mb-3";
+            msg.innerHTML = `<div class="p-3 bg-secondary text-white rounded-3 shadow-sm">${message}</div>`;
+            chatWindow.appendChild(msg);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
 
-            if (architects.length === 0) {
+        // Render architect cards dynamically
+        function renderArchitects(matches) {
+            resultsContainer.innerHTML = "";
+
+            if (!matches || matches.length === 0) {
                 resultsContainer.innerHTML = `
                     <div class="col-12">
                         <div class="alert alert-warning">No architects found. Try refining your description.</div>
                     </div>`;
+                appendSystemMessage("😕 No matches found. Try describing differently.");
                 return;
             }
 
-            architects.forEach(a => {
+            matches.forEach(m => {
+                const date = m.matchDate ? new Date(m.matchDate).toLocaleDateString() : "";
                 let card = document.createElement('div');
                 card.className = "col-md-6 mb-4";
                 card.innerHTML = `
                     <div class="card shadow-sm h-100">
                         <div class="card-body d-flex flex-column">
                             <div class="d-flex align-items-center mb-3">
-                                <img src="/images/${a.user_profilePhoto ?? "default-profile.png"}"
-                                     class="rounded-circle me-3 border" width="50" height="50"
-                                     alt="${a.user_fname} ${a.user_lname}" />
+                                <img src="/images/default-profile.png" class="rounded-circle me-3 border" width="50" height="50" alt="${m.architectName || "Architect"}" />
                                 <div>
-                                    <h6 class="fw-bold mb-0">${a.user_fname} ${a.user_lname}</h6>
-                                    <small class="text-muted">${a.user_Specialization ?? "General Architect"}</small>
+                                    <h6 class="fw-bold mb-0">${m.architectName || "Unnamed Architect"}</h6>
+                                    <small class="text-muted">${m.architectStyle || "General Architect"}</small>
                                 </div>
                             </div>
                             <p class="text-muted small flex-grow-1">
-                                Style: ${a.user_Style ?? "Various"} <br>
-                                Location: ${a.user_Location ?? "Flexible"} <br>
-                                Budget: ${a.user_Budget ?? "Flexible"}
+                                Style: ${m.architectStyle || "Various"} <br>
+                                Location: ${m.architectLocation || "Flexible"} <br>
+                                Budget: ${m.architectBudget || "Flexible"}
                             </p>
-                            <div class="d-flex align-items-center mb-2">
-                                <span class="text-warning">★★★★★</span>
-                                <small class="ms-2">(${a.user_Rating?.toFixed(1) ?? "0"})</small>
+                            <div class="mb-2">
+                                <small>Status: <span class="badge bg-info">${m.matchStatus || "Pending"}</span></small><br />
+                                <small>Date: ${date}</small>
                             </div>
-                            <button class="btn btn-outline-primary w-100 mt-auto match-btn"
-                                    data-id="${a.id}">
+                            <button class="btn btn-outline-primary w-100 mt-auto match-btn" data-architect-id="${m.architectId}">
                                 Match
                             </button>
                         </div>
                     </div>`;
                 resultsContainer.appendChild(card);
             });
-
-            // rebind match buttons
-            resultsContainer.querySelectorAll('.match-btn').forEach(btn => {
-                btn.addEventListener('click', function () {
-                    let architectId = this.getAttribute('data-id');
-                    alert("Matched with Architect ID: " + architectId);
-                });
-            });
         }
 
+        // Global Match button click (works for static + dynamic)
+        $(document).on("click", ".match-btn", function () {
+            let architectId = $(this).data("architect-id");
+            let token = $('input[name="__RequestVerificationToken"]').val();
+
+            $.post("/ClientInterface/RequestMatch", { architectId: architectId, __RequestVerificationToken: token })
+                .done(res => {
+                        showNotification(
+                            "Success ✅",
+                            res.message || "Match request sent successfully!"
+                        );
+                    if (res.success) location.reload();
+                })
+                .fail(() => {
+                        showNotification(
+                        "Error ❌",
+                        "Failed to send match request."
+                    );
+                });
+        });
+
+        // Handle search with chat integration
         searchBtn.addEventListener('click', function () {
             let prompt = inputBox.value.trim();
             if (!prompt) {
                 alert("Please describe your desired architect.");
                 return;
             }
-
             appendUserMessage(prompt);
+            appendSystemMessage("🔎 Searching for architects...");
             inputBox.value = "";
 
-            // Fetch new results
-            fetch(`/ClientInterface/SearchArchitects?query=${encodeURIComponent(prompt)}`)
-                .then(res => res.json())
-                .then(data => renderArchitects(data))
-                .catch(err => {
-                    console.error("Search failed:", err);
-                    renderArchitects([]);
-                });
+            fetch(`/ClientInterface/Matches?query=${encodeURIComponent(prompt)}`, {
+                headers: { "X-Requested-With": "XMLHttpRequest" }
+            })
+            .then(res => res.json())
+            .then(data => {
+                appendSystemMessage(`✅ Found ${data.length} potential matches.`);
+                renderArchitects(data);
+            })
+            .catch(err => {
+                console.error("Search failed:", err);
+                appendSystemMessage("❌ Search failed. Please try again.");
+                renderArchitects([]);
+            });
         });
     </script>
 }
