@@ -197,18 +197,18 @@
 
             $.post("/ClientInterface/RequestMatch", { architectId: architectId, __RequestVerificationToken: token })
                 .done(res => {
-                        showNotification(
-                            "Success ✅",
-                            res.message || "Match request sent successfully!"
-                        );
+                    showNotification(
+                        "Success ✅",
+                        res.message || "Match request sent successfully!"
+                    );
                     if (res.success) location.reload();
                 })
                 .fail(() => {
-                        showNotification(
-                        "Error ❌",
-                        "Failed to send match request."
-                    );
-                });
+                    showNotification(
+                    "Error ❌",
+                    "Failed to send match request."
+                );
+            });
         });
 
         // Handle search with chat integration
