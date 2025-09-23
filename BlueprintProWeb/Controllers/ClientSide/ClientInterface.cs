@@ -142,7 +142,6 @@ namespace BlueprintProWeb.Controllers.ClientSide
         }
 
         [HttpPost]
-        [Authorize(Roles = "Client")]
         public async Task<IActionResult> RequestMatch(string architectId)
         {
             var currentUser = await userManager.GetUserAsync(User);
@@ -169,8 +168,6 @@ namespace BlueprintProWeb.Controllers.ClientSide
 
             return Json(new { success = true, message = "✅ Match request sent successfully." });
         }
-
-
 
         private double CosineSimilarity(float[] v1, float[] v2)
         {
@@ -199,12 +196,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 .ToArray();
         }
 
-       
     }
-
-
-
-
 
 }
 

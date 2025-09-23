@@ -5,6 +5,27 @@
     Layout = "~/Views/Shared/_ClientSharedLayout.cshtml";
 }
 
+<form id="tokenForm">
+    @Html.AntiForgeryToken()
+</form>
+
+@section Styles{
+    <style>
+        .match-btn, .send-btn{
+            position: relative;
+            color: #fff;
+            background: #071744;
+            transition: 0.2s ease;
+        }
+
+        .match-btn:hover, .send-btn:hover {
+            background: #fff;
+            color: #071744;
+            border-color: #071744;
+        }
+    </style>
+}
+
 <div class="container-fluid px-4 py-3">
     <div class="row" style="height: 85vh;">
 
@@ -74,8 +95,25 @@
                 <div class="input-group">
                     <textarea id="clientPrompt" class="form-control" rows="1"
                               placeholder="Describe what you’re looking for..."></textarea>
-                    <button class="btn btn-primary" id="searchArchitects">Send</button>
+                    <button class="send-btn btn btn-primary" id="searchArchitects">Send</button>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- NOTIFICATION MODAL -->
+<div class="modal fade" id="notificationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 id="notificationTitle" class="modal-title"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="notificationMessage">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
             </div>
         </div>
     </div>
@@ -155,14 +193,21 @@
         // Global Match button click (works for static + dynamic)
         $(document).on("click", ".match-btn", function () {
             let architectId = $(this).data("architect-id");
+            let token = $('input[name="__RequestVerificationToken"]').val();
 
-            $.post("/ClientInterface/RequestMatch", { architectId: architectId })
+            $.post("/ClientInterface/RequestMatch", { architectId: architectId, __RequestVerificationToken: token })
                 .done(res => {
-                    alert(res.message || "✅ Match request sent!");
+                        showNotification(
+                            "Success ✅",
+                            res.message || "Match request sent successfully!"
+                        );
                     if (res.success) location.reload();
                 })
                 .fail(() => {
-                    alert("❌ Failed to send match request.");
+                        showNotification(
+                        "Error ❌",
+                        "Failed to send match request."
+                    );
                 });
         });
 
