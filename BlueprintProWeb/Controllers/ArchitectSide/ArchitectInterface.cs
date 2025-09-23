@@ -24,8 +24,10 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             _userManager = userManager;
         }
 
-        public IActionResult ArchitectDashboard()
+        public async Task<IActionResult> ArchitectDashboard()
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+            ViewData["UserFirstName"] = currentUser?.user_fname ?? "User";
             return View();
         }
 

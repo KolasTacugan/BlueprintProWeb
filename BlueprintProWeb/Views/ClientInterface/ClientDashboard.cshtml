@@ -5,31 +5,32 @@
 
 @section Styles {
     <style>
-        html, body {
-            height: 100%;
-            min-height: 100%;
+        /* Override shared layout background for dashboard */
+        body::before {
+            background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
+            opacity: 0.1 !important;
         }
 
+        /* Ensure scrollable page */
         body {
-            background: #f6f7fa url('/images/dashboard-bg.jpg') no-repeat center center fixed;
-            background-size: cover;
-            min-height: 100vh;
-            height: 100%;
-            overflow-y: auto;
+            overflow-y: auto !important;
+            height: auto !important;
         }
 
-        .dashboard-content-wrapper {
-            position: relative;
-            z-index: 10;
-            background: transparent;
-            min-height: 100vh;
-            width: 100%;
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2.5rem 1.5rem 2.5rem 1.5rem;
-            /* Add a little margin for separation from the page edge */
-            margin-top: 2rem;
-            margin-bottom: 2rem;
+        /* Main content positioning that responds to sidebar state */
+        main.container {
+            margin-left: 300px; /* Default for expanded sidebar */
+            margin-top: 90px; /* Account for navbar */
+            padding: 2rem;
+            max-width: calc(100% - 320px);
+            transition: margin-left 0.4s ease, max-width 0.4s ease; /* Smooth transition */
+        }
+
+        /* When sidebar is collapsed, adjust main content */
+        .sidebar.collapsed ~ * main.container,
+        body:has(.sidebar.collapsed) main.container {
+            margin-left: 110px; /* Account for collapsed sidebar (85px + margins) */
+            max-width: calc(100% - 130px);
         }
 
         .dashboard-greeting {
@@ -37,6 +38,7 @@
             font-weight: 700;
             font-size: 2rem;
             margin-bottom: 2rem;
+            padding-top: 2rem; /* Add top padding so it won't be covered */
         }
 
         .dashboard-greeting .text-primary {
@@ -46,7 +48,7 @@
         .dashboard-row {
             display: flex;
             gap: 2rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem; /* Reduced from 2rem to 1.5rem */
             flex-wrap: wrap;
         }
 
@@ -58,9 +60,9 @@
         }
 
         .stat-card {
-            background: #fff;
+            background: #fff !important;
             border-radius: 14px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             border: 1px solid #DEE2E6;
             flex: 1 1 0;
             min-width: 180px;
@@ -92,9 +94,9 @@
         }
 
         .dashboard-blueprints {
-            background: #fff;
+            background: #fff !important;
             border-radius: 14px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             border: 1px solid #DEE2E6;
             min-width: 260px;
             max-width: 320px;
@@ -151,18 +153,19 @@
             border: none;
             padding: 0.15rem 0;
             color: #091635;
-        }   
+        }
 
         .dashboard-section {
-            background: #fff;
+            background: #fff !important;
             border-radius: 14px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             border: 1px solid #DEE2E6;
             padding: 1.5rem 1.5rem 1.2rem 1.5rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1rem; /* Reduced from 2rem to 1rem */
         }
 
         .dashboard-section .section-header {
+            display: flex;
             align-items: center;
             gap: 0.5rem;
             font-weight: 700;
@@ -217,11 +220,12 @@
         }
 
         .dashboard-overview {
-            background: #fff;
+            background: #fff !important;
             border-radius: 14px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             border: 1px solid #DEE2E6;
             padding: 1.5rem 1.5rem 1.2rem 1.5rem;
+            margin-top: 1rem; /* Reduced from mt-3 to 1rem */
         }
 
         .overview-header {
@@ -315,11 +319,8 @@
             fill: #091635;
         }
 
+        /* Responsive adjustments */
         @@media (max-width: 1200px) {
-            .dashboard-content-wrapper {
-                padding: 1.5rem 0.5rem;
-            }
-
             .dashboard-row {
                 flex-direction: column;
                 gap: 1.5rem;
@@ -336,15 +337,15 @@
         }
 
         @@media (max-width: 767.98px) {
-            .dashboard-content-wrapper {
-                padding: 0.5rem 0.1rem;
-                margin-top: 0.5rem;
-                margin-bottom: 0.5rem;
-                border-radius: 10px;
+            main.container {
+                margin-left: 0 !important;
+                margin-top: 75px;
+                max-width: 100% !important;
+                padding: 1rem;
             }
 
-            .dashboard-main {
-                padding: 0.5rem 0 !important;
+            .dashboard-greeting {
+                padding-top: 1rem; /* Less padding on mobile */
             }
 
             .dashboard-row, .dashboard-stats, .overview-circles {
@@ -364,141 +365,168 @@
     </style>
 }
 
+@section Scripts {
+    <script>
+        // Listen for sidebar toggle and adjust main content accordingly
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarToggler = document.querySelector('.sidebar-toggler');
+            const mainContent = document.querySelector('main.container');
+            
+            function adjustMainContent() {
+                if (sidebar && mainContent) {
+                    if (sidebar.classList.contains('collapsed')) {
+                        mainContent.style.marginLeft = '110px';
+                        mainContent.style.maxWidth = 'calc(100% - 130px)';
+                    } else {
+                        mainContent.style.marginLeft = '300px';
+                        mainContent.style.maxWidth = 'calc(100% - 320px)';
+                    }
+                }
+            }
+            
+            // Adjust on page load
+            adjustMainContent();
+            
+            // Listen for sidebar toggle
+            if (sidebarToggler) {
+                sidebarToggler.addEventListener('click', function() {
+                    // Wait for the sidebar transition to start
+                    setTimeout(adjustMainContent, 50);
+                });
+            }
+        });
+    </script>
+}
 
-<div class="dashboard-content-wrapper">
-    <div class="dashboard-main">
-        <div class="container-fluid" style="max-width: 1300px;">
-            <div class="dashboard-greeting mb-4 pt-4">
-                Welcome, <span class="text-primary">@ViewData["UserFirstName"]</span>!
-            </div>
+<div class="dashboard-greeting mb-4">
+    Welcome, <span class="text-primary">@ViewData["UserFirstName"]</span>!
+</div>
 
-            <div class="dashboard-row">
-                <div class="dashboard-stats">
-                    <div class="stat-card">
-                        <span class="stat-icon"><i class="fas fa-users"></i></span>
-                        <span class="stat-value">3</span>
-                        <span class="stat-label">Total Matches</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-icon"><i class="fas fa-shopping-cart"></i></span>
-                        <span class="stat-value">1</span>
-                        <span class="stat-label">Total Purchase</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-icon"><i class="fas fa-folder-open"></i></span>
-                        <span class="stat-value">1</span>
-                        <span class="stat-label">Total Projects</span>
-                    </div>
-                </div>
-                <div class="dashboard-blueprints ms-auto">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <div class="blueprint-header">
-                            <i class="fas fa-file-alt"></i> Blueprints
-                        </div>
-                        <a href="/ClientInterface/BlueprintMarketplace" class="blueprint-link">Go to Marketplace</a>
-                    </div>
-                    <div class="blueprint-table mt-2">
-                        <table class="w-100">
-                            <thead>
-                                <tr>
-                                    <th>Blueprint Purchased</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>1. White House Design</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+<div class="dashboard-row">
+    <div class="dashboard-stats">
+        <div class="stat-card">
+            <span class="stat-icon"><i class="fas fa-users"></i></span>
+            <span class="stat-value">3</span>
+            <span class="stat-label">Total Matches</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-icon"><i class="fas fa-shopping-cart"></i></span>
+            <span class="stat-value">1</span>
+            <span class="stat-label">Total Purchase</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-icon"><i class="fas fa-folder-open"></i></span>
+            <span class="stat-value">1</span>
+            <span class="stat-label">Total Projects</span>
+        </div>
+    </div>
+    <div class="dashboard-blueprints ms-auto">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+            <div class="blueprint-header">
+                <i class="fas fa-file-alt"></i> Blueprints
             </div>
+            <a href="/ClientInterface/BlueprintMarketplace" class="blueprint-link">Go to Marketplace</a>
+        </div>
+        <div class="blueprint-table mt-2">
+            <table class="w-100">
+                <thead>
+                    <tr>
+                        <th>Blueprint Purchased</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1. White House Design</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
-            <div class="dashboard-row" style="gap:0;">
-                <div class="dashboard-section" style="flex:2 1 0; margin-right:2rem;">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <div class="section-header">
-                            <i class="fas fa-users"></i> Matches
-                        </div>
-                        <a href="/ClientInterface/Matches" class="section-link">Find an Architect</a>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="dashboard-matches-table">
-                            <thead>
-                                <tr>
-                                    <th>Architect Name</th>
-                                    <th>Type</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Clark Moore</td>
-                                    <td>Residential Architecture</td>
-                                </tr>
-                                <tr>
-                                    <td>Vanessa Kang</td>
-                                    <td>Commercial Architecture</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+<div class="dashboard-row" style="gap:0;">
+    <div class="dashboard-section" style="flex:2 1 0; margin-right:2rem;">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+            <div class="section-header">
+                <i class="fas fa-users"></i> Matches
             </div>
+            <a href="/ClientInterface/Matches" class="section-link">Find an Architect</a>
+        </div>
+        <div class="table-responsive">
+            <table class="dashboard-matches-table">
+                <thead>
+                    <tr>
+                        <th>Architect Name</th>
+                        <th>Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Clark Moore</td>
+                        <td>Residential Architecture</td>
+                    </tr>
+                    <tr>
+                        <td>Vanessa Kang</td>
+                        <td>Commercial Architecture</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
-            <div class="dashboard-overview mt-3">
-                <div class="overview-header mb-2">
-                    <i class="fas fa-chart-pie"></i> Project Overview
-                </div>
-                <div class="overview-controls mb-3">
-                    <span class="badge">White H..</span>
-                    <button class="btn"><i class="fas fa-chevron-left"></i></button>
-                    <button class="btn"><i class="fas fa-chevron-right"></i></button>
-                    <div class="progress flex-grow-1 mx-2">
-                        <div class="progress-bar" style="width: 60%"></div>
-                    </div>
-                </div>
-                <div class="overview-circles">
-                    <div class="overview-circle">
-                        <svg width="110" height="110" class="circle-chart">
-                            <circle cx="55" cy="55" r="48" fill="none" stroke="#DEE2E6" stroke-width="8"></circle>
-                            <circle cx="55" cy="55" r="48" fill="none" stroke="#0D3C80" stroke-width="8"
-                                    stroke-dasharray="301.59" stroke-dashoffset="0"
-                                    style="transform: rotate(-90deg); transform-origin: 55px 55px;"></circle>
-                            <text x="55" y="62" text-anchor="middle">100%</text>
-                        </svg>
-                        <div>Planning</div>
-                    </div>
-                    <div class="overview-circle">
-                        <svg width="110" height="110" class="circle-chart">
-                            <circle cx="55" cy="55" r="48" fill="none" stroke="#DEE2E6" stroke-width="8"></circle>
-                            <circle cx="55" cy="55" r="48" fill="none" stroke="#0D3C80" stroke-width="8"
-                                    stroke-dasharray="301.59" stroke-dashoffset="0"
-                                    style="transform: rotate(-90deg); transform-origin: 55px 55px;"></circle>
-                            <text x="55" y="62" text-anchor="middle">100%</text>
-                        </svg>
-                        <div>Designing</div>
-                    </div>
-                    <div class="overview-circle">
-                        <svg width="110" height="110" class="circle-chart">
-                            <circle cx="55" cy="55" r="48" fill="none" stroke="#DEE2E6" stroke-width="8"></circle>
-                            <circle cx="55" cy="55" r="48" fill="none" stroke="#0D3C80" stroke-width="8"
-                                    stroke-dasharray="301.59" stroke-dashoffset="100"
-                                    style="transform: rotate(-90deg); transform-origin: 55px 55px;"></circle>
-                            <text x="55" y="62" text-anchor="middle">67%</text>
-                        </svg>
-                        <div>Development</div>
-                    </div>
-                    <div class="overview-circle">
-                        <svg width="110" height="110" class="circle-chart">
-                            <circle cx="55" cy="55" r="48" fill="none" stroke="#DEE2E6" stroke-width="8"></circle>
-                            <text x="55" y="62" text-anchor="middle" fill="#DEE2E6">
-                                <tspan font-size="2rem"><i class="fas fa-clock"></i></tspan>
-                            </text>
-                        </svg>
-                        <div>Testing</div>
-                    </div>
-                </div>
-            </div>
+<div class="dashboard-overview">
+    <div class="overview-header mb-2">
+        <i class="fas fa-chart-pie"></i> Project Overview
+    </div>
+    <div class="overview-controls mb-3">
+        <span class="badge">White H..</span>
+        <button class="btn"><i class="fas fa-chevron-left"></i></button>
+        <button class="btn"><i class="fas fa-chevron-right"></i></button>
+        <div class="progress flex-grow-1 mx-2">
+            <div class="progress-bar" style="width: 60%"></div>
+        </div>
+    </div>
+    <div class="overview-circles">
+        <div class="overview-circle">
+            <svg width="110" height="110" class="circle-chart">
+                <circle cx="55" cy="55" r="48" fill="none" stroke="#DEE2E6" stroke-width="8"></circle>
+                <circle cx="55" cy="55" r="48" fill="none" stroke="#0D3C80" stroke-width="8"
+                        stroke-dasharray="301.59" stroke-dashoffset="0"
+                        style="transform: rotate(-90deg); transform-origin: 55px 55px;"></circle>
+                <text x="55" y="62" text-anchor="middle">100%</text>
+            </svg>
+            <div>Planning</div>
+        </div>
+        <div class="overview-circle">
+            <svg width="110" height="110" class="circle-chart">
+                <circle cx="55" cy="55" r="48" fill="none" stroke="#DEE2E6" stroke-width="8"></circle>
+                <circle cx="55" cy="55" r="48" fill="none" stroke="#0D3C80" stroke-width="8"
+                        stroke-dasharray="301.59" stroke-dashoffset="0"
+                        style="transform: rotate(-90deg); transform-origin: 55px 55px;"></circle>
+                <text x="55" y="62" text-anchor="middle">100%</text>
+            </svg>
+            <div>Designing</div>
+        </div>
+        <div class="overview-circle">
+            <svg width="110" height="110" class="circle-chart">
+                <circle cx="55" cy="55" r="48" fill="none" stroke="#DEE2E6" stroke-width="8"></circle>
+                <circle cx="55" cy="55" r="48" fill="none" stroke="#0D3C80" stroke-width="8"
+                        stroke-dasharray="301.59" stroke-dashoffset="100"
+                        style="transform: rotate(-90deg); transform-origin: 55px 55px;"></circle>
+                <text x="55" y="62" text-anchor="middle">67%</text>
+            </svg>
+            <div>Development</div>
+        </div>
+        <div class="overview-circle">
+            <svg width="110" height="110" class="circle-chart">
+                <circle cx="55" cy="55" r="48" fill="none" stroke="#DEE2E6" stroke-width="8"></circle>
+                <text x="55" y="62" text-anchor="middle" fill="#DEE2E6">
+                    <tspan font-size="2rem"><i class="fas fa-clock"></i></tspan>
+                </text>
+            </svg>
+            <div>Testing</div>
         </div>
     </div>
 </div>

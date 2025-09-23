@@ -34,8 +34,10 @@ namespace BlueprintProWeb.Controllers.ClientSide
         }
 
 
-        public IActionResult ClientDashboard()
+        public async Task<IActionResult> ClientDashboard()
         {
+            var currentUser = await userManager.GetUserAsync(User);
+            ViewData["UserFirstName"] = currentUser?.user_fname ?? "User";
             return View();
         }
 
@@ -61,7 +63,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 return RedirectToAction("Login", "Account");
             }
 
-            // Step 1: Default query is user’s profile if empty
+            // Step 1: Default query is user's profile if empty
             string searchQuery = query;
             if (string.IsNullOrWhiteSpace(searchQuery))
             {
