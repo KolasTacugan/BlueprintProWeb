@@ -10,6 +10,8 @@
 
         // Optional: display names instead of IDs in the UI
         public string ClientName { get; set; }
+        public string ClientEmail { get; set; }
+        public string ClientPhone { get; set; }
         public string ArchitectName { get; set; }
 
         public string MatchStatus { get; set; }

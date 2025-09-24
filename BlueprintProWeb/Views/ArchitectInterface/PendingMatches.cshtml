@@ -83,6 +83,16 @@
             color: #071744;
             border-color: #071744;
         }
+
+        .client-profile-link {
+            color: #071744;
+            cursor: pointer;
+        }
+
+        .client-profile-link:hover {
+            text-decoration: underline;
+        }
+
     </style>
 }
 
@@ -106,7 +116,13 @@
             <div class="col-md-4 mb-4">
                 <div class="card match-card">
                     <div class="match-body">
-                        <h5 class="client-name">@item.ClientName</h5>
+                        <h5 class="client-name">
+                            <a href="#" class="client-profile-link text-decoration-none"
+                               data-client-id="@item.ClientId">
+                                @item.ClientName
+                            </a>
+                        </h5>
+
                         <p class="client-info">
                             <strong>Date Requested:</strong> @item.MatchDate.ToShortDateString()<br />
                             <strong>Status:</strong> @item.MatchStatus
@@ -149,6 +165,35 @@
     </div>
 </div>
 
+<!-- Client Profile Modal -->
+<div class="modal fade" id="clientProfileModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Client Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="profile-container">
+                    <div class="profile-main-card p-3">
+                        <div class="profile-info d-flex align-items-center gap-3 mb-3">
+                            <div class="avatar">
+                                <img src="~/images/profile.jpg" alt="Avatar" style="width:64px;height:64px;border-radius:50%;">
+                            </div>
+                            <div class="user-details">
+                                <h3 id="clientProfileName" class="client-name mb-1 fw-bold"></h3>
+                                <div id="clientProfileEmail" class="text-muted"></div>
+                                <div id="clientProfilePhone" class="text-muted"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -190,6 +235,30 @@
                     document.getElementById("matchResultMessage").innerText = "Error responding to match.";
                     resultModal.show();
                 });
+            });
+        });
+        const clientProfileModal = new bootstrap.Modal(document.getElementById('clientProfileModal'));
+
+        document.querySelectorAll('.client-profile-link').forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                const clientId = this.dataset.clientId;
+
+                fetch(`/ArchitectInterface/GetClientProfile?clientId=${clientId}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById("clientProfileName").innerText = data.name;
+                            document.getElementById("clientProfileEmail").innerText = data.email || "No email provided";
+                            document.getElementById("clientProfilePhone").innerText = data.phone || "No phone provided";
+
+                            clientProfileModal.show();
+                        } else {
+                            alert("❌ " + data.message);
+                        }
+                    })
+                    .catch(() => alert("❌ Failed to load client profile."));
             });
         });
     </script>

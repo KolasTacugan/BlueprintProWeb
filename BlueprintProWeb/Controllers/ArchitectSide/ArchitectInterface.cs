@@ -57,11 +57,11 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
         [HttpGet]
         public async Task<IActionResult> AddBlueprints()
         {
-            var user = await _userManager.GetUserAsync(User); 
+            var user = await _userManager.GetUserAsync(User);
 
             var approvedMatches = await context.Matches
                 .Where(m => m.ArchitectId == user.Id && m.MatchStatus == "Approved")
-                .Include(m => m.Client) 
+                .Include(m => m.Client)
                 .ToListAsync();
 
             var clients = approvedMatches.Select(m => new SelectListItem
@@ -127,10 +127,10 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
 
             var project = new Project
             {
-                blueprint_Id = blueprint.blueprintId,              
-                project_Title = vm.blueprintName,                  
-                user_architectId = userId,                         
-                user_clientId = vm.clentId,                              
+                blueprint_Id = blueprint.blueprintId,
+                project_Title = vm.blueprintName,
+                user_architectId = userId,
+                user_clientId = vm.clentId,
                 project_Status = "Draft",
                 project_Budget = vm.blueprintPrice.ToString()
             };
@@ -245,6 +245,29 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
 
             return View(pending);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetClientProfile(string clientId)
+        {
+            if (string.IsNullOrEmpty(clientId))
+                return BadRequest(new { success = false, message = "ClientId required" });
+
+            var client = await context.Users.FindAsync(clientId);
+
+            if (client == null)
+                return NotFound(new { success = false, message = "Client not found" });
+
+            var fullName = $"{client.user_fname} {client.user_lname}";
+
+            return Json(new
+            {
+                success = true,
+                name = fullName,
+                email = client.Email,
+                phone = client.PhoneNumber
+            });
+        }
+
 
     }
 }
