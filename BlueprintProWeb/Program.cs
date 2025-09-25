@@ -1,4 +1,5 @@
 using BlueprintProWeb.Data;
+using BlueprintProWeb.Hubs;
 using BlueprintProWeb.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -57,6 +58,7 @@ builder.Services.AddSingleton(sp =>
     return new EmbeddingClient("text-embedding-3-small", apiKey);
 });
 
+builder.Services.AddSignalR();
 
 
 var app = builder.Build();
@@ -81,5 +83,8 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapHub<ChatHub>("/chatHub");
+
 
 app.Run();

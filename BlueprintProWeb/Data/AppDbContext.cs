@@ -15,6 +15,8 @@ namespace BlueprintProWeb.Data
         public DbSet<Match> Matches { get; set; }
         public DbSet<Project> Projects { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<Message> Messages { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -53,6 +55,24 @@ namespace BlueprintProWeb.Data
                       .HasForeignKey(p => p.blueprint_Id)
                       .OnDelete(DeleteBehavior.Cascade);
             });
+
+            builder.Entity<Message>()
+                .HasOne(m => m.Client)
+                .WithMany()
+                .HasForeignKey(m => m.ClientId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Message>()
+                .HasOne(m => m.Architect)
+                .WithMany()
+                .HasForeignKey(m => m.ArchitectId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Message>()
+                .HasOne(m => m.Sender)
+                .WithMany()
+                .HasForeignKey(m => m.SenderId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

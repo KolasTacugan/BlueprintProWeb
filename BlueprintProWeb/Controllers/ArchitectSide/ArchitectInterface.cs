@@ -1,4 +1,5 @@
 ﻿using BlueprintProWeb.Data;
+using BlueprintProWeb.Hubs;
 using BlueprintProWeb.Models;
 using BlueprintProWeb.ViewModels;
 using iText.Commons.Actions.Contexts;
@@ -6,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
 
@@ -16,12 +18,13 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
         private readonly AppDbContext context;
         private readonly UserManager<User> _userManager;
         public IWebHostEnvironment WebHostEnvironment;
-
-        public ArchitectInterface(AppDbContext context, IWebHostEnvironment webHostEnvironment, UserManager<User> userManager)
+        private readonly IHubContext<ChatHub> _hubContext;
+        public ArchitectInterface(AppDbContext context, IWebHostEnvironment webHostEnvironment, UserManager<User> userManager, IHubContext<ChatHub> hubContext)
         {
             this.context = context;
             WebHostEnvironment = webHostEnvironment;
             _userManager = userManager;
+            _hubContext = hubContext;
         }
 
         public async Task<IActionResult> ArchitectDashboard()
@@ -268,6 +271,130 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             });
         }
 
+        // GET: ArchitectInterface/Messages/{clientId}
 
+        // GET: ArchitectInterface/Messages
+        [HttpGet]
+        public async Task<IActionResult> Messages(string clientId)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null) return Unauthorized();
+
+            // 1. Load matches for this architect
+            var matches = await context.Matches
+                .Where(m => m.ArchitectId == currentUser.Id)
+                .Select(m => new MatchViewModel
+                {
+                    MatchId = m.MatchId.ToString(),
+                    ClientId = m.ClientId,
+                    ArchitectId = m.ArchitectId,
+                    ClientName = m.Client.user_fname + " " + m.Client.user_lname,
+                    ClientEmail = m.Client.Email,
+                    ClientPhone = m.Client.PhoneNumber,
+                    ArchitectName = currentUser.user_fname + " " + currentUser.user_lname,
+                    MatchStatus = m.MatchStatus,
+                    MatchDate = m.MatchDate
+                    //ArchitectStyle = m.ArchitectStyle,
+                    //ArchitectLocation = m.ArchitectLocation,
+                    //ArchitectBudget = m.ArchitectBudget
+                })
+                .ToListAsync();
+
+            // 2. Load conversations (one per client)
+            var conversations = await context.Messages
+                .Where(m => m.ArchitectId == currentUser.Id || m.ClientId == currentUser.Id)
+                .GroupBy(m => m.ClientId)
+                .Select(g => new ChatViewModel
+                {
+                    ClientId = g.Key,
+                    ClientName = g.First().Client.user_fname + " " + g.First().Client.user_lname,
+                    ClientProfileUrl = null, // placeholder until you add profile pic
+                    LastMessageTime = g.Max(x => x.MessageDate),
+                    Messages = new List<MessageViewModel>() // only load in ActiveChat
+                })
+                .ToListAsync();
+
+            // 3. Load ActiveChat (if clientId is provided)
+            ChatViewModel? activeChat = null;
+            if (!string.IsNullOrEmpty(clientId))
+            {
+                var messages = await context.Messages
+                    .Where(m =>
+                        (m.ClientId == clientId && m.ArchitectId == currentUser.Id) ||
+                        (m.ClientId == currentUser.Id && m.ArchitectId == clientId))
+                    .OrderBy(m => m.MessageDate)
+                    .Select(m => new MessageViewModel
+                    {
+                        MessageId = m.MessageId.ToString(),
+                        ClientId = m.ClientId,
+                        ArchitectId = m.ArchitectId,
+                        SenderId = m.SenderId,
+                        MessageBody = m.MessageBody,
+                        MessageDate = m.MessageDate,
+                        IsRead = m.IsRead,
+                        IsDeleted = m.IsDeleted,
+                        AttachmentUrl = m.AttachmentUrl,
+                        SenderName = m.Sender.user_fname + " " + m.Sender.user_lname,
+                        SenderProfilePhoto = null, // placeholder
+                        IsOwnMessage = (m.SenderId == currentUser.Id)
+                    })
+                    .ToListAsync();
+
+                activeChat = new ChatViewModel
+                {
+                    ClientId = clientId,
+                    ClientName = messages.FirstOrDefault()?.SenderName ?? "Unknown",
+                    ClientProfileUrl = null, // placeholder
+                    LastMessageTime = messages.LastOrDefault()?.MessageDate ?? DateTime.UtcNow,
+                    Messages = messages
+                };
+            }
+
+            // 4. Build page model
+            var vm = new ChatPageViewModel
+            {
+                Matches = matches,
+                Conversations = conversations.OrderByDescending(c => c.LastMessageTime).ToList(),
+                ActiveChat = activeChat
+            };
+
+            return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SendMessage(string clientId, string messageBody)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null) return Unauthorized();
+
+            if (string.IsNullOrWhiteSpace(messageBody))
+                return RedirectToAction("Messages", new { clientId });
+
+            var message = new Message
+            {
+                MessageId = Guid.NewGuid(),
+                ClientId = clientId,
+                ArchitectId = currentUser.Id,
+                SenderId = currentUser.Id,
+                MessageBody = messageBody,
+                MessageDate = DateTime.UtcNow,
+                IsRead = false
+            };
+
+            context.Messages.Add(message);
+            await context.SaveChangesAsync();
+
+            // Notify all connected clients in real-time
+            await _hubContext.Clients.User(clientId).SendAsync("ReceiveMessage", new
+            {
+                SenderId = currentUser.Id,
+                SenderName = currentUser.user_fname + " " + currentUser.user_lname,
+                MessageBody = messageBody,
+                MessageDate = DateTime.UtcNow.ToString("g")
+            });
+
+            return RedirectToAction("Messages", new { clientId });
+        }
     }
 }
