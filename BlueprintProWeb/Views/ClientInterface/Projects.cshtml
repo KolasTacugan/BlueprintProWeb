@@ -1,0 +1,98 @@
+﻿@model IEnumerable<BlueprintProWeb.Models.Project>
+
+@{
+    ViewData["Title"] = "ClientDashboard";
+    Layout = "~/Views/Shared/_ClientSharedLayout.cshtml";
+}
+
+@section Styles {
+    <style>
+        .blueprint-title {
+            position: relative;
+            top: 80px;
+            left: 100px;
+            font-weight: 700;
+        }
+
+        .blueprint-table {
+            border-collapse: separate;
+            border-spacing: 0 12px;
+            background: transparent;
+            margin-top: 40px;
+            margin-left: 100px;
+        }
+
+        .blueprint-table tr {
+            background: #fff;
+            overflow: hidden;
+            vertical-align: middle;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            z-index: 10;
+        }
+
+        .blueprint-table td {
+            padding: 15px;
+            border-top: 1px solid #eee;
+            z-index: 10;
+        }
+
+        .bp-image {
+            width: 160px;
+            height: 80px;
+            border-radius: 8px;
+            object-fit: cover;
+            opacity: 1;
+        }
+
+        .bp-name {
+            margin-left: 40px;
+            font-weight: 600;
+        }
+
+        .track-btn {
+            margin-right: 50px;
+            background: #071744;
+            color: #fff;
+            transition: 0.2s ease;
+        }
+
+        .track-btn:hover {
+            color: #071744;
+            background: #fff;
+            border-color: #071744;
+        }
+    </style>
+}
+
+<div class="row mb-5 align-items-center">
+    <div class="col">
+        <h1 class="blueprint-title">My Projects</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col">
+        <table class="table blueprint-table">
+            <tbody>
+                @foreach (var project in Model)
+                {
+                    <tr class="bp-row">
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <img src="~/images/@project.Blueprint.blueprintImage" class="bp-image me-2" asp-append-version="true" />
+                                <span class="bp-name">@project.project_Title</span>
+                            </div>
+                            <div>
+                                <small><strong>Budget: </strong>₱@project.project_Budget</small><br />
+                                <small><strong>Architect: </strong>@project.Architect.user_fname @project.Architect.user_lname</small>
+                            </div>
+                        </td>
+                        <td class="text-end">
+                            <input type="submit" value="Track" class="track-btn btn" />
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

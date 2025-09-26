@@ -47,6 +47,19 @@ namespace BlueprintProWeb.Controllers.ClientSide
             return View("BlueprintMarketplace", blueprints);
         }
 
+        public async Task<IActionResult> Projects()
+        {
+            var user = await userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            var projects = await context.Projects
+                .Where(p => p.user_clientId == user.Id) 
+                .Include(p => p.Blueprint)
+                .Include(p => p.Architect)
+                .ToListAsync();
+
+            return View(projects);
+        }
 
         // 🔹 AI Matching (Profile + Query)
         [HttpGet]
