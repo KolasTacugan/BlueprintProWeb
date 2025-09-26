@@ -1,0 +1,104 @@
+﻿@model BlueprintProWeb.ViewModels.ChatPageViewModel
+
+@{
+    ViewData["Title"] = "Messages";
+    Layout = "~/Views/Shared/_ArchitectSharedLayout.cshtml";
+}
+
+<div class="container-fluid mt-3">
+    <div class="row">
+        <!-- LEFT PANEL -->
+        <div class="col-md-4 border-end bg-white" style="height: 90vh; overflow-y: auto;">
+            <h5 class="mb-3">Matches</h5>
+            <div class="d-flex flex-wrap gap-3 mb-4">
+                @if (Model.Matches.Any())
+                {
+                    foreach (var match in Model.Matches)
+                    {
+                        <a asp-controller="ArchitectInterface" asp-action="Messages"
+                           asp-route-clientId="@match.ClientId"
+                           class="text-center text-decoration-none">
+                            <img src="/images/default-profile.png"
+                                 class="rounded-circle"
+                                 style="width:60px; height:60px; object-fit:cover;" />
+                            <div class="small text-dark">@match.ClientName</div>
+                        </a>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted">No matches yet</p>
+                }
+            </div>
+
+            <h6 class="mt-4">Conversations</h6>
+            <ul class="list-group">
+                @if (Model.Conversations.Any())
+                {
+                    foreach (var convo in Model.Conversations)
+                    {
+                        <a asp-controller="ArchitectInterface" asp-action="Messages"
+                           asp-route-clientId="@convo.ClientId"
+                           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <span>@convo.ClientName</span>
+                            <small class="text-muted">@convo.LastMessageTime.ToShortTimeString()</small>
+                        </a>
+                    }
+                }
+                else
+                {
+                    <li class="list-group-item text-muted">No conversations yet</li>
+                }
+            </ul>
+        </div>
+
+        <!-- RIGHT PANEL -->
+        <div class="col-md-8 d-flex flex-column bg-light" style="height: 90vh;">
+            @if (Model.ActiveChat != null)
+            {
+                <!-- Chat Header -->
+                <div class="border-bottom p-2 d-flex align-items-center bg-white">
+                    <img src="/images/default-profile.png"
+                         class="rounded-circle me-2"
+                         style="width:40px; height:40px; object-fit:cover;" />
+                    <strong>@Model.ActiveChat.ClientName</strong>
+                </div>
+
+                <!-- Chat History -->
+                <div class="flex-grow-1 overflow-auto p-3">
+                    @foreach (var msg in Model.ActiveChat.Messages)
+                    {
+                        <div class="mb-2 @(msg.IsOwnMessage ? "text-end" : "text-start")">
+                            <div class="d-inline-block p-2 rounded"
+                                 style="background:@(msg.IsOwnMessage ? "#071744" : "#f1f1f1");
+                                                color:@(msg.IsOwnMessage ? "white" : "black");
+                                                max-width:70%;">
+                                @msg.MessageBody
+                            </div>
+                            <div class="small text-muted">
+                                @msg.MessageDate.ToShortTimeString()
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Chat Input -->
+                <form asp-controller="ArchitectInterface" asp-action="SendMessage" method="post"
+                      class="d-flex border-top p-2 bg-white">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="clientId" value="@Model.ActiveChat.ClientId" />
+                    <input type="text" name="messageBody" class="form-control me-2" placeholder="Type a message..." />
+                    <button type="submit" class="btn btn-primary">
+                        <span class="material-symbols-rounded">send</span>
+                    </button>
+                </form>
+            }
+            else
+            {
+                <div class="d-flex justify-content-center align-items-center flex-grow-1">
+                    <p class="text-muted">Select a conversation to start chatting</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

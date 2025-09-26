@@ -4,6 +4,7 @@ using BlueprintProWeb.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BlueprintProWeb.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250917161141_allowNULLEmbed")]
+    partial class allowNULLEmbed
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -33,9 +36,6 @@ namespace BlueprintProWeb.Migrations
                     b.Property<string>("architectId")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("blueprintCreatedDate")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("blueprintDescription")
                         .IsRequired()
@@ -92,129 +92,6 @@ namespace BlueprintProWeb.Migrations
                     b.HasIndex("ClientId");
 
                     b.ToTable("Matches");
-                });
-
-            modelBuilder.Entity("BlueprintProWeb.Models.Message", b =>
-                {
-                    b.Property<Guid>("MessageId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("ArchitectId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("AttachmentUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ClientId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("MessageBody")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
-                    b.Property<DateTime>("MessageDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("SenderId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("MessageId");
-
-                    b.HasIndex("ArchitectId");
-
-                    b.HasIndex("ClientId");
-
-                    b.HasIndex("SenderId");
-
-                    b.ToTable("Messages");
-                });
-
-            modelBuilder.Entity("BlueprintProWeb.Models.Notification", b =>
-                {
-                    b.Property<int>("notification_Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("notification_Id"));
-
-                    b.Property<DateTime>("notification_Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("notification_Message")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("notification_Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("notification_isRead")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("user_Id")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("notification_Id");
-
-                    b.HasIndex("user_Id");
-
-                    b.ToTable("Notifications");
-                });
-
-            modelBuilder.Entity("BlueprintProWeb.Models.Project", b =>
-                {
-                    b.Property<string>("project_Id")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("blueprint_Id")
-                        .HasColumnType("int");
-
-                    b.Property<string>("project_Budget")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("project_Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("project_Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("project_endDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("project_startDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("user_architectId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("user_clientId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("project_Id");
-
-                    b.HasIndex("blueprint_Id");
-
-                    b.HasIndex("user_architectId");
-
-                    b.HasIndex("user_clientId");
-
-                    b.ToTable("Projects");
                 });
 
             modelBuilder.Entity("BlueprintProWeb.Models.User", b =>
@@ -475,71 +352,6 @@ namespace BlueprintProWeb.Migrations
                         .IsRequired();
 
                     b.Navigation("Architect");
-
-                    b.Navigation("Client");
-                });
-
-            modelBuilder.Entity("BlueprintProWeb.Models.Message", b =>
-                {
-                    b.HasOne("BlueprintProWeb.Models.User", "Architect")
-                        .WithMany()
-                        .HasForeignKey("ArchitectId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("BlueprintProWeb.Models.User", "Client")
-                        .WithMany()
-                        .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("BlueprintProWeb.Models.User", "Sender")
-                        .WithMany()
-                        .HasForeignKey("SenderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Architect");
-
-                    b.Navigation("Client");
-
-                    b.Navigation("Sender");
-                });
-
-            modelBuilder.Entity("BlueprintProWeb.Models.Notification", b =>
-                {
-                    b.HasOne("BlueprintProWeb.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("user_Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("BlueprintProWeb.Models.Project", b =>
-                {
-                    b.HasOne("BlueprintProWeb.Models.Blueprint", "Blueprint")
-                        .WithMany()
-                        .HasForeignKey("blueprint_Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("BlueprintProWeb.Models.User", "Architect")
-                        .WithMany()
-                        .HasForeignKey("user_architectId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("BlueprintProWeb.Models.User", "Client")
-                        .WithMany()
-                        .HasForeignKey("user_clientId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Architect");
-
-                    b.Navigation("Blueprint");
 
                     b.Navigation("Client");
                 });

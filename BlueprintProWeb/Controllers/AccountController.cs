@@ -1,167 +1,143 @@
-﻿using BlueprintProWeb.Models;
+﻿
+using BlueprintProWeb.Models;
 using BlueprintProWeb.ViewModels;
+using iText.Kernel.Pdf;
+using iText.Kernel.Pdf.Canvas.Parser;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using OpenAI;
+using OpenAI.Embeddings;
+using System.Globalization;
 using System.Security.Claims;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Text;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace BlueprintProWeb.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly SignInManager<User> signInManager;
-        private readonly UserManager<User> userManager;
-        public IWebHostEnvironment WebHostEnvironment;
+        private readonly SignInManager<User> _signInManager;
+        private readonly UserManager<User> _userManager;
+        private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly OpenAIClient _openAi;
+        private readonly OpenAI.Embeddings.EmbeddingClient _embeddingClient;
 
-        public AccountController(SignInManager<User> signInManager, UserManager<User> userManager, IWebHostEnvironment webHostEnvironment)
+        public AccountController(
+            SignInManager<User> signInManager,
+            UserManager<User> userManager,
+            IWebHostEnvironment webHostEnvironment,
+            OpenAIClient openAi,
+            OpenAI.Embeddings.EmbeddingClient embeddingClient)
+
         {
-            this.signInManager = signInManager;
-            this.userManager = userManager;
-            WebHostEnvironment = webHostEnvironment;
+            _signInManager = signInManager;
+            _userManager = userManager;
+            _webHostEnvironment = webHostEnvironment;
+            _openAi = openAi;
+            _embeddingClient = embeddingClient;
         }
 
-        public IActionResult Login()
-        {
-            return View();
-        }
+
+        // ---------------- LOGIN ----------------
+        public IActionResult Login() => View();
+
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
             {
-                var user = await userManager.FindByEmailAsync(model.Email);
-                if (user == null)
-                {
-                    ModelState.AddModelError("", "Email or password is incorrect.");
-                    return View(model);
-                }
-
-                var result = await signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, false);
-                if (result.Succeeded)
-                {
-                    var claims = new List<Claim>
-            {
-                new Claim("FirstName", user.user_fname ?? user.Email)
-            };
-
-                    await signInManager.SignInWithClaimsAsync(user, model.RememberMe, claims);
-
-                    if (user.user_role == "Architect")
-                    {
-                        return RedirectToAction("ArchitectDashboard", "ArchitectInterface");
-                    }
-                    else if (user.user_role == "Client")
-                    {
-                        return RedirectToAction("ClientDashboard", "ClientInterface");
-                    }
-                    else
-                    {
-                        return RedirectToAction("Index", "Home");
-                    }
-                }
-                else
-                {
-                    ModelState.AddModelError("", "Email or password is incorrect.");
-                    return View(model);
-                }
+                ModelState.AddModelError("", "Email or password is incorrect.");
+                return View(model);
             }
+
+            var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, false);
+            if (result.Succeeded)
+            {
+                var claims = new List<Claim> { new Claim("FirstName", user.user_fname ?? user.Email) };
+                await _signInManager.SignInWithClaimsAsync(user, model.RememberMe, claims);
+
+                return user.user_role switch
+                {
+                    "Architect" => RedirectToAction("ArchitectDashboard", "ArchitectInterface"),
+                    "Client" => RedirectToAction("ClientDashboard", "ClientInterface"),
+                    _ => RedirectToAction("Index", "Home")
+                };
+            }
+
+            ModelState.AddModelError("", "Email or password is incorrect.");
             return View(model);
         }
 
-
+        // ---------------- REGISTER ----------------
         [AllowAnonymous]
-        public IActionResult ChooseRole()
-        {
-            return View();
-        }
+        public IActionResult ChooseRole() => View();
 
         [HttpGet]
-        public IActionResult Register( string role)
-        {
-            var model = new RegisterViewModel
-            {
-                Role = role 
-            };
-            return View(model);
-        }
+        public IActionResult Register(string role) => View(new RegisterViewModel { Role = role });
 
         [HttpPost]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var user = new User
             {
-                User client = new User
+                user_fname = model.FirstName,
+                user_lname = model.LastName,
+                PhoneNumber = model.PhoneNumber,
+                Email = model.Email,
+                UserName = model.Email,
+                user_role = model.Role
+            };
+
+            if (model.Role == "Architect")
+            {
+                user.user_licenseNo = model.LicenseNo;
+                user.user_Style = model.Style;
+                user.user_Specialization = model.Specialization;
+                user.user_Location = model.Location;
+                user.user_Budget = model.LaborCost;
+            }
+
+            // ✅ Corrected: use 'user' instead of 'client'
+            var result = await _userManager.CreateAsync(user, model.Password);
+
+            if (result.Succeeded)
+            {
+                // Optionally auto sign-in after registration
+                await _signInManager.SignInAsync(user, isPersistent: false);
+
+                // Redirect based on role
+                return user.user_role switch
                 {
-                    user_fname = model.FirstName,
-                    user_lname = model.LastName,
-                    PhoneNumber = model.PhoneNumber,
-                    Email = model.Email,
-                    UserName = model.Email,
-                    user_role = model.Role
+                    "Architect" => RedirectToAction("ArchitectDashboard", "ArchitectInterface"),
+                    "Client" => RedirectToAction("ClientDashboard", "ClientInterface"),
+                    _ => RedirectToAction("Index", "Home")
                 };
-
-                // Only assign Architect-specific fields if role is Architect
-                if (model.Role == "Architect")
-                {
-                    client.user_licenseNo = model.LicenseNo;
-                    client.user_Style = model.Style;
-                    client.user_Specialization = model.Specialization;
-                    client.user_Location = model.Location;
-                    client.user_Budget = model.LaborCost;
-                }
-
-                var result = await userManager.CreateAsync(client, model.Password);
-                if (result.Succeeded)
-                {
-
-                    return RedirectToAction("Login", "Account");
-                }
-                else
-                {
-                    foreach (var error in result.Errors)
-                    {
-                        ModelState.AddModelError("", error.Description);
-                    }
-                    return View(model);
-                }
-
             }
+
+            // Collect and show errors if not succeeded
+            foreach (var error in result.Errors)
+                ModelState.AddModelError("", error.Description);
+
             return View(model);
-
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Profile(ProfileViewModel model)
-        {
-            var user = await userManager.GetUserAsync(User);
 
-            if (user == null)
-            {
-                return RedirectToAction("Login", "Account");
-            }
-
-            // Example if you allow updates
-            user.user_fname = model.FirstName;
-            user.user_lname = model.LastName;
-            user.PhoneNumber = model.PhoneNumber;
-
-            await userManager.UpdateAsync(user);
-
-            // Reload updated values in the view
-            return RedirectToAction("Profile");
-        }
-
-        [HttpGet]
-        [Authorize] // Require login
+        // ---------------- PROFILE ----------------
+        [HttpGet, Authorize]
         public async Task<IActionResult> Profile()
         {
-            var user = await userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return RedirectToAction("Login", "Account");
-            }
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToAction("Login", "Account");
 
             var model = new ProfileViewModel
             {
@@ -176,7 +152,8 @@ namespace BlueprintProWeb.Controllers
                 Specialization = user.user_Specialization,
                 Location = user.user_Location,
                 Budget = user.user_Budget,
-                CredentialsFilePath = user.user_CredentialsFile
+                CredentialsFilePath = user.user_CredentialsFile,
+                PortfolioText = user.PortfolioText ?? ""
             };
 
             ViewData["Layout"] = user.user_role == "Architect"
@@ -186,30 +163,40 @@ namespace BlueprintProWeb.Controllers
             return View(model);
         }
 
+        [HttpPost, Authorize]
+        public async Task<IActionResult> Profile(ProfileViewModel model)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToAction("Login", "Account");
+
+            user.user_fname = model.FirstName;
+            user.user_lname = model.LastName;
+            user.PhoneNumber = model.PhoneNumber;
+
+            await _userManager.UpdateAsync(user);
+            return RedirectToAction("Profile");
+        }
+
+        // ---------------- EDIT PROFILE ----------------
         [HttpGet]
         public async Task<IActionResult> EditProfile()
         {
-            var user = await userManager.GetUserAsync(User);
-            if (user == null)
-                return RedirectToAction("Login", "Account");
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToAction("Login", "Account");
 
-            // Pick layout depending on role
             ViewData["Layout"] = user.user_role == "Architect"
                 ? "~/Views/Shared/_ArchitectSharedLayout.cshtml"
                 : "~/Views/Shared/_ClientSharedLayout.cshtml";
 
-            var model = new ProfileViewModel
+            return View(new ProfileViewModel
             {
                 FirstName = user.user_fname,
                 LastName = user.user_lname,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
-                Role= user.user_role
-            };
-
-            return View(model);
+                Role = user.user_role
+            });
         }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditProfile(ProfileViewModel model)
@@ -217,34 +204,64 @@ namespace BlueprintProWeb.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            var user = await userManager.GetUserAsync(User);
+            var user = await _userManager.GetUserAsync(User);
             if (user == null)
                 return RedirectToAction("Login", "Account");
 
-            // Update user properties
+            // Update common fields
             user.user_fname = model.FirstName;
             user.user_lname = model.LastName;
             user.Email = model.Email;
             user.UserName = model.Email; // keep username in sync
             user.PhoneNumber = model.PhoneNumber;
 
-            // Handle PDF upload
-            if (model.CredentialsFile != null)
+            // Architect-specific
+            if (string.Equals(user.user_role, "Architect", StringComparison.OrdinalIgnoreCase))
             {
-                string uploadDir = Path.Combine(WebHostEnvironment.WebRootPath, "credentials");
-                Directory.CreateDirectory(uploadDir);
-                string fileName = Guid.NewGuid().ToString() + "-" + model.CredentialsFile.FileName;
-                string filePath = Path.Combine(uploadDir, fileName);
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                user.user_licenseNo = model.LicenseNo ?? user.user_licenseNo;
+                user.user_Style = model.Style ?? user.user_Style;
+                user.user_Specialization = model.Specialization ?? user.user_Specialization;
+                user.user_Location = model.Location ?? user.user_Location;
+                user.user_Budget = model.Budget ?? user.user_Budget;
+                // Handle credentials file upload
+                if (model.CredentialsFile != null)
                 {
-                    await model.CredentialsFile.CopyToAsync(fileStream);
-                }
+                    string uploadDir = Path.Combine(_webHostEnvironment.WebRootPath, "credentials");
+                    Directory.CreateDirectory(uploadDir);
 
-                // Save path to the database (you need a field in User model)
-                user.user_CredentialsFile = fileName;
+                    string fileName = Guid.NewGuid().ToString() + "-" + model.CredentialsFile.FileName;
+                    string filePath = Path.Combine(uploadDir, fileName);
+
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await model.CredentialsFile.CopyToAsync(fileStream);
+                    }
+
+                    user.user_CredentialsFile = fileName;
+
+                    // 🔹 Extract text from the uploaded PDF
+                    string extractedText = await ExtractTextFromPdf(filePath);
+                    user.PortfolioText = extractedText;
+
+                    // 🔹 Generate embeddings from extracted text
+                    float[] embeddingVector = await GenerateEmbedding(extractedText);
+
+                    // Save as comma-separated floats for persistence
+                    user.PortfolioEmbedding = string.Join(",",
+                        embeddingVector.Select(v => v.ToString(CultureInfo.InvariantCulture)));
+                }
+            }
+            else
+            {
+                // Just in case someone tries to bypass UI and upload as Client
+                if (model.CredentialsFile != null)
+                {
+                    ModelState.AddModelError("", "Only architects can upload credentials.");
+                    return View(model);
+                }
             }
 
-            var result = await userManager.UpdateAsync(user);
+            var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded)
             {
                 foreach (var error in result.Errors)
@@ -253,85 +270,101 @@ namespace BlueprintProWeb.Controllers
                 return View(model);
             }
 
-            // Refresh sign-in so new claims/values are applied
-            await signInManager.RefreshSignInAsync(user);
+            // Refresh sign-in so updated claims/roles are applied
+            await _signInManager.RefreshSignInAsync(user);
+
             return RedirectToAction("Profile", "Account");
         }
 
-        public IActionResult VerifyEmail()
-        {
-            return View();
-        }
+
+        // ---------------- PASSWORD RESET ----------------
+        public IActionResult VerifyEmail() => View();
 
         [HttpPost]
         public async Task<IActionResult> VerifyEmail(VerifyEmailViewModel model)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid) return View(model);
+
+            var user = await _userManager.FindByNameAsync(model.Email);
+            if (user == null)
             {
-                var user = await userManager.FindByNameAsync(model.Email);
-                if (user == null)
-                {
-                    ModelState.AddModelError("", "Something is wrong...");
-                    return View(model);
-                }
-                else
-                {
-                    return RedirectToAction("ChangePassword", "Account", new { username = user.UserName });
-                }
+                ModelState.AddModelError("", "Email not found.");
+                return View(model);
             }
-            return View(model);
+            return RedirectToAction("ChangePassword", "Account", new { username = user.UserName });
         }
 
         public IActionResult ChangePassword(string username)
         {
-            if (string.IsNullOrEmpty(username))
-            {
-                return RedirectToAction("VerifyEmail", "Account");
-            }
+            if (string.IsNullOrEmpty(username)) return RedirectToAction("VerifyEmail", "Account");
             return View(new ChangePasswordViewModel { Email = username });
         }
 
         [HttpPost]
         public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
         {
-            if (ModelState.IsValid)
-            {
-                var user = await userManager.FindByNameAsync(model.Email);
-                if (user != null)
-                {
-                    var result = await userManager.RemovePasswordAsync(user);
-                    if (result.Succeeded)
-                    {
-                        result = await userManager.AddPasswordAsync(user, model.NewPassword);
-                        return RedirectToAction("Login", "Account");
-                    }
-                    else
-                    {
-                        foreach (var error in result.Errors)
-                        {
-                            ModelState.AddModelError("", error.Description);
-                        }
-                        return View(model);
-                    }
-                }
-                else
-                {
-                    ModelState.AddModelError("", "Email not found!");
-                    return View(model);
-                }
+            if (!ModelState.IsValid) return View(model);
 
-            }
-            else
+            var user = await _userManager.FindByNameAsync(model.Email);
+            if (user == null)
             {
-                ModelState.AddModelError("", "Something went wrong...");
+                ModelState.AddModelError("", "Email not found!");
                 return View(model);
-
             }
+
+            var result = await _userManager.RemovePasswordAsync(user);
+            if (result.Succeeded)
+            {
+                result = await _userManager.AddPasswordAsync(user, model.NewPassword);
+                return RedirectToAction("Login", "Account");
+            }
+
+            foreach (var error in result.Errors)
+                ModelState.AddModelError("", error.Description);
+
+            return View(model);
         }
+
+        // ---------------- LOGOUT ----------------
         public async Task<IActionResult> Logout()
         {
-            await signInManager.SignOutAsync();
+            await _signInManager.SignOutAsync();
             return RedirectToAction("Index", "Home");
         }
+        private async Task<string> ExtractTextFromPdf(string filePath)
+        {
+            var sb = new StringBuilder();
+
+            using (var pdfReader = new PdfReader(filePath))
+            using (var pdfDoc = new PdfDocument(pdfReader))
+            {
+                for (int i = 1; i <= pdfDoc.GetNumberOfPages(); i++)
+                {
+                    var page = pdfDoc.GetPage(i);
+                    var text = PdfTextExtractor.GetTextFromPage(page);
+                    sb.AppendLine(text);
+                }
+            }
+
+            var cleaned = Regex.Replace(sb.ToString(), @"\s+", " ").Trim();
+
+            return await Task.FromResult(sb.ToString());
+        }
+
+        private async Task<float[]> GenerateEmbedding(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return Array.Empty<float>();
+
+            // Use the injected EmbeddingClient (you already have _embeddingClient in the constructor)
+            var embeddingResponse = await _embeddingClient.GenerateEmbeddingAsync(text);
+
+            // Convert to float[] the same way you do elsewhere
+            return embeddingResponse.Value.ToFloats().ToArray();
+        }
+
+
+
+
     }
 }
