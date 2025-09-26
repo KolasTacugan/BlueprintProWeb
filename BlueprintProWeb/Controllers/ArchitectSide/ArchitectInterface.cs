@@ -396,5 +396,10 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
 
             return RedirectToAction("Messages", new { clientId });
         }
+
+        public IActionResult ProjectTracker()
+        {
+            return View();
+        }
     }
 }
