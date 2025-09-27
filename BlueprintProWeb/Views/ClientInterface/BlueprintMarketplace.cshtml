@@ -5,6 +5,35 @@
 }
 
 <style>
+    /* Override shared layout background for marketplace page */
+    body::before {
+        background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
+        opacity: 0.1 !important;
+    }
+
+    /* Ensure scrollable page */
+    body {
+        overflow-y: auto !important;
+        height: auto !important;
+    }
+
+    /* Main content positioning that responds to sidebar state */
+    main.container {
+        margin-left: 300px; /* Default for expanded sidebar */
+        margin-top: 90px; /* Account for navbar */
+        padding: 2rem;
+        padding-top: 3rem; /* Add extra top padding to avoid header overlap */
+        max-width: calc(100% - 320px);
+        transition: margin-left 0.4s ease, max-width 0.4s ease; /* Smooth transition */
+    }
+
+    /* When sidebar is collapsed, adjust main content */
+    .sidebar.collapsed ~ * main.container,
+    body:has(.sidebar.collapsed) main.container {
+        margin-left: 110px; /* Account for collapsed sidebar (85px + margins) */
+        max-width: calc(100% - 130px);
+    }
+
     .cart-modal {
         display: none;
         position: fixed;
@@ -31,15 +60,18 @@
     }
 
     @@keyframes slideInRight {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
+        from
 
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
+    {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
     }
 
     .cart-modal-header {
@@ -194,20 +226,32 @@
         cursor: default;
     }
 
+    /* Responsive adjustments */
     @@media (max-width: 768px) {
-        .cart-modal-content {
-            right: 10px;
-            left: 10px;
-            top: 70px;
-            width: auto;
-        }
+        .cart-modal-content
+
+    {
+        right: 10px;
+        left: 10px;
+        top: 70px;
+        width: auto;
+    }
+
+    main.container {
+        margin-left: 0 !important;
+        margin-top: 75px;
+        max-width: 100% !important;
+        padding: 1rem;
+        padding-top: 2rem;
+    }
+
     }
 </style>
 
 <div>
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="fw-bold mt-5 pt-4">Blueprint Marketplace</h2>
-        <button id="cartBtn" class="btn btn-light border mt-5">
+        <h2 class="fw-bold">Blueprint Marketplace</h2>
+        <button id="cartBtn" class="btn btn-light border">
             <i class="fas fa-shopping-cart me-2"></i>Cart
             <span id="cartCount" class="badge bg-primary ms-1">0</span>
         </button>
@@ -309,6 +353,36 @@
 
 @section Scripts {
     <script>
+        // Listen for sidebar toggle and adjust main content accordingly
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarToggler = document.querySelector('.sidebar-toggler');
+            const mainContent = document.querySelector('main.container');
+
+            function adjustMainContent() {
+                if (sidebar && mainContent) {
+                    if (sidebar.classList.contains('collapsed')) {
+                        mainContent.style.marginLeft = '110px';
+                        mainContent.style.maxWidth = 'calc(100% - 130px)';
+                    } else {
+                        mainContent.style.marginLeft = '300px';
+                        mainContent.style.maxWidth = 'calc(100% - 320px)';
+                    }
+                }
+            }
+
+            // Adjust on page load
+            adjustMainContent();
+
+            // Listen for sidebar toggle
+            if (sidebarToggler) {
+                sidebarToggler.addEventListener('click', function() {
+                    // Wait for the sidebar transition to start
+                    setTimeout(adjustMainContent, 50);
+                });
+            }
+        });
+
         // --- Your Cart functionality ---
         let cart = JSON.parse(localStorage.getItem('blueprintCart')) || [];
         let savedItems = JSON.parse(localStorage.getItem('blueprintSaved')) || [];
