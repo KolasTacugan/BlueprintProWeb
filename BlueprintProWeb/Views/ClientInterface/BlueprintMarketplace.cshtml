@@ -19,12 +19,12 @@
 
     /* Main content positioning that responds to sidebar state */
     main.container {
-        margin-left: 300px; /* Default for expanded sidebar */
-        margin-top: 90px; /* Account for navbar */
+        margin-left: 300px;
+        margin-top: 90px;
         padding: 2rem;
-        padding-top: 3rem; /* Add extra top padding to avoid header overlap */
+        padding-top: 4rem;
         max-width: calc(100% - 320px);
-        transition: margin-left 0.4s ease, max-width 0.4s ease; /* Smooth transition */
+        transition: margin-left 0.4s ease, max-width 0.4s ease;
     }
 
     /* When sidebar is collapsed, adjust main content */
@@ -33,6 +33,28 @@
         margin-left: 110px; /* Account for collapsed sidebar (85px + margins) */
         max-width: calc(100% - 130px);
     }
+
+    /* Equal height cards */
+    .card {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .card-img-top {
+        height: 200px;
+        object-fit: cover;
+    }
+
+    .card-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+        .card-body .btn {
+            margin-top: auto;
+        }
 
     .cart-modal {
         display: none;
@@ -59,19 +81,186 @@
         animation: slideInRight 0.3s ease-out;
     }
 
+    /* Checkout Notification Modal */
+    .checkout-modal {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(5px);
+    }
+
+    .checkout-modal-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(15px);
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(13, 60, 128, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        width: 90%;
+        max-width: 480px;
+        padding: 0;
+        overflow: hidden;
+        animation: checkoutModalSlide 0.4s ease-out;
+    }
+
+    @@keyframes checkoutModalSlide {
+        from {
+            opacity: 0;
+            transform: translate(-50%, -60%);
+            scale: 0.9;
+        }
+
+        to {
+            opacity: 1;
+            transform: translate(-50%, -50%);
+            scale: 1;
+        }
+    }
+
+    .checkout-modal-header {
+        background: linear-gradient(135deg, #0D3C80 0%, #071744 100%);
+        color: white;
+        padding: 24px;
+        text-align: center;
+        position: relative;
+    }
+
+    .checkout-modal-icon {
+        font-size: 3.5rem;
+        color: #fff;
+        margin-bottom: 12px;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .checkout-modal-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin: 0;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .checkout-modal-body {
+        padding: 32px 24px;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.9);
+    }
+
+    .checkout-summary {
+        margin-bottom: 24px;
+    }
+
+        .checkout-summary h4 {
+            color: #091635;
+            font-weight: 600;
+            margin-bottom: 16px;
+            font-size: 1.1rem;
+        }
+
+    .checkout-details {
+        background: rgba(13, 60, 128, 0.05);
+        border: 1px solid rgba(13, 60, 128, 0.1);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 24px;
+    }
+
+    .checkout-detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        font-size: 0.95rem;
+    }
+
+        .checkout-detail-row:last-child {
+            margin-bottom: 0;
+            padding-top: 12px;
+            border-top: 2px solid rgba(13, 60, 128, 0.1);
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #0D3C80;
+        }
+
+    .checkout-detail-label {
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .checkout-detail-value {
+        color: #091635;
+        font-weight: 600;
+    }
+
+    .checkout-modal-footer {
+        padding: 20px 24px 24px;
+        background: rgba(255, 255, 255, 0.9);
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+    }
+
+    .checkout-btn-primary {
+        background: linear-gradient(135deg, #0D3C80 0%, #071744 100%);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 15px rgba(13, 60, 128, 0.3);
+    }
+
+        .checkout-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(13, 60, 128, 0.4);
+        }
+
+    .checkout-btn-secondary {
+        background: rgba(255, 255, 255, 0.9);
+        color: #0D3C80;
+        border: 2px solid rgba(13, 60, 128, 0.2);
+        padding: 10px 24px;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .checkout-btn-secondary:hover {
+            background: rgba(13, 60, 128, 0.05);
+            border-color: rgba(13, 60, 128, 0.3);
+            transform: translateY(-1px);
+        }
+
     @@keyframes slideInRight {
-        from
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
 
-    {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
     }
 
     .cart-modal-header {
@@ -228,23 +417,33 @@
 
     /* Responsive adjustments */
     @@media (max-width: 768px) {
-        .cart-modal-content
+        .cart-modal-content {
+            right: 10px;
+            left: 10px;
+            top: 70px;
+            width: auto;
+        }
 
-    {
-        right: 10px;
-        left: 10px;
-        top: 70px;
-        width: auto;
-    }
+        .checkout-modal-content {
+            width: 95%;
+            margin: 0 10px;
+        }
 
-    main.container {
-        margin-left: 0 !important;
-        margin-top: 75px;
-        max-width: 100% !important;
-        padding: 1rem;
-        padding-top: 2rem;
-    }
+        .checkout-modal-body {
+            padding: 24px 20px;
+        }
 
+        .checkout-modal-footer {
+            flex-direction: column;
+        }
+
+        main.container {
+            margin-left: 0 !important;
+            margin-top: 75px;
+            max-width: 100% !important;
+            padding: 1rem;
+            padding-top: 2rem;
+        }
     }
 </style>
 
@@ -257,25 +456,46 @@
         </button>
     </div>
 
-    <ul class="nav nav-tabs mb-4">
-        <li class="nav-item"><a class="nav-link active" href="#">Residential</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Commercial</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Industrial</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Interior</a></li>
+    <ul class="nav nav-tabs mb-4" id="categoryTabs">
+        <li class="nav-item">
+            <a class="nav-link active" href="#" data-category="All">All</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" data-category="Modern">Modern</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" data-category="Traditional">Traditional</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" data-category="Contemporary">Contemporary</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" data-category="Minimalist">Minimalist</a>
+        </li>
     </ul>
 
-    <div class="row">
+    <div class="row" id="blueprintContainer">
         @foreach (var item in Model)
         {
-            <div class="col-md-3 mb-4">
+            <div class="col-md-3 mb-4 blueprint-item" data-category="@item.blueprintStyle">
                 <div class="card shadow-sm">
-                    <img src="~/images/@item.blueprintImage"
-                         class="card-img-top protected-img"
-                         alt="@item.blueprintName"
-                         asp-append-version="true" />
+                    @if (!string.IsNullOrEmpty(item.blueprintImage))
+                    {
+                        <img src="~/images/@item.blueprintImage"
+                             class="card-img-top protected-img"
+                             alt="@item.blueprintName"
+                             asp-append-version="true" />
+                    }
+                    else
+                    {
+                        <img src="~/images/placeholder-blueprint.png"
+                             class="card-img-top protected-img"
+                             alt="@item.blueprintName"
+                             asp-append-version="true" />
+                    }
 
                     <div class="card-body">
-                        <h5 class="fw-bold">₱@item.blueprintPrice</h5>
+                        <h5 class="fw-bold">₱<span class="price-value">@item.blueprintPrice.ToString("N0")</span></h5>
                         <p class="mb-1">@item.blueprintName</p>
                         <small class="text-muted">@item.blueprintDescription</small>
 
@@ -288,7 +508,7 @@
                                 data-id="@item.blueprintId"
                                 data-name="@item.blueprintName"
                                 data-price="@item.blueprintPrice"
-                                data-image="@item.blueprintImage">
+                                data-image="@(string.IsNullOrEmpty(item.blueprintImage) ? "placeholder-blueprint.png" : item.blueprintImage)">
                             Add to Cart
                         </button>
                     </div>
@@ -322,7 +542,7 @@
             <div id="cartTab" class="tab-content active">
                 <div id="cartItems"></div>
                 <div id="cartEmpty" class="cart-empty">
-                    <div class="cart-empty-icon">🛒</div>
+                    <div class="cart-empty-icon"><i class="fas fa-shopping-cart"></i></div>
                     <p><strong>Your cart is empty</strong></p>
                     <small class="text-muted">Add some blueprints to get started!</small>
                 </div>
@@ -331,7 +551,7 @@
             <div id="savedTab" class="tab-content">
                 <div id="savedItems"></div>
                 <div id="savedEmpty" class="cart-empty">
-                    <div class="cart-empty-icon">💾</div>
+                    <div class="cart-empty-icon"><i class="fas fa-bookmark"></i></div>
                     <p><strong>No saved items</strong></p>
                     <small class="text-muted">Save blueprints for later!</small>
                 </div>
@@ -351,10 +571,110 @@
     </div>
 </div>
 
+<!-- Checkout Notification Modal -->
+<div id="checkoutModal" class="checkout-modal">
+    <div class="checkout-modal-content">
+        <div class="checkout-modal-header">
+            <div class="checkout-modal-icon">
+                <i class="fas fa-credit-card"></i>
+            </div>
+            <h3 class="checkout-modal-title">Proceed to Checkout</h3>
+        </div>
+
+        <div class="checkout-modal-body">
+            <div class="checkout-summary">
+                <h4>Order Summary</h4>
+                <div class="checkout-details">
+                    <div class="checkout-detail-row">
+                        <span class="checkout-detail-label">
+                            <i class="fas fa-boxes"></i>
+                            Items in cart:
+                        </span>
+                        <span class="checkout-detail-value" id="checkoutItemCount">0</span>
+                    </div>
+                    <div class="checkout-detail-row">
+                        <span class="checkout-detail-label">
+                            <i class="fas fa-calculator"></i>
+                            Subtotal:
+                        </span>
+                        <span class="checkout-detail-value" id="checkoutSubtotal">₱0.00</span>
+                    </div>
+                    <div class="checkout-detail-row">
+                        <span class="checkout-detail-label">
+                            <i class="fas fa-tags"></i>
+                            Processing Fee:
+                        </span>
+                        <span class="checkout-detail-value">₱50.00</span>
+                    </div>
+                    <div class="checkout-detail-row">
+                        <span class="checkout-detail-label">
+                            <i class="fas fa-money-bill-wave"></i>
+                            Total Amount:
+                        </span>
+                        <span class="checkout-detail-value" id="checkoutTotalAmount">₱0.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="checkout-modal-footer">
+            <button class="checkout-btn-secondary" id="checkoutCancelBtn">
+                <i class="fas fa-arrow-left"></i>
+                Continue Shopping
+            </button>
+            <button class="checkout-btn-primary" id="checkoutConfirmBtn">
+                <i class="fas fa-credit-card"></i>
+                Confirm Order
+            </button>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
-        // Listen for sidebar toggle and adjust main content accordingly
+        // Function to format numbers with commas
+        function formatNumber(num) {
+            return parseFloat(num).toLocaleString('en-US');
+        }
+
+        // Format all price values on page load
         document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.price-value').forEach(function(element) {
+                const price = parseFloat(element.textContent.replace(/,/g, ''));
+                element.textContent = formatNumber(price);
+            });
+
+            // Category tab functionality
+            const categoryTabs = document.querySelectorAll('#categoryTabs .nav-link');
+            const blueprintItems = document.querySelectorAll('.blueprint-item');
+
+            categoryTabs.forEach(tab => {
+                tab.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    // Remove active class from all tabs
+                    categoryTabs.forEach(t => t.classList.remove('active'));
+                    // Add active class to clicked tab
+                    this.classList.add('active');
+
+                    const selectedCategory = this.getAttribute('data-category');
+
+                    // Show/hide blueprint items based on category
+                    blueprintItems.forEach(item => {
+                        const itemCategory = item.getAttribute('data-category');
+
+                        if (selectedCategory === 'All' || itemCategory === selectedCategory) {
+                            item.style.display = 'block';
+                            item.classList.remove('d-none');
+                        } else {
+                            item.style.display = 'none';
+                            item.classList.add('d-none');
+                        }
+                    });
+                });
+            });
+
+            // Listen for sidebar toggle and adjust main content accordingly
             const sidebar = document.querySelector('.sidebar');
             const sidebarToggler = document.querySelector('.sidebar-toggler');
             const mainContent = document.querySelector('main.container');
@@ -400,6 +720,14 @@
         const cartEmpty = document.getElementById('cartEmpty');
         const savedEmpty = document.getElementById('savedEmpty');
 
+        // Checkout Modal Elements
+        const checkoutModal = document.getElementById('checkoutModal');
+        const checkoutCancelBtn = document.getElementById('checkoutCancelBtn');
+        const checkoutConfirmBtn = document.getElementById('checkoutConfirmBtn');
+        const checkoutItemCount = document.getElementById('checkoutItemCount');
+        const checkoutSubtotal = document.getElementById('checkoutSubtotal');
+        const checkoutTotalAmount = document.getElementById('checkoutTotalAmount');
+
         document.querySelectorAll('.cart-tab').forEach(tab => {
             tab.addEventListener('click', () => {
                 document.querySelectorAll('.cart-tab').forEach(t => t.classList.remove('active'));
@@ -413,7 +741,8 @@
             cartCount.textContent = cart.length;
             cartTabCount.textContent = cart.length;
             savedTabCount.textContent = savedItems.length;
-            cartTotal.textContent = cart.reduce((sum, item) => sum + parseFloat(item.price), 0).toFixed(2);
+            const total = cart.reduce((sum, item) => sum + parseFloat(item.price), 0);
+            cartTotal.textContent = formatNumber(total.toFixed(2));
             checkoutBtn.disabled = cart.length === 0;
             cartEmpty.style.display = cart.length === 0 ? 'block' : 'none';
             savedEmpty.style.display = savedItems.length === 0 ? 'block' : 'none';
@@ -421,6 +750,26 @@
             renderSavedItems();
             localStorage.setItem('blueprintCart', JSON.stringify(cart));
             localStorage.setItem('blueprintSaved', JSON.stringify(savedItems));
+        }
+
+        function showCheckoutModal() {
+            if (cart.length === 0) return;
+
+            const subtotal = cart.reduce((sum, item) => sum + parseFloat(item.price), 0);
+            const processingFee = 50;
+            const total = subtotal + processingFee;
+
+            checkoutItemCount.textContent = cart.length;
+            checkoutSubtotal.textContent = `₱${formatNumber(subtotal.toFixed(2))}`;
+            checkoutTotalAmount.textContent = `₱${formatNumber(total.toFixed(2))}`;
+
+            checkoutModal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function hideCheckoutModal() {
+            checkoutModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
         }
 
         function renderCartItems() {
@@ -432,7 +781,7 @@
                         <img src="/images/${item.image}" alt="${item.name}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; margin-right: 12px;">
                         <div style="flex: 1;">
                             <div style="font-weight: 600; color: #091635; margin-bottom: 4px;">${item.name}</div>
-                            <div style="color: #0D3C80; font-weight: 700;">₱${parseFloat(item.price).toFixed(2)}</div>
+                            <div style="color: #0D3C80; font-weight: 700;">₱${formatNumber(parseFloat(item.price).toFixed(2))}</div>
                         </div>
                         <div style="display: flex; flex-direction: column; gap: 6px;">
                             <button onclick="saveForLater(${index})" style="padding: 6px 10px; background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; border-radius: 4px; font-size: 0.8rem; cursor: pointer;">Save</button>
@@ -453,7 +802,7 @@
                         <img src="/images/${item.image}" alt="${item.name}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; margin-right: 12px;">
                         <div style="flex: 1;">
                             <div style="font-weight: 600; color: #091635; margin-bottom: 4px;">${item.name}</div>
-                            <div style="color: #0D3C80; font-weight: 700;">₱${parseFloat(item.price).toFixed(2)}</div>
+                            <div style="color: #0D3C80; font-weight: 700;">₱${formatNumber(parseFloat(item.price).toFixed(2))}</div>
                         </div>
                         <div style="display: flex; flex-direction: column; gap: 6px;">
                             <button onclick="moveToCart(${index})" style="padding: 6px 10px; background: #d1ecf1; color: #0c5460; border: 1px solid #b8daff; border-radius: 4px; font-size: 0.8rem; cursor: pointer;">Move to Cart</button>
@@ -516,10 +865,40 @@
             }
         });
 
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && cartModal.style.display === 'block') {
+        // Checkout Modal Event Listeners
+        checkoutBtn.addEventListener('click', () => {
+            if (cart.length > 0) {
                 cartModal.style.display = 'none';
-                document.body.style.overflow = 'auto';
+                showCheckoutModal();
+            }
+        });
+
+        checkoutCancelBtn.addEventListener('click', () => {
+            hideCheckoutModal();
+            cartModal.style.display = 'block';
+        });
+
+        checkoutConfirmBtn.addEventListener('click', () => {
+            // Here you would typically redirect to actual checkout page
+            hideCheckoutModal();
+            // Example: window.location.href = '/Checkout';
+            alert('Redirecting to payment gateway...');
+        });
+
+        checkoutModal.addEventListener('click', (e) => {
+            if (e.target === checkoutModal) {
+                hideCheckoutModal();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (checkoutModal.style.display === 'block') {
+                    hideCheckoutModal();
+                } else if (cartModal.style.display === 'block') {
+                    cartModal.style.display = 'none';
+                    document.body.style.overflow = 'auto';
+                }
             }
         });
 
@@ -542,12 +921,6 @@
 
                 addToCart(id, name, price, image);
             });
-        });
-
-        checkoutBtn.addEventListener('click', () => {
-            if (cart.length > 0) {
-                alert(`Proceeding to checkout with ${cart.length} items, total ₱${cartTotal.textContent}`);
-            }
         });
 
         updateCartDisplay();
