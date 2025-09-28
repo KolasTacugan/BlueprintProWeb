@@ -1,10 +1,12 @@
 ﻿using BlueprintProWeb.Data;
+using BlueprintProWeb.Hubs;
 using BlueprintProWeb.Models;
 using BlueprintProWeb.ViewModels;
 using iText.Commons.Actions.Contexts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using OpenAI;
 using OpenAI.Chat;
@@ -20,22 +22,26 @@ namespace BlueprintProWeb.Controllers.ClientSide
         private readonly UserManager<User> userManager;
         private readonly OpenAIClient _openAi;
         private readonly EmbeddingClient _embeddingClient;
-
+        private readonly IHubContext<ChatHub> _hubContext;
         public ClientInterfaceController(
            AppDbContext _context,
            UserManager<User> _userManager,
            OpenAIClient openAi,
-           EmbeddingClient embeddingClient)
+           EmbeddingClient embeddingClient,
+           IHubContext<ChatHub> hubContext)
         {
             context = _context;
             userManager = _userManager;
             _openAi = openAi;
             _embeddingClient = embeddingClient;
+            _hubContext = hubContext;
         }
 
 
-        public IActionResult ClientDashboard()
+        public async Task<IActionResult> ClientDashboard()
         {
+            var currentUser = await userManager.GetUserAsync(User);
+            ViewData["UserFirstName"] = currentUser?.user_fname ?? "User";
             return View();
         }
 
@@ -74,7 +80,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 return RedirectToAction("Login", "Account");
             }
 
-            // Step 1: Default query is user’s profile if empty
+            // Step 1: Default query is user's profile if empty
             string searchQuery = query;
             if (string.IsNullOrWhiteSpace(searchQuery))
             {
@@ -209,7 +215,129 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 .ToArray();
         }
 
-       
-    }
+        [HttpGet]
+        public async Task<IActionResult> Messages(string architectId)
+        {
+            var currentUser = await userManager.GetUserAsync(User);
+            if (currentUser == null) return Unauthorized();
+
+            // 1. Load matches for this client
+            var matches = await context.Matches
+                .Where(m => m.ClientId == currentUser.Id)
+                .Select(m => new MatchViewModel
+                {
+                    MatchId = m.MatchId.ToString(),
+                    ClientId = m.ClientId,
+                    ArchitectId = m.ArchitectId,
+                    ArchitectName = m.Architect.user_fname + " " + m.Architect.user_lname,
+                    ArchitectStyle = m.Architect.user_Style,
+                    ArchitectLocation = m.Architect.user_Location,
+                    ArchitectBudget = m.Architect.user_Budget,
+                    MatchStatus = m.MatchStatus,
+                    MatchDate = m.MatchDate
+                })
+                .ToListAsync();
+
+            // 2. Load conversations (one per architect)
+            var conversations = await context.Messages
+                .Where(m => m.ClientId == currentUser.Id || m.ArchitectId == currentUser.Id)
+                .GroupBy(m => m.ArchitectId)
+                .Select(g => new ChatViewModel
+                {
+                    ClientId = g.Key, // using ArchitectId here
+                    ClientName = g.First().Architect.user_fname + " " + g.First().Architect.user_lname,
+                    ClientProfileUrl = null, // placeholder until profile pics
+                    LastMessageTime = g.Max(x => x.MessageDate),
+                    Messages = new List<MessageViewModel>()
+                })
+                .ToListAsync();
+
+            // 3. Load ActiveChat if architectId provided
+            ChatViewModel? activeChat = null;
+            if (!string.IsNullOrEmpty(architectId))
+            {
+                var messages = await context.Messages
+                    .Where(m =>
+                        (m.ArchitectId == architectId && m.ClientId == currentUser.Id) ||
+                        (m.ArchitectId == currentUser.Id && m.ClientId == architectId))
+                    .OrderBy(m => m.MessageDate)
+                    .Select(m => new MessageViewModel
+                    {
+                        MessageId = m.MessageId.ToString(),
+                        ClientId = m.ClientId,
+                        ArchitectId = m.ArchitectId,
+                        SenderId = m.SenderId,
+                        MessageBody = m.MessageBody,
+                        MessageDate = m.MessageDate,
+                        IsRead = m.IsRead,
+                        IsDeleted = m.IsDeleted,
+                        AttachmentUrl = m.AttachmentUrl,
+                        SenderName = m.Sender.user_fname + " " + m.Sender.user_lname,
+                        SenderProfilePhoto = null,
+                        IsOwnMessage = (m.SenderId == currentUser.Id)
+                    })
+                    .ToListAsync();
+
+                activeChat = new ChatViewModel
+                {
+                    ClientId = architectId,
+                    ClientName = messages.FirstOrDefault()?.SenderName ?? "Unknown",
+                    ClientProfileUrl = null,
+                    LastMessageTime = messages.LastOrDefault()?.MessageDate ?? DateTime.UtcNow,
+                    Messages = messages
+                };
+            }
+
+            // 4. Build page model
+            var vm = new ChatPageViewModel
+            {
+                Matches = matches,
+                Conversations = conversations.OrderByDescending(c => c.LastMessageTime).ToList(),
+                ActiveChat = activeChat
+            };
+
+            return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SendMessage(string architectId, string messageBody)
+        {
+            var currentUser = await userManager.GetUserAsync(User);
+            if (currentUser == null) return Unauthorized();
+
+            if (string.IsNullOrWhiteSpace(messageBody))
+                return RedirectToAction("Messages", new { architectId });
+
+            var message = new Message
+            {
+                MessageId = Guid.NewGuid(),
+                ClientId = currentUser.Id,
+                ArchitectId = architectId,
+                SenderId = currentUser.Id,
+                MessageBody = messageBody,
+                MessageDate = DateTime.UtcNow,
+                IsRead = false
+            };
+
+            context.Messages.Add(message);
+            await context.SaveChangesAsync();
+
+            // notify architect in real-time
+            await _hubContext.Clients.User(architectId).SendAsync("ReceiveMessage", new
+            {
+                SenderId = currentUser.Id,
+                SenderName = currentUser.user_fname + " " + currentUser.user_lname,
+                MessageBody = messageBody,
+                MessageDate = DateTime.UtcNow.ToString("g")
+            });
+
+            return RedirectToAction("Messages", new { architectId });
+        }
+    
 }
+
+}
+
+
 

@@ -4,11 +4,255 @@
     Layout = "~/Views/Shared/_ClientSharedLayout.cshtml";
 }
 
+<style>
+    /* Override shared layout background for marketplace page */
+    body::before {
+        background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
+        opacity: 0.1 !important;
+    }
+
+    /* Ensure scrollable page */
+    body {
+        overflow-y: auto !important;
+        height: auto !important;
+    }
+
+    /* Main content positioning that responds to sidebar state */
+    main.container {
+        margin-left: 300px; /* Default for expanded sidebar */
+        margin-top: 90px; /* Account for navbar */
+        padding: 2rem;
+        padding-top: 3rem; /* Add extra top padding to avoid header overlap */
+        max-width: calc(100% - 320px);
+        transition: margin-left 0.4s ease, max-width 0.4s ease; /* Smooth transition */
+    }
+
+    /* When sidebar is collapsed, adjust main content */
+    .sidebar.collapsed ~ * main.container,
+    body:has(.sidebar.collapsed) main.container {
+        margin-left: 110px; /* Account for collapsed sidebar (85px + margins) */
+        max-width: calc(100% - 130px);
+    }
+
+    .cart-modal {
+        display: none;
+        position: fixed;
+        z-index: 1050;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(3px);
+    }
+
+    .cart-modal-content {
+        position: absolute;
+        right: 20px;
+        top: 80px;
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        width: 550px;
+        max-height: 80vh;
+        overflow: hidden;
+        animation: slideInRight 0.3s ease-out;
+    }
+
+    @@keyframes slideInRight {
+        from
+
+    {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    }
+
+    .cart-modal-header {
+        padding: 20px 24px 16px;
+        border-bottom: 1px solid #DEE2E6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%);
+    }
+
+    .cart-modal-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #091635;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .cart-close-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: #091635;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+        transition: background-color 0.2s ease;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .cart-close-btn:hover {
+            background-color: #f8f9fa;
+        }
+
+    .cart-tabs {
+        display: flex;
+        border-bottom: 1px solid #DEE2E6;
+        background: #fff;
+    }
+
+    .cart-tab {
+        flex: 1;
+        padding: 12px 16px;
+        background: none;
+        border: none;
+        border-bottom: 2px solid transparent;
+        font-weight: 600;
+        color: #6c757d;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 0.9rem;
+    }
+
+        .cart-tab.active {
+            color: #0D3C80;
+            border-bottom-color: #0D3C80;
+            background: #f8f9fb;
+        }
+
+        .cart-tab:hover {
+            color: #0D3C80;
+            background: #f8f9fb;
+        }
+
+    .cart-modal-body {
+        padding: 20px 24px;
+        max-height: 350px;
+        overflow-y: auto;
+        background: #fff;
+    }
+
+    .cart-empty {
+        text-align: center;
+        padding: 40px 20px;
+        color: #6c757d;
+    }
+
+    .cart-empty-icon {
+        font-size: 3rem;
+        color: #DEE2E6;
+        margin-bottom: 16px;
+    }
+
+    .cart-modal-footer {
+        padding: 16px 24px 20px;
+        border-top: 1px solid #DEE2E6;
+        background: #f8f9fa;
+        border-radius: 0 0 14px 14px;
+    }
+
+    .cart-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        font-weight: 700;
+        color: #091635;
+        font-size: 1.1rem;
+    }
+
+    .cart-total-amount {
+        color: #0D3C80;
+        font-size: 1.2rem;
+    }
+
+    .cart-checkout-btn {
+        width: 100%;
+        padding: 12px;
+        background: #0D3C80;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        font-size: 1rem;
+    }
+
+        .cart-checkout-btn:hover:not(:disabled) {
+            background: #071744;
+        }
+
+        .cart-checkout-btn:disabled {
+            background: #DEE2E6;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+
+    .tab-content {
+        display: none;
+    }
+
+        .tab-content.active {
+            display: block;
+        }
+
+    /* Prevent dragging/selection of protected images (from his code) */
+    .protected-img {
+        -webkit-user-drag: none;
+        user-drag: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        cursor: default;
+    }
+
+    /* Responsive adjustments */
+    @@media (max-width: 768px) {
+        .cart-modal-content
+
+    {
+        right: 10px;
+        left: 10px;
+        top: 70px;
+        width: auto;
+    }
+
+    main.container {
+        margin-left: 0 !important;
+        margin-top: 75px;
+        max-width: 100% !important;
+        padding: 1rem;
+        padding-top: 2rem;
+    }
+
+    }
+</style>
+
 <div>
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="fw-bold mt-5 pt-4">Blueprint Marketplace</h2>
-        <button class="btn btn-light border mt-5">
-            Cart
+        <h2 class="fw-bold">Blueprint Marketplace</h2>
+        <button id="cartBtn" class="btn btn-light border">
+            <i class="fas fa-shopping-cart me-2"></i>Cart
             <span id="cartCount" class="badge bg-primary ms-1">0</span>
         </button>
     </div>
@@ -28,8 +272,7 @@
                     <img src="~/images/@item.blueprintImage"
                          class="card-img-top protected-img"
                          alt="@item.blueprintName"
-                         asp-append-version="true"
-                         draggable="false" />
+                         asp-append-version="true" />
 
                     <div class="card-body">
                         <h5 class="fw-bold">₱@item.blueprintPrice</h5>
@@ -41,7 +284,13 @@
                             <small class="ms-2">(0)</small>
                         </div>
 
-                        <button class="btn btn-primary w-100 add-to-cart">Add to Cart</button>
+                        <button class="btn btn-primary w-100 add-to-cart"
+                                data-id="@item.blueprintId"
+                                data-name="@item.blueprintName"
+                                data-price="@item.blueprintPrice"
+                                data-image="@item.blueprintImage">
+                            Add to Cart
+                        </button>
                     </div>
                 </div>
             </div>
@@ -49,70 +298,280 @@
     </div>
 </div>
 
-@section Styles {
-    <style>
-        /* Prevent dragging/selection of protected images */
-        .protected-img {
-            -webkit-user-drag: none;
-            user-drag: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-            cursor: default;
-        }
-    </style>
-}
+<!-- Cart Modal -->
+<div id="cartModal" class="cart-modal">
+    <div class="cart-modal-content">
+        <div class="cart-modal-header">
+            <h3 class="cart-modal-title">
+                <i class="fas fa-shopping-cart"></i>
+                Shopping Cart
+            </h3>
+            <button class="cart-close-btn" id="cartCloseBtn">&times;</button>
+        </div>
+
+        <div class="cart-tabs">
+            <button class="cart-tab active" data-tab="cart">
+                Cart (<span id="cartTabCount">0</span>)
+            </button>
+            <button class="cart-tab" data-tab="saved">
+                Saved (<span id="savedTabCount">0</span>)
+            </button>
+        </div>
+
+        <div class="cart-modal-body">
+            <div id="cartTab" class="tab-content active">
+                <div id="cartItems"></div>
+                <div id="cartEmpty" class="cart-empty">
+                    <div class="cart-empty-icon">🛒</div>
+                    <p><strong>Your cart is empty</strong></p>
+                    <small class="text-muted">Add some blueprints to get started!</small>
+                </div>
+            </div>
+
+            <div id="savedTab" class="tab-content">
+                <div id="savedItems"></div>
+                <div id="savedEmpty" class="cart-empty">
+                    <div class="cart-empty-icon">💾</div>
+                    <p><strong>No saved items</strong></p>
+                    <small class="text-muted">Save blueprints for later!</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="cart-modal-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span class="cart-total-amount">₱<span id="cartTotal">0.00</span></span>
+            </div>
+            <button id="checkoutBtn" class="cart-checkout-btn" disabled>
+                <i class="fas fa-credit-card me-2"></i>
+                Proceed to Checkout
+            </button>
+        </div>
+    </div>
+</div>
 
 @section Scripts {
     <script>
-        document.querySelectorAll('.add-to-cart').forEach(btn => {
-            btn.addEventListener('click', () => {
-                let cartCount = document.getElementById('cartCount');
-                cartCount.innerText = parseInt(cartCount.innerText) + 1;
+        // Listen for sidebar toggle and adjust main content accordingly
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarToggler = document.querySelector('.sidebar-toggler');
+            const mainContent = document.querySelector('main.container');
+
+            function adjustMainContent() {
+                if (sidebar && mainContent) {
+                    if (sidebar.classList.contains('collapsed')) {
+                        mainContent.style.marginLeft = '110px';
+                        mainContent.style.maxWidth = 'calc(100% - 130px)';
+                    } else {
+                        mainContent.style.marginLeft = '300px';
+                        mainContent.style.maxWidth = 'calc(100% - 320px)';
+                    }
+                }
+            }
+
+            // Adjust on page load
+            adjustMainContent();
+
+            // Listen for sidebar toggle
+            if (sidebarToggler) {
+                sidebarToggler.addEventListener('click', function() {
+                    // Wait for the sidebar transition to start
+                    setTimeout(adjustMainContent, 50);
+                });
+            }
+        });
+
+        // --- Your Cart functionality ---
+        let cart = JSON.parse(localStorage.getItem('blueprintCart')) || [];
+        let savedItems = JSON.parse(localStorage.getItem('blueprintSaved')) || [];
+
+        const cartModal = document.getElementById('cartModal');
+        const cartBtn = document.getElementById('cartBtn');
+        const cartCloseBtn = document.getElementById('cartCloseBtn');
+        const cartCount = document.getElementById('cartCount');
+        const cartTabCount = document.getElementById('cartTabCount');
+        const savedTabCount = document.getElementById('savedTabCount');
+        const cartTotal = document.getElementById('cartTotal');
+        const checkoutBtn = document.getElementById('checkoutBtn');
+        const cartItems = document.getElementById('cartItems');
+        const savedItemsDiv = document.getElementById('savedItems');
+        const cartEmpty = document.getElementById('cartEmpty');
+        const savedEmpty = document.getElementById('savedEmpty');
+
+        document.querySelectorAll('.cart-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.cart-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab + 'Tab').classList.add('active');
             });
         });
 
-        // Protection script
+        function updateCartDisplay() {
+            cartCount.textContent = cart.length;
+            cartTabCount.textContent = cart.length;
+            savedTabCount.textContent = savedItems.length;
+            cartTotal.textContent = cart.reduce((sum, item) => sum + parseFloat(item.price), 0).toFixed(2);
+            checkoutBtn.disabled = cart.length === 0;
+            cartEmpty.style.display = cart.length === 0 ? 'block' : 'none';
+            savedEmpty.style.display = savedItems.length === 0 ? 'block' : 'none';
+            renderCartItems();
+            renderSavedItems();
+            localStorage.setItem('blueprintCart', JSON.stringify(cart));
+            localStorage.setItem('blueprintSaved', JSON.stringify(savedItems));
+        }
+
+        function renderCartItems() {
+            cartItems.innerHTML = '';
+            cart.forEach((item, index) => {
+                const cartItem = document.createElement('div');
+                cartItem.innerHTML = `
+                    <div style="display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid #f1f3f4;">
+                        <img src="/images/${item.image}" alt="${item.name}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; margin-right: 12px;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: #091635; margin-bottom: 4px;">${item.name}</div>
+                            <div style="color: #0D3C80; font-weight: 700;">₱${parseFloat(item.price).toFixed(2)}</div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <button onclick="saveForLater(${index})" style="padding: 6px 10px; background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; border-radius: 4px; font-size: 0.8rem; cursor: pointer;">Save</button>
+                            <button onclick="removeFromCart(${index})" style="padding: 6px 10px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px; font-size: 0.8rem; cursor: pointer;">Remove</button>
+                        </div>
+                    </div>
+                `;
+                cartItems.appendChild(cartItem);
+            });
+        }
+
+        function renderSavedItems() {
+            savedItemsDiv.innerHTML = '';
+            savedItems.forEach((item, index) => {
+                const savedItem = document.createElement('div');
+                savedItem.innerHTML = `
+                    <div style="display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid #f1f3f4;">
+                        <img src="/images/${item.image}" alt="${item.name}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; margin-right: 12px;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: #091635; margin-bottom: 4px;">${item.name}</div>
+                            <div style="color: #0D3C80; font-weight: 700;">₱${parseFloat(item.price).toFixed(2)}</div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <button onclick="moveToCart(${index})" style="padding: 6px 10px; background: #d1ecf1; color: #0c5460; border: 1px solid #b8daff; border-radius: 4px; font-size: 0.8rem; cursor: pointer;">Move to Cart</button>
+                            <button onclick="removeFromSaved(${index})" style="padding: 6px 10px; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px; font-size: 0.8rem; cursor: pointer;">Remove</button>
+                        </div>
+                    </div>
+                `;
+                savedItemsDiv.appendChild(savedItem);
+            });
+        }
+
+        function addToCart(id, name, price, image) {
+            if (cart.find(item => item.id === id)) {
+                alert('This blueprint is already in your cart!');
+                return;
+            }
+            cart.push({ id, name, price, image });
+            updateCartDisplay();
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCartDisplay();
+        }
+
+        function saveForLater(index) {
+            const item = cart[index];
+            savedItems.push(item);
+            cart.splice(index, 1);
+            updateCartDisplay();
+        }
+
+        function moveToCart(index) {
+            const item = savedItems[index];
+            cart.push(item);
+            savedItems.splice(index, 1);
+            updateCartDisplay();
+        }
+
+        function removeFromSaved(index) {
+            savedItems.splice(index, 1);
+            updateCartDisplay();
+        }
+
+        cartBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            cartModal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        });
+
+        cartCloseBtn.addEventListener('click', () => {
+            cartModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        });
+
+        cartModal.addEventListener('click', (e) => {
+            if (e.target === cartModal) {
+                cartModal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && cartModal.style.display === 'block') {
+                cartModal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        });
+
+        document.querySelectorAll('.add-to-cart').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const button = e.target;
+                const id = button.dataset.id;
+                const name = button.dataset.name;
+                const price = button.dataset.price;
+                const image = button.dataset.image;
+
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check me-2"></i>Added!';
+                button.style.background = '#28a745';
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.style.background = '';
+                }, 1500);
+
+                addToCart(id, name, price, image);
+            });
+        });
+
+        checkoutBtn.addEventListener('click', () => {
+            if (cart.length > 0) {
+                alert(`Proceeding to checkout with ${cart.length} items, total ₱${cartTotal.textContent}`);
+            }
+        });
+
+        updateCartDisplay();
+    </script>
+
+    <script>
+        // --- His Protection Script ---
         (function () {
-            'use strict';
-
             const protectedSelector = '.card .protected-img';
-
-            // Disable context menu + drag for protected images
             document.querySelectorAll(protectedSelector).forEach(img => {
                 img.addEventListener('contextmenu', e => e.preventDefault());
                 img.addEventListener('dragstart', e => e.preventDefault());
                 img.setAttribute('draggable', 'false');
             });
 
-            // Disable copy
-            document.addEventListener('copy', function (e) {
-                if (e.clipboardData) {
-                    e.clipboardData.clearData();
-                }
+            document.addEventListener('copy', e => {
+                if (e.clipboardData) e.clipboardData.clearData();
                 e.preventDefault();
             });
 
-            // Block Ctrl+S and Ctrl+Shift+S
-            document.addEventListener('keydown', function (e) {
+            document.addEventListener('keydown', e => {
                 const key = e.key || e.code;
-                if ((e.ctrlKey || e.metaKey) && (key === 's' || key === 'S')) {
-                    e.preventDefault();
-                }
-                if ((e.ctrlKey || e.metaKey) && e.shiftKey && (key === 's' || key === 'S')) {
-                    e.preventDefault();
-                }
+                if ((e.ctrlKey || e.metaKey) && (key === 's' || key === 'S')) e.preventDefault();
             });
-
-            // Optional: block context menu for whole card (except buttons/inputs)
-            document.querySelectorAll('.card').forEach(card => {
-                card.addEventListener('contextmenu', function (e) {
-                    if (e.target.closest('button, a, input, textarea, select, label')) return;
-                    e.preventDefault();
-                }, true);
-            });
-
         })();
     </script>
 }
