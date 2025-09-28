@@ -1,0 +1,209 @@
+﻿@{
+    ViewData["Title"] = "Project Stepper";
+    Layout = "~/Views/Shared/_ArchitectSharedLayout.cshtml";
+}
+
+@section Styles {
+    <style>
+        .stepper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .step {
+            text-align: center;
+            flex: 1;
+            position: relative;
+        }
+
+        .step .icon {
+            font-size: 32px;
+            cursor: pointer;
+            border-radius: 50%;
+            padding: 8px;
+            transition: 0.3s ease;
+        }
+
+        .step .label {
+            display: block;
+            margin-top: 6px;
+            font-size: 14px;
+        }
+
+        /* active step */
+        .step.active .icon {
+            background: #071744;
+            color: #fff;
+        }
+
+        /* completed step */
+        .step.completed .icon {
+            background: #fff;
+            color: #071744;
+            border: 2px solid #071744;
+        }
+
+        /* connecting line */
+        .step::after {
+            content: none; /* no line by default */
+        }
+
+        .step:last-child::after {
+            display: none;
+        }
+
+        .step.completed::after {
+            background: #071744;
+        }
+
+        .content-wrapper {
+            padding: 100px 0; 
+        }
+
+        .step-content {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+            display: none; /* hide all by default */
+        }
+
+        .step-content.active {
+            display: block; /* show only current */
+        }
+
+        .step.line-crossed::after {
+            content: "";
+            position: absolute;
+            top: 20px;
+            right: -50%;
+            width: 100%;
+            height: 4px;
+            background: #071744; /* visible only when we decide */
+            z-index: -1;
+        }
+
+        .next-btn {
+            position: relative;
+            color: #fff;
+            background: #071744;
+            transition: 0.2s ease;
+        }
+
+        .next-btn:hover {
+            background: #fff;
+            color: #071744;
+            border-color: #071744;
+        }
+    </style>
+}
+
+<div class="content-wrapper">
+    <div class="stepper-container">
+        <!-- Stepper -->
+        <div class="stepper">
+            <div class="step active" data-step="1">
+                <span class="material-symbols-rounded icon">folder_open</span>
+                <span class="label">Review</span>
+            </div>
+            <div class="step" data-step="2">
+                <span class="material-symbols-rounded icon">folder</span>
+                <span class="label">Compliance</span>
+            </div>
+            <div class="step" data-step="3">
+                <span class="material-symbols-rounded icon">folder_check</span>
+                <span class="label">Finalization</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Step 1 -->
+<div id="step1Content" class="step-content active">
+    <h5>Step 1: Review</h5>
+    <p>Content for Review step...</p>
+    <button class="btn next-btn next-step" data-next="2">Next</button>
+</div>
+
+<!-- Step 2 -->
+<div id="step2Content" class="step-content">
+    <h5>Step 2: Compliance</h5>
+    <p>Content for Compliance step...</p>
+    <button class="btn next-btn next-step" data-next="3">Next</button>
+</div>
+
+<!-- Step 3 -->
+<div id="step3Content" class="step-content">
+    <h5>Step 3: Finalization</h5>
+    <p>Content for Finalization step...</p>
+    <button class="btn btn-success">Finish</button>
+</div>
+
+
+@section Scripts {
+    <script>
+        $(function () {
+            let currentStep = 1;
+            let maxReached = 1;
+
+            function renderStepper() {
+                $(".step").each(function () {
+                    const s = parseInt($(this).data("step"), 10);
+
+                    // reset
+                    $(this).removeClass("active completed line-crossed");
+
+                    // mark completed (all reached steps except the current one)
+                    if (s <= maxReached && s !== currentStep) {
+                        $(this).addClass("completed");
+                    }
+
+                    // mark active
+                    if (s === currentStep) {
+                        $(this).addClass("active");
+                    }
+
+                    // draw line only if the NEXT step has been reached
+                    if (s < maxReached) {
+                        $(this).addClass("line-crossed");
+                    }
+                });
+
+                // show current content
+                $(".step-content").removeClass("active");
+                $(`#step${currentStep}Content`).addClass("active");
+            }
+
+
+
+
+            // Next button (advance)
+            $(document).on("click", ".next-step", function (e) {
+                e.preventDefault();
+                const next = parseInt($(this).data("next"), 10);
+                if (!next) return;
+                currentStep = next;
+                if (next > maxReached) maxReached = next;
+                renderStepper();
+            });
+
+            $(document).on("click", ".step", function (e) {
+                const step = parseInt($(this).data("step"), 10);
+                if (isNaN(step)) return;
+
+                // allow revisiting steps that were previously reached (including current)
+                if (step <= maxReached) {
+                    currentStep = step;
+                    // IMPORTANT: do NOT lower maxReached here — keeps forward progress visual
+                    renderStepper();
+                }
+            });
+
+            renderStepper();
+        });
+    </script>
+}
+
+
