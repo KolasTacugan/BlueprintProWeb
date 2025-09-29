@@ -133,6 +133,52 @@ namespace BlueprintProWeb.Migrations
                     b.ToTable("Matches");
                 });
 
+            modelBuilder.Entity("BlueprintProWeb.Models.Message", b =>
+                {
+                    b.Property<Guid>("MessageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ArchitectId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("AttachmentUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ClientId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("MessageBody")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime>("MessageDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SenderId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("MessageId");
+
+                    b.HasIndex("ArchitectId");
+
+                    b.HasIndex("ClientId");
+
+                    b.HasIndex("SenderId");
+
+                    b.ToTable("Messages");
+                });
+
             modelBuilder.Entity("BlueprintProWeb.Models.Notification", b =>
                 {
                     b.Property<int>("notification_Id")
@@ -335,6 +381,12 @@ namespace BlueprintProWeb.Migrations
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
+
+                    b.Property<string>("PortfolioEmbedding")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PortfolioText")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
@@ -559,6 +611,33 @@ namespace BlueprintProWeb.Migrations
                     b.Navigation("Architect");
 
                     b.Navigation("Client");
+                });
+
+            modelBuilder.Entity("BlueprintProWeb.Models.Message", b =>
+                {
+                    b.HasOne("BlueprintProWeb.Models.User", "Architect")
+                        .WithMany()
+                        .HasForeignKey("ArchitectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BlueprintProWeb.Models.User", "Client")
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BlueprintProWeb.Models.User", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Architect");
+
+                    b.Navigation("Client");
+
+                    b.Navigation("Sender");
                 });
 
             modelBuilder.Entity("BlueprintProWeb.Models.Notification", b =>
