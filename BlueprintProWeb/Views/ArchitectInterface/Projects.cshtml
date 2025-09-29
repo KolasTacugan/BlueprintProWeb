@@ -7,12 +7,13 @@
 
 @section Styles {
 	<style>
+
 		/* Override shared layout background for projects page */
 		body::before {
 			background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
 			opacity: 0.1 !important;
 		}
-
+    
 		/* Ensure scrollable page */
 		body {
 			overflow-y: auto !important;
@@ -39,7 +40,7 @@
 		.blueprint-title {
 			font-weight: 700;
 			color: #091635;
-			margin-bottom: 2rem;
+			padding-top: 50px;
 		}
 
 		.blueprint-table {
@@ -154,6 +155,7 @@
 						<td class="text-end">
 							<a asp-controller="ArchitectInterface"
 							   asp-action="ProjectTracker"
+							   asp-route-id="@item.blueprintId"
 							   class="track-btn btn">
 								Track
 							</a>

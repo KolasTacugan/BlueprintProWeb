@@ -1,10 +1,14 @@
-﻿@{
+﻿@model BlueprintProWeb.ViewModels.ProjectTrackerViewModel
+
+
+@{
     ViewData["Title"] = "Project Stepper";
     Layout = "~/Views/Shared/_ArchitectSharedLayout.cshtml";
 }
 
 @section Styles {
     <style>
+
         .stepper {
             display: flex;
             justify-content: space-between;
@@ -58,7 +62,7 @@
         }
 
         .content-wrapper {
-            padding: 100px 0; 
+            padding: 100px 0;
         }
 
         .step-content {
@@ -85,16 +89,26 @@
             z-index: -1;
         }
 
-        .next-btn {
+        .next-btn, .replace-btn, .confirm-btn {
             position: relative;
             color: #fff;
             background: #071744;
             transition: 0.2s ease;
         }
 
-        .next-btn:hover {
-            background: #fff;
-            color: #071744;
+        .next-btn:hover, .replace-btn:hover, .confirm-btn:hover {
+        background: #fff;
+        color: #071744;
+        border-color: #071744;
+        }
+
+        /* navy connector when completed → active */
+        .step.line-crossed::after {
+            background: #071744;
+        }
+
+        .form-check-input:checked {
+            background-color: #071744;
             border-color: #071744;
         }
     </style>
@@ -104,15 +118,24 @@
     <div class="stepper-container">
         <!-- Stepper -->
         <div class="stepper">
-            <div class="step active" data-step="1">
+            @{
+                var status = Model.Status ?? "Review";
+
+                bool showConnector12 = status == "Compliance" || status == "Finalization";
+                bool showConnector23 = status == "Finalization";
+            }
+
+            <div class="step @(status == "Review" ? "active" : (status != "Review" ? "completed" : "")) @(showConnector12 ? "line-crossed" : "")" data-step="1">
                 <span class="material-symbols-rounded icon">folder_open</span>
                 <span class="label">Review</span>
             </div>
-            <div class="step" data-step="2">
+
+            <div class="step @(status == "Compliance" ? "active" : (status == "Finalization" ? "completed" : "")) @(showConnector23 ? "line-crossed" : "")" data-step="2">
                 <span class="material-symbols-rounded icon">folder</span>
                 <span class="label">Compliance</span>
             </div>
-            <div class="step" data-step="3">
+
+            <div class="step @(status == "Finalization" ? "active" : "")" data-step="3">
                 <span class="material-symbols-rounded icon">folder_check</span>
                 <span class="label">Finalization</span>
             </div>
@@ -121,17 +144,207 @@
 </div>
 
 <!-- Step 1 -->
-<div id="step1Content" class="step-content active">
-    <h5>Step 1: Review</h5>
-    <p>Content for Review step...</p>
-    <button class="btn next-btn next-step" data-next="2">Next</button>
+<div id="step1Content" class="step-content @(Model.Status == "Review" ? "active" : "")">
+    <h3>Review</h3>
+
+    <!-- Upload new/revised file -->
+    <form asp-action="UploadProjectFile" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="projectId" value="@Model.project_Id" />
+
+        <div class="form-group mb-3">
+            <label for="fileUpload"><strong>Upload Blueprint File</strong></label>
+            <input type="file" name="file" class="form-control"
+                   @(Model.Status != "Review" ? "disabled" : "") />
+        </div>
+
+        @if (Model.Status == "Review")
+        {
+            <button type="submit" class="btn replace-btn">Upload / Replace</button>
+        }
+    </form>
+
+    <hr />
+
+    <!-- Current File -->
+    <h6><strong>Current Version:</strong></h6>
+    <div class="form-control mb-3" style="height: 60px; overflow-y: auto;">
+        @if (!string.IsNullOrEmpty(Model.CurrentFilePath))
+        {
+            <a href="@Url.Content(Model.CurrentFilePath)" target="_blank">
+                Current_Version
+            </a>
+        }
+        else
+        {
+            <span class="text-muted">No file uploaded yet.</span>
+        }
+    </div>
+
+    <!-- Revision History -->
+    <h6><strong>Revision History:</strong></h6>
+    <div class="form-control mb-3" style="height: 150px; overflow-y: auto;">
+        @if (Model.RevisionHistory.Any())
+        {
+            <ul class="mb-0" style="list-style: none; padding-left: 0;">
+                @foreach (var revision in Model.RevisionHistory)
+                {
+                    <li>
+                        <a href="@Url.Content(revision.projectFile_Path)" target="_blank">
+                            Revision_ver.@revision.projectFile_Version
+                        </a>
+                        <span class="text-muted">— @revision.projectFile_uploadedDate.ToShortDateString()</span>
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <span class="text-muted">No revisions yet.</span>
+        }
+    </div>
+    @if (Model.Status == "Review")
+    {
+        <button class="btn next-btn next-step"
+                data-next="2"
+                data-status="Compliance"
+                data-project="@Model.project_Id">
+            Next
+        </button>
+    }
 </div>
 
-<!-- Step 2 -->
+
+<!-- Step 2: Compliance -->
 <div id="step2Content" class="step-content">
-    <h5>Step 2: Compliance</h5>
-    <p>Content for Compliance step...</p>
-    <button class="btn next-btn next-step" data-next="3">Next</button>
+    <h3>Compliance Documents</h3>
+
+    <form id="complianceUploadForm" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="projectId" value="@Model.project_Id" />
+
+        <!-- Choose category -->
+        <div class="mb-3">
+            <label class="form-label fw-bold">Choose file type to upload:</label>
+            <div class="d-flex flex-wrap gap-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="complianceCategory" id="structuralRadio" value="Structural" checked>
+                    <label class="form-check-label" for="structuralRadio">Structural</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="complianceCategory" id="electricalRadio" value="Electrical">
+                    <label class="form-check-label" for="electricalRadio">Electrical</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="complianceCategory" id="sanitaryRadio" value="Sanitary">
+                    <label class="form-check-label" for="sanitaryRadio">Sanitary/Plumbing</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="complianceCategory" id="zoningRadio" value="Zoning">
+                    <label class="form-check-label" for="zoningRadio">Zoning</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="complianceCategory" id="othersRadio" value="Others">
+                    <label class="form-check-label" for="othersRadio">Others</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload field -->
+        <div class="input-group mb-3">
+            <input type="file" id="complianceFileInput" name="file" class="form-control"
+                   @(Model.Status != "Compliance" ? "disabled" : "") />
+            @if (Model.Status == "Compliance")
+            {
+                <button type="button" id="uploadComplianceBtn" class="btn replace-btn">Upload</button>
+            }
+        </div>
+
+        <!-- Uploaded files display -->
+        <!-- STRUCTURAL -->
+        <div class="mb-3">
+            <strong>STRUCTURAL PLAN:</strong>
+            <p><i>Must be prepared by a licensed structural engineer.</i></p>
+            <div id="structuralFileArea" class="border p-2">
+                @if (!string.IsNullOrEmpty(Model.Compliance?.compliance_Structural))
+                {
+                    var ext = System.IO.Path.GetExtension(Model.Compliance.compliance_Structural);
+                    <a href="@Url.Content("~/uploads/compliance/" + Model.Compliance.compliance_Structural)" target="_blank">
+                        Structural_File
+                    </a>
+                }
+            </div>
+        </div>
+
+        <!-- ELECTRICAL -->
+        <div class="mb-3">
+            <strong>ELECTRICAL PLAN:</strong>
+            <p><i>Must be prepared by a licensed electrical engineer.</i></p>
+            <div id="electricalFileArea" class="border p-2">
+                @if (!string.IsNullOrEmpty(Model.Compliance?.compliance_Electrical))
+                {
+                    var ext = System.IO.Path.GetExtension(Model.Compliance.compliance_Electrical);
+                    <a href="@Url.Content("~/uploads/compliance/" + Model.Compliance.compliance_Electrical)" target="_blank">
+                        Electrical_File
+                    </a>
+                }
+            </div>
+        </div>
+
+        <!-- SANITARY -->
+        <div class="mb-3">
+            <strong>SANITARY/PLUMBING PLAN:</strong>
+            <p><i>Must be prepared by a licensed sanitary/plumbing engineer.</i></p>
+            <div id="sanitaryFileArea" class="border p-2">
+                @if (!string.IsNullOrEmpty(Model.Compliance?.compliance_Sanitary))
+                {
+                    var ext = System.IO.Path.GetExtension(Model.Compliance.compliance_Sanitary);
+                    <a href="@Url.Content("~/uploads/compliance/" + Model.Compliance.compliance_Sanitary)" target="_blank">
+                        Sanitary_File
+                    </a>
+                }
+            </div>
+        </div>
+
+        <!-- ZONING -->
+        <div class="mb-3">
+            <strong>ZONING COMPLIANCE:</strong>
+            <p><i>Must comply with local zoning laws and regulations.</i></p>
+            <div id="zoningFileArea" class="border p-2">
+                @if (!string.IsNullOrEmpty(Model.Compliance?.compliance_Zoning))
+                {
+                    var ext = System.IO.Path.GetExtension(Model.Compliance.compliance_Zoning);
+                    <a href="@Url.Content("~/uploads/compliance/" + Model.Compliance.compliance_Zoning)" target="_blank">
+                        Zoning_File
+                    </a>
+                }
+            </div>
+        </div>
+
+        <!-- OTHERS -->
+        <div class="mb-3">
+            <strong>OTHERS:</strong>
+            <p><i>If multiple, combine into one file before uploading.</i></p>
+            <div id="othersFileArea" class="border p-2">
+                @if (!string.IsNullOrEmpty(Model.Compliance?.compliance_Others))
+                {
+                    var ext = System.IO.Path.GetExtension(Model.Compliance.compliance_Others);
+                    <a href="@Url.Content("~/uploads/compliance/" + Model.Compliance.compliance_Others)" target="_blank">
+                        Others_File
+                    </a>
+                }
+            </div>
+        </div>
+
+        <!-- Next button (only active in Compliance) -->
+        @if (Model.Status == "Compliance")
+        {
+            <button class="btn next-btn next-step"
+                    data-next="3"
+                    data-status="Finalization"
+                    data-project="@Model.project_Id">
+                Next
+            </button>
+        }
+    </form>
 </div>
 
 <!-- Step 3 -->
@@ -141,67 +354,225 @@
     <button class="btn btn-success">Finish</button>
 </div>
 
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmStepModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Step</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to proceed?
+                Please confirm that the information in this step is correct.
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="confirmStepBtn" class="btn confirm-btn">Yes, proceed</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: empty file -->
+<div class="modal fade" id="emptyFileModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Upload Error</h5></div>
+            <div class="modal-body">You cannot upload an empty file. Please select a valid file.</div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button></div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: missing files -->
+<div class="modal fade" id="missingFilesModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Incomplete Compliance</h5></div>
+            <div class="modal-body" id="missingFilesList">
+                <!-- JS will fill this -->
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button></div>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Result Modal -->
+<div class="modal fade" id="uploadResultModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-3 shadow">
+            <div class="modal-header">
+                <h5 class="modal-title">Upload Result</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="uploadResultMessage">
+                <!-- message will be injected here -->
+            </div>
+        </div>
+    </div>
+</div>
 
 @section Scripts {
+    <script src="~/lib/jquery/jquery.min.js"></script>
     <script>
         $(function () {
-            let currentStep = 1;
-            let maxReached = 1;
+            const status = "@Model.Status";
 
-            function renderStepper() {
-                $(".step").each(function () {
-                    const s = parseInt($(this).data("step"), 10);
+            function lockSteps(status) {
+                // Unlock everything first
+                $(".step-content form :input").prop("disabled", false);
+                $(".step-content .next-step").show();
 
-                    // reset
-                    $(this).removeClass("active completed line-crossed");
+                if (status === "Compliance") {
+                    $("#step1Content form :input").prop("disabled", true);
+                    $("#step1Content .next-step").hide();
+                }
 
-                    // mark completed (all reached steps except the current one)
-                    if (s <= maxReached && s !== currentStep) {
-                        $(this).addClass("completed");
-                    }
+                if (status === "Finalization") {
+                    $("#step1Content form :input").prop("disabled", true);
+                    $("#step1Content .next-step").hide();
 
-                    // mark active
-                    if (s === currentStep) {
-                        $(this).addClass("active");
-                    }
-
-                    // draw line only if the NEXT step has been reached
-                    if (s < maxReached) {
-                        $(this).addClass("line-crossed");
-                    }
-                });
-
-                // show current content
-                $(".step-content").removeClass("active");
-                $(`#step${currentStep}Content`).addClass("active");
+                    $("#step2Content form :input").prop("disabled", true);
+                    $("#step2Content .next-step").hide();
+                }
             }
 
+            // Initial lock
+            lockSteps(status);
 
+            // Confirm before proceeding
+            let pendingStepData = null;
 
-
-            // Next button (advance)
             $(document).on("click", ".next-step", function (e) {
                 e.preventDefault();
-                const next = parseInt($(this).data("next"), 10);
-                if (!next) return;
-                currentStep = next;
-                if (next > maxReached) maxReached = next;
-                renderStepper();
+                pendingStepData = {
+                    next: parseInt($(this).data("next"), 10),
+                    status: $(this).data("status"),
+                    projectId: $(this).data("project")
+                };
+                $("#confirmStepModal").modal("show");
             });
 
-            $(document).on("click", ".step", function (e) {
-                const step = parseInt($(this).data("step"), 10);
-                if (isNaN(step)) return;
+            $("#confirmStepBtn").on("click", function () {
+                if (!pendingStepData) return;
 
-                // allow revisiting steps that were previously reached (including current)
-                if (step <= maxReached) {
-                    currentStep = step;
-                    // IMPORTANT: do NOT lower maxReached here — keeps forward progress visual
-                    renderStepper();
+                $.post("/ArchitectInterface/UpdateProjectStatus", pendingStepData)
+                    .done(res => {
+                        if (res.success) {
+                            location.reload(); // Razor rebuilds static stepper
+                        } else {
+                            alert("⚠️ Failed to update project status");
+                        }
+                    })
+                    .fail(() => alert("❌ Error while updating project status"));
+
+                $("#confirmStepModal").modal("hide");
+                pendingStepData = null;
+            });
+
+            // ✅ Stepper initialization on page load
+            (function initStepper() {
+                const dbStatus = "@Model.Status";
+                let stepNumber = 1;
+
+                if (dbStatus === "Compliance") stepNumber = 2;
+                if (dbStatus === "Finalization") stepNumber = 3;
+
+                // Reset states
+                $(".step").removeClass("active completed");
+                $(".step-content").removeClass("active");
+
+                // Apply classes
+                $(".step").each(function () {
+                    const s = $(this).data("step");
+
+                    if (s < stepNumber) $(this).addClass("completed");
+                    else if (s === stepNumber) $(this).addClass("active");
+                });
+
+                // Show correct step content
+                $(`#step${stepNumber}Content`).addClass("active");
+
+                // 🔥 Auto-load modals
+                if (dbStatus === "Compliance") {
+                    $("#step2Modal").modal("show");   // Compliance modal
+                }
+
+                if (dbStatus === "Finalization") {
+                    $("#finalizationModal").modal("show"); // Finalization modal
+                }
+            })();
+        });
+
+        // ✅ Handle traversing back by clicking steps
+        $(document).on("click", ".step.completed .icon, .step.active .icon", function () {
+            const stepNumber = $(this).closest(".step").data("step");
+
+            // Reset stepper states
+            $(".step").removeClass("active completed");
+
+            $(".step").each(function () {
+                const s = $(this).data("step");
+                const dbStatus = "@Model.Status";
+
+                if (s < stepNumber) {
+                    $(this).addClass("completed");
+                } else if (s === stepNumber) {
+                    $(this).addClass("active");
+                } else {
+                    if (dbStatus === "Finalization" && s <= 3) {
+                        $(this).addClass("completed");
+                    }
+                    else if (dbStatus === "Compliance" && s <= 2) {
+                        $(this).addClass("completed");
+                    }
                 }
             });
 
-            renderStepper();
+            $(".step-content").removeClass("active");
+            $(`#step${stepNumber}Content`).addClass("active");
+        });
+
+        $(function(){
+            $("#uploadComplianceBtn").on("click", function () {
+                const fileInput = $("#complianceFileInput")[0]; // fixed ID
+                const fileType = $("input[name='complianceCategory']:checked").val(); // fixed name
+                const projectTrackId = "@Model.projectTrack_Id"; // from Razor
+
+                if (!fileInput.files.length) {
+                    $("#emptyFileModal").modal("show");
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append("file", fileInput.files[0]);
+                formData.append("fileType", fileType);
+                formData.append("projectTrackId", projectTrackId);
+
+                $.ajax({
+                    url: "/ArchitectInterface/UploadComplianceFile",
+                    type: "POST",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (res) {
+                        if (res.success) {
+                            $("#uploadResultMessage").text(res.message);
+                            $("#uploadResultModal").modal("show");
+
+                            // refresh after modal is closed
+                            $("#uploadResultModal").on("hidden.bs.modal", function () {
+                                location.reload();
+                            });
+                        } else {
+                            alert(res.message || "❌ Upload failed.");
+                        }
+                    },
+                    error: function () {
+                        alert("❌ Upload failed.");
+                    }
+                });
+            });
         });
     </script>
 }

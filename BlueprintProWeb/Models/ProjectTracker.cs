@@ -20,6 +20,10 @@ namespace BlueprintProWeb.Models
         public DateTime projectTrack_dueDate { get; set; }
         public string projectTrack_Status { get; set; } = "Review";
 
+        public string projectTrack_currentFileName { get; set; }
+        public string projectTrack_currentFilePath { get; set; }
+        public int projectTrack_currentRevision { get; set; } = 1;
+
         // Navigation
         public Compliance Compliance { get; set; }
         public ICollection<ProjectFile> ProjectFiles { get; set; } = new List<ProjectFile>();
