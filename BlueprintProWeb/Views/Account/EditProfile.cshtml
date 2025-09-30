@@ -8,19 +8,36 @@
     <style>
         @@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
+        /* Override shared layout background for edit profile page */
+        body::before {
+            background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
+            opacity: 0.1 !important;
+        }
+
+        /* Ensure scrollable page */
         body {
-            background: url('/images/account-bg.png') no-repeat center center fixed;
-            background-size: cover;
+            overflow-y: auto !important;
+            height: auto !important;
             font-family: 'Poppins', sans-serif;
             margin: 0;
             min-height: 100vh;
         }
 
-        .container {
-            max-width: 1440px;
-            margin: 0 auto;
-            width: 100%;
-            padding-top: 40px;
+        /* Main content positioning that responds to sidebar state - using main.container to match shared layout */
+        main.container {
+            margin-left: 300px; 
+            margin-top: 90px; 
+            padding: 2rem;
+            padding-top: 4rem; 
+            max-width: calc(100% - 320px);
+            transition: margin-left 0.4s ease, max-width 0.4s ease;
+        }
+
+        /* When sidebar is collapsed, adjust main content */
+        .sidebar.collapsed ~ * main.container,
+        body:has(.sidebar.collapsed) main.container {
+            margin-left: 110px; /* Account for collapsed sidebar (85px + margins) */
+            max-width: calc(100% - 130px);
         }
 
         .main-card {
@@ -49,6 +66,11 @@
             padding: 8px 12px;
             border-radius: 8px;
             text-decoration: none;
+        }
+
+        .back-btn:hover {
+            background: #0A2F66;
+            color: white;
         }
 
         .page-header h2 {
@@ -183,85 +205,127 @@
             display: none;
         }
 
+        /* Responsive adjustments */
         @@media (max-width: 768px) {
             .edit-form {
                 grid-template-columns: 1fr;
+            }
+
+            main.container {
+                margin-left: 0 !important;
+                margin-top: 75px;
+                max-width: 100% !important;
+                padding: 1rem;
+                padding-top: 2rem;
+            }
+
+            .main-card {
+                padding: 20px !important;
+                margin: 0 10px 20px 10px;
             }
         }
     </style>
 }
 
-<div class="container">
-    <div class="main-card">
-        <div class="page-header">
-            <a asp-action="Profile" class="back-btn">←</a>
-            <h2>Edit Profile</h2>
+<div class="main-card">
+    <div class="page-header">
+        <a asp-action="Profile" class="back-btn">←</a>
+        <h2>Edit Profile</h2>
+    </div>
+
+    <form asp-action="EditProfile" method="post" enctype="multipart/form-data">
+        <div class="edit-form">
+            <div class="form-section">
+                <h3>Personal Information</h3>
+
+                <div class="form-group">
+                    <label asp-for="FirstName"></label>
+                    <input asp-for="FirstName" />
+                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="LastName"></label>
+                    <input asp-for="LastName" />
+                    <span asp-validation-for="LastName" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Email"></label>
+                    <input asp-for="Email" type="email" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="PhoneNumber"></label>
+                    <input asp-for="PhoneNumber" type="tel" />
+                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="avatar-section form-section">
+                <h3>Profile Picture</h3>
+                <div class="avatar-preview" id="avatarPreview">
+                    <img src="~/images/profile.jpg" alt="Profile Picture">
+                </div>
+                <input type="file" id="fileInput" class="file-input" accept="image/*" onchange="previewImage(event)">
+                <button type="button" class="upload-btn" onclick="document.getElementById('fileInput').click()">📷 Change Photo</button>
+            </div>
         </div>
 
-        <form asp-action="EditProfile" method="post" enctype="multipart/form-data">
-            <div class="edit-form">
-                <div class="form-section">
-                    <h3>Personal Information</h3>
-
-                    <div class="form-group">
-                        <label asp-for="FirstName"></label>
-                        <input asp-for="FirstName" />
-                        <span asp-validation-for="FirstName" class="text-danger"></span>
-                    </div>
-
-                    <div class="form-group">
-                        <label asp-for="LastName"></label>
-                        <input asp-for="LastName" />
-                        <span asp-validation-for="LastName" class="text-danger"></span>
-                    </div>
-
-                    <div class="form-group">
-                        <label asp-for="Email"></label>
-                        <input asp-for="Email" type="email" />
-                        <span asp-validation-for="Email" class="text-danger"></span>
-                    </div>
-
-                    <div class="form-group">
-                        <label asp-for="PhoneNumber"></label>
-                        <input asp-for="PhoneNumber" type="tel" />
-                        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
-                    </div>
-                </div>
-
-                <div class="avatar-section form-section">
-                    <h3>Profile Picture</h3>
-                    <div class="avatar-preview" id="avatarPreview">
-                        <img src="~/images/profile.jpg" alt="Profile Picture">
-                    </div>
-                    <input type="file" id="fileInput" class="file-input" accept="image/*" onchange="previewImage(event)">
-                    <button type="button" class="upload-btn" onclick="document.getElementById('fileInput').click()">📷 Change Photo</button>
-                </div>
+        <div class="credentials-section form-section">
+            <h3>Architect Credentials (PDF)</h3>
+            <div class="form-group">
+                @if (Model.Role == "Architect")
+                {
+                    <input type="file" id="credentialsFile" name="CredentialsFile" accept="application/pdf" class="form-control" />
+                }
+                else
+                {
+                    <input type="file" id="credentialsFile" name="CredentialsFile" class="form-control" disabled />
+                    <small class="text-muted">Only architects can upload credentials.</small>
+                }
             </div>
+        </div>
 
-            <div class="credentials-section form-section">
-                <h3>Architect Credentials (PDF)</h3>
-                <div class="form-group">
-                    @if (Model.Role == "Architect")
-                    {
-                        <input type="file" id="credentialsFile" name="CredentialsFile" accept="application/pdf" class="form-control" />
-                    }
-                    else
-                    {
-                        <input type="file" id="credentialsFile" name="CredentialsFile" class="form-control" disabled />
-                        <small class="text-muted">Only architects can upload credentials.</small>
-                    }
-                </div>
-            </div>
-
-            <div class="form-actions">
-                <button type="submit" class="btn-primary">Save Changes</button>
-            </div>
-        </form>
-    </div>
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">Save Changes</button>
+        </div>
+    </form>
 </div>
 
 @section Scripts {
     <script>
+        // Listen for sidebar toggle and adjust main content accordingly
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarToggler = document.querySelector('.sidebar-toggler');
+            const mainContent = document.querySelector('main.container');
+            
+            function adjustMainContent() {
+                if (sidebar && mainContent) {
+                    if (sidebar.classList.contains('collapsed')) {
+                        mainContent.style.marginLeft = '110px';
+                        mainContent.style.maxWidth = 'calc(100% - 130px)';
+                    } else {
+                        mainContent.style.marginLeft = '300px';
+                        mainContent.style.maxWidth = 'calc(100% - 320px)';
+                    }
+                }
+            }
+            
+            // Adjust on page load
+            adjustMainContent();
+            
+            // Listen for sidebar toggle
+            if (sidebarToggler) {
+                sidebarToggler.addEventListener('click', function() {
+                    // Wait for the sidebar transition to start
+                    setTimeout(adjustMainContent, 50);
+                });
+            }
+        });
+
         function previewImage(event) {
             const file = event.target.files[0];
             const preview = document.getElementById('avatarPreview');

@@ -16,8 +16,11 @@ namespace BlueprintProWeb.Data
         public DbSet<Project> Projects { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<Message> Messages { get; set; }
-        public DbSet<Cart> Carts { get; set; }
-        public DbSet<CartItem> CartItems { get; set; }
+        public DbSet<ProjectTracker> ProjectTrackers { get; set; }
+        public DbSet<Compliance> Compliances { get; set; }
+        public DbSet<ProjectFile> ProjectFiles { get; set; }
+
+
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -74,6 +77,24 @@ namespace BlueprintProWeb.Data
                 .WithMany()
                 .HasForeignKey(m => m.SenderId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<ProjectTracker>()
+                .HasOne(pt => pt.Project)
+                .WithOne()
+                .HasForeignKey<ProjectTracker>(pt => pt.project_Id)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<Compliance>()
+                .HasOne(c => c.ProjectTracker)
+                .WithOne(pt => pt.Compliance)
+                .HasForeignKey<Compliance>(c => c.projectTrack_Id)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<ProjectFile>()
+                .HasOne(pf => pf.Project)
+                .WithMany()
+                .HasForeignKey(pf => pf.project_Id)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

@@ -160,6 +160,13 @@
                         <span asp-validation-for="blueprintDescription" class="text-danger"></span>
                     </div>
 
+                    <!-- Project Due Date -->
+                    <div class="form-group mb-3">
+                        <label asp-for="projectTrack_dueDate" class="control-label">Project Due Date</label>
+                        <input asp-for="projectTrack_dueDate" type="date" class="form-control" />
+                        <span asp-validation-for="projectTrack_dueDate" class="text-danger"></span>
+                    </div>
+
                     <!-- Hidden Fields -->
                     <input type="hidden" asp-for="blueprintIsForSale" value="false" />
                     <input type="hidden" asp-for="blueprintStyle" value="###" />
