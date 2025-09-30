@@ -8,44 +8,26 @@
     <style>
         @@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
-        /* Override shared layout background for profile page */
-        body::before {
-            background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
-            opacity: 0.1 !important;
-        }
-
-        /* Ensure scrollable page */
         body {
-            overflow-y: auto !important;
-            height: auto !important;
             font-family: 'Poppins', sans-serif;
             margin: 0;
             min-height: 100vh;
         }
 
-        /* Main content positioning that responds to sidebar state - using main.container to match shared layout */
-        main.container {
-            margin-left: 300px;
-            margin-top: 90px;
-            padding: 2rem;
-            padding-top: 4rem;
-            max-width: calc(100% - 320px);
-            transition: margin-left 0.4s ease, max-width 0.4s ease; 
+        .profile-container {
+            max-width: 1440px;
+            margin: 0 auto;
+            width: 100%;
+            padding-top: 40px;
         }
 
-        /* When sidebar is collapsed, adjust main content */
-        .sidebar.collapsed ~ * main.container,
-        body:has(.sidebar.collapsed) main.container {
-            margin-left: 110px; /* Account for collapsed sidebar (85px + margins) */
-            max-width: calc(100% - 130px);
-        }
-
+        /* Main background card */
         .profile-main-card {
             background: rgba(255, 255, 255, 0.4);
             backdrop-filter: blur(12px);
             border-radius: 24px;
             padding: 40px;
-            margin: 0 20px 40px 20px;
+            margin: 60px 20px 40px 20px;
             box-shadow: 0 12px 40px rgba(13, 60, 128, 0.15);
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
@@ -118,12 +100,6 @@
             padding: 8px 16px;
             border-radius: 8px;
             cursor: pointer;
-            text-decoration: none;
-        }
-
-        .edit-btn:hover {
-            background: #0A2F66;
-            color: white;
         }
 
         .side-buttons {
@@ -173,106 +149,54 @@
             border-radius: 8px;
             cursor: pointer;
         }
-
-        /* Responsive adjustments */
-        @@media (max-width: 767.98px) {
-            main.container {
-                margin-left: 0 !important;
-                margin-top: 75px;
-                max-width: 100% !important;
-                padding: 1rem;
-                padding-top: 2rem;
-            }
-
-            .profile-main-card {
-                padding: 20px !important;
-                margin: 0 10px 20px 10px;
-            }
-
-            .profile-section {
-                flex-direction: column;
-                gap: 15px;
-            }
-        }
     </style>
 }
 
-<div class="profile-main-card">
-    <div class="page-header">
-        <h2>Profile</h2>
-        <button class="settings-btn">⚙</button>
-    </div>
 
-    <div class="profile-section">
-        <div class="profile-card">
-            <div class="profile-info">
-                <div class="avatar">
-                    <img src="~/images/profile.jpg" alt="Avatar">
+<div class="profile-container">
+    <div class="profile-main-card">
+        <div class="page-header">
+            <h2>Profile</h2>
+            <button class="settings-btn">⚙</button>
+        </div>
+
+        <div class="profile-section">
+            <div class="profile-card">
+                <div class="profile-info">
+                    <div class="avatar">
+                        <img src="~/images/profile.jpg" alt="Avatar">
+                    </div>
+                    <div class="user-details">
+                        <h3 class="name">@Model.FullName</h3>
+                        <div class="email">@Model.Email</div>
+                        <div class="phone">@Model.PhoneNumber</div>
+                    </div>
                 </div>
-                <div class="user-details">
-                    <h3 class="name">@Model.FullName</h3>
-                    <div class="email">@Model.Email</div>
-                    <div class="phone">@Model.PhoneNumber</div>
-                </div>
+                <a asp-controller="Account" asp-action="EditProfile" class="edit-btn">✏ Edit</a>
             </div>
-            <a asp-controller="Account" asp-action="EditProfile" class="edit-btn">✏ Edit</a>
+
+            <div class="side-buttons">
+                <div class="card">♥ Favorites</div>
+                <div class="card">⚑ Subscription</div>
+            </div>
         </div>
 
-        <div class="side-buttons">
-            <div class="card">♥ Favorites</div>
-            <div class="card">⚑ Subscription</div>
+        <div class="credentials-card">
+            <h4>Architect Credentials</h4>
+
+            @if (!string.IsNullOrEmpty(Model.CredentialsFilePath))
+            {
+                var fullFileName = System.IO.Path.GetFileName(Model.CredentialsFilePath);
+                var displayName = fullFileName.Length > 37 ? fullFileName.Substring(37) : fullFileName;
+
+                <p>
+                    <a href="~/credentials/@fullFileName" target="_blank">@displayName</a>
+                </p>
+            }
+            else
+            {
+                <p>N/A</p>
+            }
         </div>
-    </div>
-
-    <div class="credentials-card">
-        <h4>Architect Credentials</h4>
-
-        @if (!string.IsNullOrEmpty(Model.CredentialsFilePath))
-        {
-            var fullFileName = System.IO.Path.GetFileName(Model.CredentialsFilePath);
-            var displayName = fullFileName.Length > 37 ? fullFileName.Substring(37) : fullFileName;
-
-            <p>
-                <a href="~/credentials/@fullFileName" target="_blank">@displayName</a>
-            </p>
-        }
-        else
-        {
-            <p>N/A</p>
-        }
     </div>
 </div>
-
-@section Scripts {
-    <script>
-        // Listen for sidebar toggle and adjust main content accordingly
-        document.addEventListener('DOMContentLoaded', function() {
-            const sidebar = document.querySelector('.sidebar');
-            const sidebarToggler = document.querySelector('.sidebar-toggler');
-            const mainContent = document.querySelector('main.container');
-            
-            function adjustMainContent() {
-                if (sidebar && mainContent) {
-                    if (sidebar.classList.contains('collapsed')) {
-                        mainContent.style.marginLeft = '110px';
-                        mainContent.style.maxWidth = 'calc(100% - 130px)';
-                    } else {
-                        mainContent.style.marginLeft = '300px';
-                        mainContent.style.maxWidth = 'calc(100% - 320px)';
-                    }
-                }
-            }
-            
-            // Adjust on page load
-            adjustMainContent();
-            
-            // Listen for sidebar toggle
-            if (sidebarToggler) {
-                sidebarToggler.addEventListener('click', function() {
-                    // Wait for the sidebar transition to start
-                    setTimeout(adjustMainContent, 50);
-                });
-            }
-        });
-    </script>
-}

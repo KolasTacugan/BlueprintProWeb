@@ -1,6 +1,7 @@
 ﻿using BlueprintProWeb.Data;
 using BlueprintProWeb.Hubs;
 using BlueprintProWeb.Models;
+using BlueprintProWeb.Settings;
 using BlueprintProWeb.ViewModels;
 using iText.Commons.Actions.Contexts;
 using Microsoft.AspNetCore.Authorization;
@@ -8,11 +9,15 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using OpenAI;
 using OpenAI.Chat;
 using OpenAI.Embeddings;
+using Stripe;
+using Stripe.Checkout;
 using System.Globalization;
 using System.Text.Json;
+
 
 namespace BlueprintProWeb.Controllers.ClientSide
 {
@@ -23,18 +28,21 @@ namespace BlueprintProWeb.Controllers.ClientSide
         private readonly OpenAIClient _openAi;
         private readonly EmbeddingClient _embeddingClient;
         private readonly IHubContext<ChatHub> _hubContext;
+        private readonly StripeSettings _stripeSettings;
         public ClientInterfaceController(
            AppDbContext _context,
            UserManager<User> _userManager,
            OpenAIClient openAi,
            EmbeddingClient embeddingClient,
-           IHubContext<ChatHub> hubContext)
+           IHubContext<ChatHub> hubContext,
+           IOptions<StripeSettings> stripeSettings)
         {
             context = _context;
             userManager = _userManager;
             _openAi = openAi;
             _embeddingClient = embeddingClient;
             _hubContext = hubContext;
+            _stripeSettings = stripeSettings.Value;
         }
 
 
@@ -47,25 +55,160 @@ namespace BlueprintProWeb.Controllers.ClientSide
 
         public IActionResult BlueprintMarketplace()
         {
+            ViewBag.StripePublishableKey = _stripeSettings.PublishableKey;
+
             var blueprints = context.Blueprints
-                .Where(bp => bp.blueprintIsForSale)
+                .Where(bp => bp.blueprintIsForSale == true) // only available ones
                 .ToList();
+
             return View("BlueprintMarketplace", blueprints);
         }
 
-        public async Task<IActionResult> Projects()
+
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddToCart([FromBody] CartRequest model)
         {
             var user = await userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
 
-            var projects = await context.Projects
-                .Where(p => p.user_clientId == user.Id) 
-                .Include(p => p.Blueprint)
-                .Include(p => p.Architect)
+            var cart = context.Carts
+                .Include(c => c.Items)
+                .FirstOrDefault(c => c.UserId == user.Id);
+
+            if (cart == null)
+            {
+                cart = new Cart { UserId = user.Id, Items = new List<CartItem>() };
+                context.Carts.Add(cart);
+            }
+
+            var existingItem = cart.Items.FirstOrDefault(i => i.BlueprintId == model.BlueprintId);
+            if (existingItem != null)
+                existingItem.Quantity += model.Quantity;
+            else
+                cart.Items.Add(new CartItem { BlueprintId = model.BlueprintId, Quantity = model.Quantity });
+
+            await context.SaveChangesAsync();
+            return Json(new { success = true });
+        }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> GetCart()
+        {
+            var user = await userManager.GetUserAsync(User);
+            if (user == null)
+                return Unauthorized();
+
+            var cart = context.Carts
+                .Where(c => c.UserId == user.Id)
+                .Select(c => new CartViewModel
+                {
+                    CartId = c.CartId,
+                    Items = c.Items.Select(i => new CartItemViewModel
+                    {
+                        CartItemId = i.CartItemId,
+                        BlueprintId = i.BlueprintId,
+                        Name = i.Blueprint.blueprintName,
+                        Image = i.Blueprint.blueprintImage,
+                        Price = i.Blueprint.blueprintPrice,
+                        Quantity = i.Quantity
+                    }).ToList()
+                })
+                .FirstOrDefault();
+
+            return Json(cart ?? new CartViewModel { CartId = 0, Items = new List<CartItemViewModel>() });
+        }
+
+
+        public class CartRequest
+        {
+            public int BlueprintId { get; set; }
+            public int Quantity { get; set; }
+        }
+
+        // -------------------- PAYMENT --------------------
+        [HttpPost]
+        public IActionResult CreateCheckoutSession([FromBody] List<CartItemViewModel> cart)
+        {
+            if (cart == null || !cart.Any())
+                return BadRequest("Cart is empty or not received");
+
+            var lineItems = cart.Select(item => new SessionLineItemOptions
+            {
+                PriceData = new SessionLineItemPriceDataOptions
+                {
+                    UnitAmount = (long)(item.Price * 100),
+                    Currency = "php",
+                    ProductData = new SessionLineItemPriceDataProductDataOptions
+                    {
+                        Name = item.Name
+                    }
+                },
+                Quantity = item.Quantity
+            }).ToList();
+
+            var options = new SessionCreateOptions
+            {
+                PaymentMethodTypes = new List<string> { "card" },
+                LineItems = lineItems,
+                Mode = "payment",
+                SuccessUrl = $"{Request.Scheme}://{Request.Host}/ClientInterface/BlueprintMarketplace?session_id={{CHECKOUT_SESSION_ID}}",
+                CancelUrl = $"{Request.Scheme}://{Request.Host}/ClientInterface/Cancel"
+            };
+
+            Stripe.StripeConfiguration.ApiKey = _stripeSettings.SecretKey; // ✅ now loaded from appsettings
+
+            var service = new SessionService();
+            var session = service.Create(options);
+
+            return Json(new { id = session.Id });
+        }
+
+
+
+        public IActionResult Success() => View();
+        public IActionResult Cancel() => View();
+
+        public class CartItemDto
+        {
+            public string id { get; set; }
+            public string name { get; set; }
+            public decimal price { get; set; }
+            public string image { get; set; }
+        }
+
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> CompletePurchase([FromBody] List<int> blueprintIds)
+        {
+            var user = await userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            var purchasedBlueprints = await context.Blueprints
+                .Where(bp => blueprintIds.Contains(bp.blueprintId))
                 .ToListAsync();
 
-            return View(projects);
+            foreach (var bp in purchasedBlueprints)
+            {
+                bp.blueprintIsForSale = false; // no longer listed
+                bp.clentId = user.Id;         // record buyer
+            }
+
+            var cart = await context.Carts.Include(c => c.Items)
+                .FirstOrDefaultAsync(c => c.UserId == user.Id);
+
+            if (cart != null)
+                cart.Items.Clear();
+
+            await context.SaveChangesAsync();
+
+            return Json(new { success = true });
         }
+
+
 
         // 🔹 AI Matching (Profile + Query)
         [HttpGet]

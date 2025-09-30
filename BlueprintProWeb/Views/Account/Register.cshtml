@@ -3,456 +3,125 @@
 
 @{
     ViewData["Title"] = "Register";
-    Layout = null;
+    Layout = "~/Views/Shared/_AccountLayout.cshtml";
 }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - BlueprintPro</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-</head>
-<body>
-    <style>
-        * {
-            font-family: 'Raleway', sans-serif;
-        }
+<div class="account-container">
+    <div class="account-box">
+        <h2 class="text-center mb-4">Register</h2>
+        <form asp-action="Register" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-        body {
-            margin: 0;
-            padding: 20px;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            box-sizing: border-box;
-        }
+            <!-- Hidden Role (set from ChooseAccountType) -->
+            <input type="hidden" asp-for="Role" />
 
-        .register-container {
-            display: flex;
-            min-height: calc(100vh - 40px);
-            width: 100%;
-            background: white;
-            border-radius: 24px;
-            overflow: hidden;
-            box-shadow: 0 20px 60px rgba(13, 60, 128, 0.15);
-            position: relative;
-        }
+            <!-- Common Fields (Client + Architect) -->
+            <div class="mb-3">
+                <label asp-for="LastName" class="form-label"></label>
+                <input asp-for="LastName" class="form-control" />
+                <span asp-validation-for="LastName" class="text-danger"></span>
+            </div>
 
-        .register-left {
-            flex: 1;
-            position: relative;
-            background: url("/images/bldg_img_1.png") center/cover no-repeat;
-            overflow: hidden;
-            clip-path: polygon(0 0, 85% 0, 70% 100%, 0 100%);
-            min-height: 100vh;
-        }
+            <div class="mb-3">
+                <label asp-for="FirstName" class="form-label"></label>
+                <input asp-for="FirstName" class="form-control" />
+                <span asp-validation-for="FirstName" class="text-danger"></span>
+            </div>
 
-        .register-right {
-            flex: 1;
-            background: #fff;
-            margin-left: -10%;
-            padding-left: 15%;
-            padding: 2rem;
-            overflow-y: auto;
-            max-height: calc(100vh - 40px);
-            display: flex;
-            align-items: flex-start;
-            justify-content: center;
-            padding-top: 2rem;
-        }
+            <div class="mb-3">
+                <label asp-for="PhoneNumber" class="form-label"></label>
+                <input asp-for="PhoneNumber" class="form-control" />
+                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+            </div>
 
-        .register-form-container {
-            width: 100%;
-            max-width: 550px;
-            padding: 1rem 0;
-            margin: 0 auto;
-        }
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
 
-        .register-welcome {
-            text-align: center;
-            margin-bottom: 1.5rem;
-            background: white;
-            z-index: 10;
-            padding: 1rem 0;
-        }
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password" type="password" class="form-control" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
 
-        .register-title {
-            font-size: 2.2rem;
-            font-weight: 800;
-            color: #091635;
-            margin-bottom: 0.5rem;
-        }
+            <div class="mb-3">
+                <label asp-for="ConfirmPassword" class="form-label"></label>
+                <input asp-for="ConfirmPassword" type="password" class="form-control" />
+                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+            </div>
 
-        .register-subtitle {
-            color: #6c757d;
-            font-weight: 500;
-            font-size: 0.95rem;
-        }
-
-        /* Two-column layout for form fields */
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .form-col-full {
-            grid-column: 1 / -1;
-        }
-
-        .mb-3 {
-            margin-bottom: 1rem !important;
-        }
-
-        .form-label {
-            font-weight: 600;
-            color: #091635;
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
-        }
-
-        .form-control, .form-select {
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            padding: 0.6rem 0.8rem;
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
-            background: #fff;
-        }
-
-        .form-control:focus, .form-select:focus {
-            border-color: #0D3C80;
-            box-shadow: 0 0 0 0.2rem rgba(13, 60, 128, 0.1);
-        }
-
-        .register-btn {
-            width: 100%;
-            padding: 0.875rem;
-            background: linear-gradient(135deg, #0D3C80 0%, #071744 100%);
-            border: none;
-            border-radius: 25px;
-            color: white;
-            font-weight: 700;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            margin: 1.5rem 0;
-        }
-
-        .register-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(13, 60, 128, 0.3);
-            background: linear-gradient(135deg, #071744 0%, #0D3C80 100%);
-        }
-
-        .login-link {
-            text-align: center;
-            margin-bottom: 1rem;
-        }
-
-        .login-link a {
-            color: #0D3C80;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .login-link a:hover {
-            text-decoration: underline;
-            color: #071744;
-        }
-
-        .back-link {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .back-link a {
-            color: #6c757d;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .back-link a:hover {
-            color: #0D3C80;
-            text-decoration: underline;
-        }
-
-        .text-danger {
-            font-size: 0.8rem;
-            margin-top: 0.25rem;
-        }
-
-        /* Architect-specific sections styling */
-        .architect-section {
-            background: rgba(13, 60, 128, 0.02);
-            border: 1px solid rgba(13, 60, 128, 0.1);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-        }
-
-        .architect-section h4 {
-            color: #0D3C80;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            font-size: 1.1rem;
-        }
-
-        /* Two-column grid for architect fields */
-        .architect-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
-
-        .architect-grid .mb-3:first-child {
-            grid-column: 1 / -1;
-        }
-
-        /* Custom scrollbar */
-        .register-right::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .register-right::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-
-        .register-right::-webkit-scrollbar-thumb {
-            background: #0D3C80;
-            border-radius: 10px;
-        }
-
-        .register-right::-webkit-scrollbar-thumb:hover {
-            background: #071744;
-        }
-
-        /* Responsive Design */
-        @@media (max-width: 992px) {
-            .form-row, .architect-grid {
-                grid-template-columns: 1fr;
-                gap: 0.5rem;
-            }
-
-            .architect-grid .mb-3:first-child {
-                grid-column: 1;
-            }
-        }
-
-        @@media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-
-            .register-container {
-                flex-direction: column;
-                min-height: calc(100vh - 20px);
-            }
-
-            .register-left {
-                height: 25vh;
-                clip-path: polygon(0 0, 100% 0, 100% 85%, 0 95%);
-                min-height: unset;
-            }
-
-            .register-right {
-                margin-left: 0;
-                padding-left: 2rem;
-                margin-top: -5%;
-                padding-top: 8%;
-                max-height: 75vh;
-                align-items: flex-start;
-            }
-
-            .register-title {
-                font-size: 1.8rem;
-            }
-
-            .architect-section {
-                padding: 1rem;
-            }
-
-            .form-row, .architect-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @@media (max-width: 480px) {
-            body {
-                padding: 5px;
-            }
-
-            .register-container {
-                border-radius: 16px;
-                min-height: calc(100vh - 10px);
-            }
-
-            .register-right {
-                padding: 1rem;
-                padding-left: 1.5rem;
-            }
-
-            .register-title {
-                font-size: 1.6rem;
-            }
-
-            .register-form-container {
-                max-width: 100%;
-            }
-        }
-    </style>
-
-    <div class="register-container">
-        <!-- Left Side - Display Image Only -->
-        <div class="register-left">
-            <!-- Pure image display - no content overlay -->
-        </div>
-
-        <!-- Right Side - Register Form -->
-        <div class="register-right">
-            <div class="register-form-container">
-                <div class="register-welcome">
-                    <h2 class="register-title">Join Us</h2>
-                    <p class="register-subtitle">Create your BlueprintPro account</p>
+            
+            @if (Model.Role == "Architect")
+            {
+                <div class="mb-3">
+                    <label asp-for="LicenseNo" class="form-label"></label>
+                    <input asp-for="LicenseNo" class="form-control" />
+                    <span asp-validation-for="LicenseNo" class="text-danger"></span>
                 </div>
 
-                <form asp-action="Register" method="post">
-                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="mb-3">
+                    <label asp-for="Style" class="form-label">Preferred Style</label>
+                    <select asp-for="Style" class="form-select">
+                        <option value="">-- Select Style --</option>
+                        <option>Modern</option>
+                        <option>Traditional</option>
+                        <option>Contemporary</option>
+                        <option>Minimalist</option>
+                    </select>
+                </div>
 
-                    <!-- Hidden Role (set from ChooseAccountType) -->
-                    <input type="hidden" asp-for="Role" />
+                <div class="mb-3">
+                    <label asp-for="Specialization" class="form-label">Specialization</label>
+                    <select asp-for="Specialization" class="form-select">
+                        <option value="">-- Select Specialization --</option>
+                        <option>Residential</option>
+                        <option>Commercial</option>
+                        <option>Industrial</option>
+                    </select>
+                </div>
 
-                    <!-- Common Fields in Two-Column Layout -->
-                    <div class="form-row">
-                        <div class="mb-3">
-                            <label asp-for="FirstName" class="form-label"></label>
-                            <input asp-for="FirstName" class="form-control" />
-                            <span asp-validation-for="FirstName" class="text-danger"></span>
-                        </div>
+                <div class="mb-3">
+                    <label asp-for="Location" class="form-label">Location Availability</label>
+                    <select asp-for="Location" class="form-select">
+                        <option value="">-- Select Location --</option>
+                        <option>Urban</option>
+                        <option>Suburban</option>
+                        <option>Rural</option>
+                    </select>
+                </div>
 
-                        <div class="mb-3">
-                            <label asp-for="LastName" class="form-label"></label>
-                            <input asp-for="LastName" class="form-control" />
-                            <span asp-validation-for="LastName" class="text-danger"></span>
-                        </div>
-                    </div>
+                <div class="mb-3">
+                    <label asp-for="LaborCost" class="form-label">Labor Cost</label>
+                    <select asp-for="LaborCost" class="form-select">
+                        <option value="">-- Select Labor Cost --</option>
+                        <option>Low</option>
+                        <option>Medium</option>
+                        <option>High</option>
+                    </select>
+                </div>
 
-                    <div class="form-row">
-                        <div class="mb-3">
-                            <label asp-for="PhoneNumber" class="form-label"></label>
-                            <input asp-for="PhoneNumber" class="form-control" />
-                            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
-                        </div>
+            }
 
-                        <div class="mb-3">
-                            <label asp-for="Email" class="form-label"></label>
-                            <input asp-for="Email" class="form-control" />
-                            <span asp-validation-for="Email" class="text-danger"></span>
-                        </div>
-                    </div>
+            <!-- Submit -->
+            <input type="submit" value="Register" class="btn btn-success w-100 p-2" />
 
-                    <div class="form-row">
-                        <div class="mb-3">
-                            <label asp-for="Password" class="form-label"></label>
-                            <input asp-for="Password" type="password" class="form-control" />
-                            <span asp-validation-for="Password" class="text-danger"></span>
-                        </div>
+            <!-- Links -->
+            <p class="text-center mt-2">
+                Already have an account?
+                <a asp-controller="Account" asp-action="Login" class="text-decoration-none">Login</a>
+            </p>
 
-                        <div class="mb-3">
-                            <label asp-for="ConfirmPassword" class="form-label"></label>
-                            <input asp-for="ConfirmPassword" type="password" class="form-control" />
-                            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-                        </div>
-                    </div>
-
-                    @if (Model.Role == "Architect")
-                    {
-                        <div class="architect-section">
-                            <h4><i class="fas fa-user-tie me-2"></i>Architect Information</h4>
-
-                            <div class="architect-grid">
-                                <div class="mb-3">
-                                    <label asp-for="LicenseNo" class="form-label"></label>
-                                    <input asp-for="LicenseNo" class="form-control" />
-                                    <span asp-validation-for="LicenseNo" class="text-danger"></span>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label asp-for="Style" class="form-label">Preferred Style</label>
-                                    <select asp-for="Style" class="form-select">
-                                        <option value="">-- Select Style --</option>
-                                        <option>Modern</option>
-                                        <option>Traditional</option>
-                                        <option>Contemporary</option>
-                                        <option>Minimalist</option>
-                                    </select>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label asp-for="Specialization" class="form-label">Specialization</label>
-                                    <select asp-for="Specialization" class="form-select">
-                                        <option value="">-- Select Specialization --</option>
-                                        <option>Residential</option>
-                                        <option>Commercial</option>
-                                        <option>Industrial</option>
-                                    </select>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label asp-for="Location" class="form-label">Location Availability</label>
-                                    <select asp-for="Location" class="form-select">
-                                        <option value="">-- Select Location --</option>
-                                        <option>Urban</option>
-                                        <option>Suburban</option>
-                                        <option>Rural</option>
-                                    </select>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label asp-for="LaborCost" class="form-label">Labor Cost</label>
-                                    <select asp-for="LaborCost" class="form-select">
-                                        <option value="">-- Select Labor Cost --</option>
-                                        <option>Low</option>
-                                        <option>Medium</option>
-                                        <option>High</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    }
-
-                    <!-- Submit -->
-                    <input type="submit" value="Register" class="register-btn" />
-
-                    <!-- Links -->
-                    <div class="login-link">
-                        Already have an account?
-                        <a asp-controller="Account" asp-action="Login">Login</a>
-                    </div>
-
-                    <div class="back-link">
-                        <a asp-controller="Account" asp-action="ChooseRole">Back</a>
-                    </div>
-                </form>
+            <div class="text-center">
+                <a asp-controller="Account" asp-action="ChooseRole" class="text-decoration-none mt-3">Back</a>
             </div>
-        </div>
+        </form>
     </div>
+</div>
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-
-    @section Scripts {
-        @{
-            await Html.RenderPartialAsync("_ValidationScriptsPartial.cshtml");
-        }
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial.cshtml");
     }
-</body>
-</html>
+}

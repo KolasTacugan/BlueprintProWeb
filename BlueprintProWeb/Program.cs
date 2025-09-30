@@ -1,6 +1,7 @@
 using BlueprintProWeb.Data;
 using BlueprintProWeb.Hubs;
 using BlueprintProWeb.Models;
+using BlueprintProWeb.Settings;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OpenAI;
@@ -59,6 +60,8 @@ builder.Services.AddSingleton(sp =>
 });
 
 builder.Services.AddSignalR();
+
+builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
 
 
 var app = builder.Build();

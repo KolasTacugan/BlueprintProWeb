@@ -14,5 +14,8 @@ namespace BlueprintProWeb.Models
         public string blueprintStyle { get; set; } = "";
         public Boolean blueprintIsForSale { get; set; }
         public DateTime blueprintCreatedDate { get; set; } = DateTime.UtcNow;
+
+        public string? clentId { get; set; }  // nullable if not yet sold
+        
     }
 }

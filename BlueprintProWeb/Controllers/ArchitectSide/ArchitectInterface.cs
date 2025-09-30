@@ -4,15 +4,12 @@ using BlueprintProWeb.Models;
 using BlueprintProWeb.ViewModels;
 using iText.Commons.Actions.Contexts;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
 using System.Net;
-using static iText.StyledXmlParser.Jsoup.Select.Evaluator;
 
 namespace BlueprintProWeb.Controllers.ArchitectSide
 {
@@ -137,24 +134,10 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 project_Title = vm.blueprintName,
                 user_architectId = userId,
                 user_clientId = vm.clentId,
-                project_Status = "Ongoing",
+                project_Status = "Draft",
                 project_Budget = vm.blueprintPrice.ToString()
             };
             context.Projects.Add(project);
-            await context.SaveChangesAsync();
-
-            var projectTracker = new ProjectTracker
-            {
-                project_Id = project.project_Id,
-                project_Title = project.project_Title,
-                blueprint_Description = vm.blueprintDescription,
-                projectTrack_dueDate = vm.projectTrack_dueDate,
-                projectTrack_currentFileName = vm.BlueprintImage?.FileName,
-                projectTrack_currentFilePath = "/images/" + stringFileName,
-                projectTrack_currentRevision = 1
-            };
-
-            context.ProjectTrackers.Add(projectTracker);
             await context.SaveChangesAsync();
 
 
@@ -412,167 +395,6 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             });
 
             return RedirectToAction("Messages", new { clientId });
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> UpdateProjectStatus(string projectId, string status)
-        {
-            var tracker = await context.ProjectTrackers
-                .FirstOrDefaultAsync(t => t.project_Id == projectId);
-
-            if (tracker == null) return NotFound();
-
-            tracker.projectTrack_Status = status;
-            await context.SaveChangesAsync();
-
-            return Json(new { success = true });
-        }
-
-        [HttpGet]
-        public IActionResult ProjectTracker(int id) 
-        {
-            var project = context.Projects.FirstOrDefault(p => p.blueprint_Id == id);
-            if (project == null) return NotFound();
-
-            var tracker = context.ProjectTrackers
-                .Include(t => t.Compliance)  
-                .FirstOrDefault(t => t.project_Id == project.project_Id);
-            if (tracker == null) return NotFound();
-
-            var history = context.ProjectFiles
-                .Where(f => f.project_Id == project.project_Id)
-                .OrderByDescending(f => f.projectFile_Version)
-                .ToList();
-
-            var vm = new ProjectTrackerViewModel
-            {
-                projectTrack_Id = tracker.projectTrack_Id,
-                project_Id = project.project_Id,
-                CurrentFileName = tracker.projectTrack_currentFileName,
-                CurrentFilePath = tracker.projectTrack_currentFilePath,
-                CurrentRevision = tracker.projectTrack_currentRevision,
-                Status = tracker.projectTrack_Status,
-                RevisionHistory = history,
-                Compliance = tracker.Compliance
-            };
-
-            return View(vm);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> UploadProjectFile(string projectId, IFormFile file)
-        {
-            if (file == null || file.Length == 0)
-                return RedirectToAction("ProjectTracker", new { id = projectId });
-
-            var project = await context.Projects.FindAsync(projectId);
-            if (project == null) return NotFound();
-
-            var tracker = context.ProjectTrackers.FirstOrDefault(t => t.project_Id == projectId);
-            if (tracker == null) return NotFound();
-
-            // Save file
-            var uploadsFolder = Path.Combine(WebHostEnvironment.WebRootPath, "uploads");
-            if (!Directory.Exists(uploadsFolder))
-                Directory.CreateDirectory(uploadsFolder);
-
-            var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
-            }
-
-            // Before overwriting current file → archive it into ProjectFiles
-            if (!string.IsNullOrEmpty(tracker.projectTrack_currentFilePath))
-            {
-                var oldFile = new ProjectFile
-                {
-                    project_Id = projectId,
-                    projectFile_fileName = tracker.projectTrack_currentFileName,
-                    projectFile_Path = tracker.projectTrack_currentFilePath,
-                    projectFile_Version = tracker.projectTrack_currentRevision,
-                    projectFile_uploadedDate = DateTime.UtcNow
-                };
-                context.ProjectFiles.Add(oldFile);
-            }
-
-            // Update tracker with the new "current"
-            tracker.projectTrack_currentFileName = file.FileName;
-            tracker.projectTrack_currentFilePath = "/uploads/" + uniqueFileName;
-            tracker.projectTrack_currentRevision += 1;
-
-            await context.SaveChangesAsync();
-
-            return RedirectToAction("ProjectTracker", new { id = project.blueprint_Id });
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> UploadComplianceFile(int projectTrackId, string fileType, IFormFile file)
-        {
-            try
-            {
-                if (file == null || file.Length == 0)
-                {
-                    return Json(new { success = false, message = "File cannot be empty." });
-                }
-
-                var tracker = await context.ProjectTrackers
-                    .Include(pt => pt.Compliance)
-                    .FirstOrDefaultAsync(pt => pt.projectTrack_Id == projectTrackId);
-
-                if (tracker == null)
-                    return Json(new { success = false, message = "ProjectTracker not found." });
-
-                if (tracker.Compliance == null)
-                {
-                    tracker.Compliance = new Compliance
-                    {
-                        projectTrack_Id = tracker.projectTrack_Id,
-                        compliance_Structural = "",
-                        compliance_Electrical = "",
-                        compliance_Sanitary = "",
-                        compliance_Zoning = "",
-                        compliance_Others = ""
-                    };
-                    context.Compliances.Add(tracker.Compliance);
-                }
-
-                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "compliance");
-                if (!Directory.Exists(uploadsFolder))
-                    Directory.CreateDirectory(uploadsFolder);
-
-                var fileName = $"{fileType}_{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-                var filePath = Path.Combine(uploadsFolder, fileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await file.CopyToAsync(stream);
-                }
-
-                switch (fileType.ToLower())
-                {
-                    case "structural": tracker.Compliance.compliance_Structural = fileName; break;
-                    case "electrical": tracker.Compliance.compliance_Electrical = fileName; break;
-                    case "sanitary": tracker.Compliance.compliance_Sanitary = fileName; break;
-                    case "zoning": tracker.Compliance.compliance_Zoning = fileName; break;
-                    case "others": tracker.Compliance.compliance_Others = fileName; break;
-                    default: return Json(new { success = false, message = "Invalid file type." });
-                }
-
-                await context.SaveChangesAsync();
-
-                return Json(new
-                {
-                    success = true,
-                    message = $"{fileType} file uploaded successfully.",
-                    fileName
-                });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = $"Server error: {ex.Message}" });
-            }
         }
     }
 }

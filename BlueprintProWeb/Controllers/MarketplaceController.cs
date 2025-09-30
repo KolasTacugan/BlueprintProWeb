@@ -1,9 +1,7 @@
 ﻿using BlueprintProWeb.Data;
 using BlueprintProWeb.Models;
-using BlueprintProWeb.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Net;
 
 namespace BlueprintProWeb.Controllers
 {
@@ -15,11 +13,15 @@ namespace BlueprintProWeb.Controllers
         {
             context = _context;
         }
+
         public IActionResult BlueprintMarketplace()
         {
-            var blueprints = context.Blueprints.ToList();
+            // Only show blueprints that are for sale and not yet purchased
+            var blueprints = context.Blueprints
+                .Where(b => b.blueprintIsForSale && b.clentId == null)
+                .ToList();
+
             return View("BlueprintMarketplace", blueprints);
         }
-        
     }
 }

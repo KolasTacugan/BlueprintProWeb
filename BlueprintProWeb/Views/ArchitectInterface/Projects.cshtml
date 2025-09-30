@@ -7,61 +7,47 @@
 
 @section Styles {
 	<style>
-
-		/* Override shared layout background for projects page */
-		body::before {
-			background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
-			opacity: 0.1 !important;
-		}
-    
-		/* Ensure scrollable page */
-		body {
-			overflow-y: auto !important;
-			height: auto !important;
-		}
-
-		/* Main content positioning that responds to sidebar state */
-		main.container {
-			margin-left: 300px; /* Default for expanded sidebar */
-			margin-top: 90px; /* Account for navbar */
-			padding: 2rem;
-			padding-top: 3rem; /* Add extra top padding to avoid header overlap */
-			max-width: calc(100% - 320px);
-			transition: margin-left 0.4s ease, max-width 0.4s ease; /* Smooth transition */
-		}
-
-		/* When sidebar is collapsed, adjust main content */
-		.sidebar.collapsed ~ * main.container,
-		body:has(.sidebar.collapsed) main.container {
-			margin-left: 110px; /* Account for collapsed sidebar (85px + margins) */
-			max-width: calc(100% - 130px);
-		}
-
 		.blueprint-title {
+			position: relative;
+			top: 80px;
+			left: 100px;
 			font-weight: 700;
-			color: #091635;
-			padding-top: 50px;
 		}
+
+		.add-bp {
+			position: relative;
+			left: 98px;
+			top: 80px;
+			color: #fff;
+			background: #071744;
+			transition: 0.2s ease;
+		}
+
+			.add-bp:hover {
+				background: #fff;
+				color: #071744;
+				border-color: #071744;
+			}
 
 		.blueprint-table {
 			border-collapse: separate;
-			border-spacing: 0 12px;
-			background: transparent;
-			width: 100%;
+			border-spacing: 0 12px; /* horizontal 0, vertical 12px */
+			background: transparent; /* remove solid background so gaps show */
+			margin-top: 40px;
+			margin-left: 100px;
 		}
 
-		.blueprint-table tr {
-			background: #fff;
-			overflow: hidden;
-			vertical-align: middle;
-			box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-			border-radius: 8px;
-		}
+			.blueprint-table tr {
+				background: #fff;
+				overflow: hidden;
+				vertical-align: middle;
+				box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+			}
 
-		.blueprint-table td {
-			padding: 15px;
-			border: none;
-		}
+			.blueprint-table td {
+				padding: 15px;
+				border-top: 1px solid #eee;
+			}
 
 		.bp-image {
 			width: 160px;
@@ -71,24 +57,31 @@
 			opacity: 1;
 		}
 
-		.bp-name {
-			margin-left: 40px;
-			font-weight: 600;
+		.bp-image-col {
+			width: 120px;
+		}
+
+		.bp-actions .btn {
+			border-radius: 6px;
+			font-size: 0.85rem;
+			padding: 4px 10px;
 		}
 
 		.track-btn {
-			background: #071744;
-			color: #fff;
-			transition: 0.2s ease;
-			border: 1px solid #071744;
-			padding: 8px 16px;
-			border-radius: 6px;
-		}
-
-		.track-btn:hover {
+			margin-right: 50px;
 			color: #071744;
 			background: #fff;
 			border-color: #071744;
+			transition: 0.2s ease;
+		}
+
+			.track-btn:hover {
+				background: #071744;
+				color: #fff;
+			}
+
+		.bp-name {
+			margin-left: 40px;
 		}
 
 		.bp-row {
@@ -106,30 +99,10 @@
 			transition: 0.2s ease;
 		}
 
-		.save-btn:hover {
-			background: #fff;
-			color: #071744;
-		}
-
-		/* Responsive adjustments */
-		@@media (max-width: 767.98px) {
-			main.container {
-				margin-left: 0 !important;
-				margin-top: 75px;
-				max-width: 100% !important;
-				padding: 1rem;
-				padding-top: 2rem;
+			.save-btn:hover {
+				background: #fff;
+				color: #071744;
 			}
-
-			.bp-name {
-				margin-left: 20px;
-			}
-
-			.bp-image {
-				width: 120px;
-				height: 60px;
-			}
-		}
 	</style>
 }
 
@@ -153,12 +126,7 @@
 							</div>
 						</td>
 						<td class="text-end">
-							<a asp-controller="ArchitectInterface"
-							   asp-action="ProjectTracker"
-							   asp-route-id="@item.blueprintId"
-							   class="track-btn btn">
-								Track
-							</a>
+							<input type="submit" value="Track" class="track-btn btn" />
 						</td>
 					</tr>
 				}
@@ -166,37 +134,3 @@
 		</table>
 	</div>
 </div>
-
-@section Scripts {
-	<script>
-		// Listen for sidebar toggle and adjust main content accordingly
-		document.addEventListener('DOMContentLoaded', function() {
-			const sidebar = document.querySelector('.sidebar');
-			const sidebarToggler = document.querySelector('.sidebar-toggler');
-			const mainContent = document.querySelector('main.container');
-			
-			function adjustMainContent() {
-				if (sidebar && mainContent) {
-					if (sidebar.classList.contains('collapsed')) {
-						mainContent.style.marginLeft = '110px';
-						mainContent.style.maxWidth = 'calc(100% - 130px)';
-					} else {
-						mainContent.style.marginLeft = '300px';
-						mainContent.style.maxWidth = 'calc(100% - 320px)';
-					}
-				}
-			}
-			
-			// Adjust on page load
-			adjustMainContent();
-			
-			// Listen for sidebar toggle
-			if (sidebarToggler) {
-				sidebarToggler.addEventListener('click', function() {
-					// Wait for the sidebar transition to start
-					setTimeout(adjustMainContent, 50);
-				});
-			}
-		});
-	</script>
-}
