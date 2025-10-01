@@ -141,7 +141,10 @@
             overflow: hidden;
             border: 3px solid #EBF1FD;
             margin: 0 auto 16px;
-            background: #eee;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
             .avatar-preview img {
@@ -149,6 +152,12 @@
                 height: 100%;
                 object-fit: cover;
             }
+
+        .avatar-placeholder {
+            color: #0D3C80;
+            font-size: 48px;
+            font-weight: 600;
+        }
 
         .upload-btn {
             background: rgba(255, 255, 255, 0.85);
@@ -203,6 +212,12 @@
 
         .file-input {
             display: none;
+        }
+
+        .upload-info {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 8px;
         }
 
         /* Responsive adjustments */
@@ -266,10 +281,22 @@
             <div class="avatar-section form-section">
                 <h3>Profile Picture</h3>
                 <div class="avatar-preview" id="avatarPreview">
-                    <img src="~/images/profile.jpg" alt="Profile Picture">
+                    @if (!string.IsNullOrEmpty(Model.ProfilePhoto))
+                    {
+                        <img src="@Url.Content(Model.ProfilePhoto)" alt="Profile Picture">
+                    }
+                    else
+                    {
+                        <div class="avatar-placeholder">
+                            @(Model.FirstName?.Substring(0, 1).ToUpper())@(Model.LastName?.Substring(0, 1).ToUpper())
+                        </div>
+                    }
                 </div>
-                <input type="file" id="fileInput" class="file-input" accept="image/*" onchange="previewImage(event)">
-                <button type="button" class="upload-btn" onclick="document.getElementById('fileInput').click()">📷 Change Photo</button>
+                <input type="file" id="profilePicture" name="ProfilePicture" class="file-input" accept="image/*" onchange="previewImage(event)">
+                <button type="button" class="upload-btn" onclick="document.getElementById('profilePicture').click()">📷 Change Photo</button>
+                <div class="upload-info">
+                    <small>Max file size: 5MB<br>Supported formats: JPG, PNG, GIF</small>
+                </div>
             </div>
         </div>
 
@@ -331,6 +358,21 @@
             const preview = document.getElementById('avatarPreview');
 
             if (file) {
+                // Validate file size (5MB max)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size must be less than 5MB');
+                    event.target.value = '';
+                    return;
+                }
+
+                // Validate file type
+                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+                if (!allowedTypes.includes(file.type)) {
+                    alert('Please select a valid image file (JPG, PNG, or GIF)');
+                    event.target.value = '';
+                    return;
+                }
+
                 const reader = new FileReader();
                 reader.onload = function (e) {
                     preview.innerHTML = `<img src="${e.target.result}" alt="Profile Picture">`;
