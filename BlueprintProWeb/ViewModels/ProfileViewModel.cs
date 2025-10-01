@@ -11,7 +11,7 @@ namespace BlueprintProWeb.ViewModels
         public string? PhoneNumber { get; set; }
 
         public string Role { get; set; } = string.Empty;
-        public string? ProfilePhoto { get; set; } = "~/images/avatar-placeholder.png";
+        public string? ProfilePhoto { get; set; } = null; // Changed: No default profile picture
 
         // Architect-specific
         public string? LicenseNo { get; set; }
