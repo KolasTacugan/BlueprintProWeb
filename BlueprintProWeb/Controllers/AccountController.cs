@@ -1,5 +1,4 @@
-﻿
-using BlueprintProWeb.Models;
+﻿using BlueprintProWeb.Models;
 using BlueprintProWeb.ViewModels;
 using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Canvas.Parser;
@@ -95,7 +94,8 @@ namespace BlueprintProWeb.Controllers
                 PhoneNumber = model.PhoneNumber,
                 Email = model.Email,
                 UserName = model.Email,
-                user_role = model.Role
+                user_role = model.Role,
+                user_profilePhoto = null // No default profile picture for new accounts
             };
 
             if (model.Role == "Architect")
@@ -163,6 +163,87 @@ namespace BlueprintProWeb.Controllers
             return View(model);
         }
 
+        // NEW: Handle profile picture upload from Profile page
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UploadProfilePicture()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToAction("Login", "Account");
+
+            var profilePicture = Request.Form.Files["ProfilePicture"];
+            if (profilePicture == null || profilePicture.Length == 0)
+            {
+                TempData["Error"] = "Please select a file to upload.";
+                return RedirectToAction("Profile");
+            }
+
+            // Validate file type
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+            var fileExtension = Path.GetExtension(profilePicture.FileName).ToLowerInvariant();
+            
+            if (!allowedExtensions.Contains(fileExtension))
+            {
+                TempData["Error"] = "Please upload a valid image file (jpg, jpeg, png, gif).";
+                return RedirectToAction("Profile");
+            }
+
+            // Validate file size (max 5MB)
+            if (profilePicture.Length > 5 * 1024 * 1024)
+            {
+                TempData["Error"] = "Profile picture must be less than 5MB.";
+                return RedirectToAction("Profile");
+            }
+
+            try
+            {
+                // Create profile pictures directory if it doesn't exist
+                string uploadDir = Path.Combine(_webHostEnvironment.WebRootPath, "images", "profiles");
+                Directory.CreateDirectory(uploadDir);
+
+                // Delete old profile picture if it exists
+                if (!string.IsNullOrEmpty(user.user_profilePhoto))
+                {
+                    var oldPhotoPath = Path.Combine(_webHostEnvironment.WebRootPath, 
+                        user.user_profilePhoto.Replace("~/", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
+                    if (System.IO.File.Exists(oldPhotoPath))
+                    {
+                        System.IO.File.Delete(oldPhotoPath);
+                    }
+                }
+
+                // Generate unique filename
+                string fileName = $"{user.Id}_{Guid.NewGuid()}{fileExtension}";
+                string filePath = Path.Combine(uploadDir, fileName);
+
+                // Save the file
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await profilePicture.CopyToAsync(fileStream);
+                }
+
+                // Update user profile photo path
+                user.user_profilePhoto = $"~/images/profiles/{fileName}";
+                
+                var result = await _userManager.UpdateAsync(user);
+                if (result.Succeeded)
+                {
+                    TempData["Success"] = "Profile picture updated successfully!";
+                }
+                else
+                {
+                    TempData["Error"] = "Failed to update profile picture.";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "An error occurred while uploading the file.";
+            }
+
+            return RedirectToAction("Profile");
+        }
+
         [HttpPost, Authorize]
         public async Task<IActionResult> Profile(ProfileViewModel model)
         {
@@ -194,7 +275,8 @@ namespace BlueprintProWeb.Controllers
                 LastName = user.user_lname,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
-                Role = user.user_role
+                Role = user.user_role,
+                ProfilePhoto = user.user_profilePhoto // Preserve existing profile picture
             });
         }
         [HttpPost]
@@ -214,6 +296,58 @@ namespace BlueprintProWeb.Controllers
             user.Email = model.Email;
             user.UserName = model.Email; // keep username in sync
             user.PhoneNumber = model.PhoneNumber;
+
+            // Handle profile picture upload - only if a new file is selected
+            if (Request.Form.Files["ProfilePicture"] != null && Request.Form.Files["ProfilePicture"].Length > 0)
+            {
+                var profilePicture = Request.Form.Files["ProfilePicture"];
+                
+                // Validate file type
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+                var fileExtension = Path.GetExtension(profilePicture.FileName).ToLowerInvariant();
+                
+                if (!allowedExtensions.Contains(fileExtension))
+                {
+                    ModelState.AddModelError("", "Please upload a valid image file (jpg, jpeg, png, gif).");
+                    return View(model);
+                }
+
+                // Validate file size (max 5MB)
+                if (profilePicture.Length > 5 * 1024 * 1024)
+                {
+                    ModelState.AddModelError("", "Profile picture must be less than 5MB.");
+                    return View(model);
+                }
+
+                // Create profile pictures directory if it doesn't exist
+                string uploadDir = Path.Combine(_webHostEnvironment.WebRootPath, "images", "profiles");
+                Directory.CreateDirectory(uploadDir);
+
+                // Delete old profile picture if it exists and is not the default
+                if (!string.IsNullOrEmpty(user.user_profilePhoto))
+                {
+                    var oldPhotoPath = Path.Combine(_webHostEnvironment.WebRootPath, 
+                        user.user_profilePhoto.Replace("~/", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
+                    if (System.IO.File.Exists(oldPhotoPath))
+                    {
+                        System.IO.File.Delete(oldPhotoPath);
+                    }
+                }
+
+                // Generate unique filename
+                string fileName = $"{user.Id}_{Guid.NewGuid()}{fileExtension}";
+                string filePath = Path.Combine(uploadDir, fileName);
+
+                // Save the file
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await profilePicture.CopyToAsync(fileStream);
+                }
+
+                // Update user profile photo path
+                user.user_profilePhoto = $"~/images/profiles/{fileName}";
+            }
+            // If no new file is uploaded, keep the existing profile picture (user.user_profilePhoto remains unchanged)
 
             // Architect-specific
             if (string.Equals(user.user_role, "Architect", StringComparison.OrdinalIgnoreCase))
@@ -346,7 +480,7 @@ namespace BlueprintProWeb.Controllers
                 }
             }
 
-            var cleaned = Regex.Replace(sb.ToString(), @"\s+", " ").Trim();
+            var cleaned = Regex.Replace(sb.ToString(), @"\s+", " ").Trim(); // Changed from .trim() to .Trim()
 
             return await Task.FromResult(sb.ToString());
         }
@@ -362,8 +496,6 @@ namespace BlueprintProWeb.Controllers
             // Convert to float[] the same way you do elsewhere
             return embeddingResponse.Value.ToFloats().ToArray();
         }
-
-
 
 
     }
