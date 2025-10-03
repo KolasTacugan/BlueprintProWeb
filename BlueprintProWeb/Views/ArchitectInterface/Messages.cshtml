@@ -40,8 +40,19 @@
                         <a asp-controller="ArchitectInterface" asp-action="Messages"
                            asp-route-clientId="@convo.ClientId"
                            class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+
+                            <!-- Left side: Client name -->
                             <span>@convo.ClientName</span>
-                            <small class="text-muted">@convo.LastMessageTime.ToShortTimeString()</small>
+
+                            <!-- Right side: Time + New message badge -->
+                            <div class="d-flex align-items-center gap-2">
+                                <small class="text-muted">@convo.LastMessageTime.ToShortTimeString()</small>
+                                @if (convo.UnreadCount > 0)
+                                {
+                                    <span class="badge bg-danger rounded-pill">@convo.UnreadCount</span>
+                                }
+
+                            </div>
                         </a>
                     }
                 }
@@ -71,8 +82,8 @@
                         <div class="mb-2 @(msg.IsOwnMessage ? "text-end" : "text-start")">
                             <div class="d-inline-block p-2 rounded"
                                  style="background:@(msg.IsOwnMessage ? "#071744" : "#f1f1f1");
-                                                color:@(msg.IsOwnMessage ? "white" : "black");
-                                                max-width:70%;">
+                                        color:@(msg.IsOwnMessage ? "white" : "black");
+                                        max-width:70%;">
                                 @msg.MessageBody
                             </div>
                             <div class="small text-muted">

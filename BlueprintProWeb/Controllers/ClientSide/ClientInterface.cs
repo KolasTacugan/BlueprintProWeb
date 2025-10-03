@@ -397,17 +397,22 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 })
                 .ToListAsync();
 
-            // 2. Load conversations (one per architect)
+            // 2. Load conversations (one per partner)
             var conversations = await context.Messages
                 .Where(m => m.ClientId == currentUser.Id || m.ArchitectId == currentUser.Id)
-                .GroupBy(m => m.ArchitectId)
+                .GroupBy(m => m.ClientId == currentUser.Id ? m.ArchitectId : m.ClientId) // ✅ partner ID
                 .Select(g => new ChatViewModel
                 {
-                    ClientId = g.Key, // using ArchitectId here
-                    ClientName = g.First().Architect.user_fname + " " + g.First().Architect.user_lname,
-                    ClientProfileUrl = null, // placeholder until profile pics
+                    ClientId = g.Key,
+                    ClientName = g.First().ArchitectId == g.Key
+                        ? g.First().Architect.user_fname + " " + g.First().Architect.user_lname
+                        : g.First().Client.user_fname + " " + g.First().Client.user_lname,
+                    ClientProfileUrl = null,
                     LastMessageTime = g.Max(x => x.MessageDate),
-                    Messages = new List<MessageViewModel>()
+                    Messages = new List<MessageViewModel>(),
+
+                    // unread counter
+                    UnreadCount = g.Count(x => x.SenderId != currentUser.Id && !x.IsRead)
                 })
                 .ToListAsync();
 
@@ -415,35 +420,51 @@ namespace BlueprintProWeb.Controllers.ClientSide
             ChatViewModel? activeChat = null;
             if (!string.IsNullOrEmpty(architectId))
             {
+                // First load messages
                 var messages = await context.Messages
+                    .Include(m => m.Sender) // 👈 this makes sure Sender is loaded
                     .Where(m =>
                         (m.ArchitectId == architectId && m.ClientId == currentUser.Id) ||
                         (m.ArchitectId == currentUser.Id && m.ClientId == architectId))
                     .OrderBy(m => m.MessageDate)
-                    .Select(m => new MessageViewModel
-                    {
-                        MessageId = m.MessageId.ToString(),
-                        ClientId = m.ClientId,
-                        ArchitectId = m.ArchitectId,
-                        SenderId = m.SenderId,
-                        MessageBody = m.MessageBody,
-                        MessageDate = m.MessageDate,
-                        IsRead = m.IsRead,
-                        IsDeleted = m.IsDeleted,
-                        AttachmentUrl = m.AttachmentUrl,
-                        SenderName = m.Sender.user_fname + " " + m.Sender.user_lname,
-                        SenderProfilePhoto = null,
-                        IsOwnMessage = (m.SenderId == currentUser.Id)
-                    })
                     .ToListAsync();
+
+
+                // Then mark unread messages as read
+                var unreadMessages = messages
+                    .Where(m => m.SenderId != currentUser.Id && !m.IsRead)
+                    .ToList();
+
+                foreach (var msg in unreadMessages)
+                    msg.IsRead = true;
+
+                if (unreadMessages.Any())
+                    await context.SaveChangesAsync();
+
+                // Now map to viewmodels
+                var vmMessages = messages.Select(m => new MessageViewModel
+                {
+                    MessageId = m.MessageId.ToString(),
+                    ClientId = m.ClientId,
+                    ArchitectId = m.ArchitectId,
+                    SenderId = m.SenderId,
+                    MessageBody = m.MessageBody,
+                    MessageDate = m.MessageDate,
+                    IsRead = m.IsRead,
+                    IsDeleted = m.IsDeleted,
+                    AttachmentUrl = m.AttachmentUrl,
+                    SenderName = m.Sender.user_fname + " " + m.Sender.user_lname,
+                    SenderProfilePhoto = null,
+                    IsOwnMessage = (m.SenderId == currentUser.Id)
+                }).ToList();
 
                 activeChat = new ChatViewModel
                 {
                     ClientId = architectId,
-                    ClientName = messages.FirstOrDefault()?.SenderName ?? "Unknown",
+                    ClientName = vmMessages.FirstOrDefault(m => m.ArchitectId == architectId)?.SenderName ?? "Unknown",
                     ClientProfileUrl = null,
-                    LastMessageTime = messages.LastOrDefault()?.MessageDate ?? DateTime.UtcNow,
-                    Messages = messages
+                    LastMessageTime = vmMessages.LastOrDefault()?.MessageDate ?? DateTime.UtcNow,
+                    Messages = vmMessages
                 };
             }
 
@@ -457,6 +478,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
 
             return View(vm);
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]

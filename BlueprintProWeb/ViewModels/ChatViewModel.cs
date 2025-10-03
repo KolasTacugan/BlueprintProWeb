@@ -15,6 +15,7 @@
         public string? ClientProfileUrl { get; set; }
         public DateTime LastMessageTime { get; set; }
         public List<MessageViewModel> Messages { get; set; } = new();
+        public int UnreadCount { get; set; }
     }
 
 
@@ -23,5 +24,6 @@
         public List<MatchViewModel> Matches { get; set; } = new();
         public List<ChatViewModel> Conversations { get; set; } = new();
         public ChatViewModel? ActiveChat { get; set; }
+
     }
 }

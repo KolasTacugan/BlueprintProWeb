@@ -31,5 +31,7 @@ namespace BlueprintProWeb.ViewModels
 
         // Helps chat bubble logic in the view
         public bool IsOwnMessage { get; set; }
+
+
     }
 }

@@ -18,9 +18,10 @@
                         <a asp-controller="ClientInterface" asp-action="Messages"
                            asp-route-architectId="@match.ArchitectId"
                            class="text-center text-decoration-none">
-                            <img src="/images/default-profile.png"
-                                 class="rounded-circle"
-                                 style="width:60px; height:60px; object-fit:cover;" />
+                            <div class="rounded-circle bg-secondary d-flex justify-content-center align-items-center"
+                                 style="width:60px; height:60px; color:white; font-weight:bold;">
+                                @match.ArchitectName.Substring(0, 1)
+                            </div>
                             <div class="small text-dark">@match.ArchitectName</div>
                         </a>
                     }
@@ -35,13 +36,27 @@
             <ul class="list-group">
                 @if (Model.Conversations.Any())
                 {
-                    foreach (var convo in Model.Conversations)
+                    foreach (var convo in Model.Conversations.OrderByDescending(c => c.LastMessageTime))
                     {
                         <a asp-controller="ClientInterface" asp-action="Messages"
                            asp-route-architectId="@convo.ClientId"
-                           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center
+                                          @(Model.ActiveChat != null && Model.ActiveChat.ClientId == convo.ClientId ? "active" : "")">
+
+                            <!-- Left side: Architect/Client name -->
                             <span>@convo.ClientName</span>
-                            <small class="text-muted">@convo.LastMessageTime.ToShortTimeString()</small>
+
+                            <!-- Right side: Time + New message badge -->
+                            <div class="d-flex align-items-center gap-2">
+                                <small class="text-muted">@convo.LastMessageTime.ToShortTimeString()</small>
+
+                                @if (convo.UnreadCount > 0)
+                                {
+                                    <span class="badge bg-danger rounded-pill">
+                                        @convo.UnreadCount
+                                    </span>
+                                }
+                            </div>
                         </a>
                     }
                 }
@@ -58,9 +73,6 @@
             {
                 <!-- Chat Header -->
                 <div class="border-bottom p-2 d-flex align-items-center bg-white">
-                    <img src="/images/default-profile.png"
-                         class="rounded-circle me-2"
-                         style="width:40px; height:40px; object-fit:cover;" />
                     <strong>@Model.ActiveChat.ClientName</strong>
                 </div>
 
@@ -71,8 +83,8 @@
                         <div class="mb-2 @(msg.IsOwnMessage ? "text-end" : "text-start")">
                             <div class="d-inline-block p-2 rounded"
                                  style="background:@(msg.IsOwnMessage ? "#198754" : "#f1f1f1");
-                                                        color:@(msg.IsOwnMessage ? "white" : "black");
-                                                        max-width:70%; ">
+                                                color:@(msg.IsOwnMessage ? "white" : "black");
+                                                max-width:70%; word-wrap:break-word;">
                                 @msg.MessageBody
                             </div>
                             <div class="small text-muted">
