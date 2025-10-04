@@ -60,9 +60,61 @@ namespace BlueprintProWeb.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("clentId")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("blueprintId");
 
                     b.ToTable("Blueprints");
+                });
+
+            modelBuilder.Entity("BlueprintProWeb.Models.Cart", b =>
+                {
+                    b.Property<int>("CartId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CartId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("CartId");
+
+                    b.ToTable("Carts");
+                });
+
+            modelBuilder.Entity("BlueprintProWeb.Models.CartItem", b =>
+                {
+                    b.Property<int>("CartItemId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CartItemId"));
+
+                    b.Property<DateTime>("AddedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("BlueprintId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CartId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.HasKey("CartItemId");
+
+                    b.HasIndex("BlueprintId");
+
+                    b.HasIndex("CartId");
+
+                    b.ToTable("CartItems");
                 });
 
             modelBuilder.Entity("BlueprintProWeb.Models.Compliance", b =>
@@ -131,6 +183,52 @@ namespace BlueprintProWeb.Migrations
                     b.HasIndex("ClientId");
 
                     b.ToTable("Matches");
+                });
+
+            modelBuilder.Entity("BlueprintProWeb.Models.Message", b =>
+                {
+                    b.Property<Guid>("MessageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ArchitectId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("AttachmentUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ClientId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("MessageBody")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime>("MessageDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SenderId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("MessageId");
+
+                    b.HasIndex("ArchitectId");
+
+                    b.HasIndex("ClientId");
+
+                    b.HasIndex("SenderId");
+
+                    b.ToTable("Messages");
                 });
 
             modelBuilder.Entity("BlueprintProWeb.Models.Notification", b =>
@@ -260,6 +358,10 @@ namespace BlueprintProWeb.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("projectTrack_FinalizationNotes")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("projectTrack_Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -335,6 +437,12 @@ namespace BlueprintProWeb.Migrations
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
+
+                    b.Property<string>("PortfolioEmbedding")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PortfolioText")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
@@ -531,6 +639,25 @@ namespace BlueprintProWeb.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("BlueprintProWeb.Models.CartItem", b =>
+                {
+                    b.HasOne("BlueprintProWeb.Models.Blueprint", "Blueprint")
+                        .WithMany()
+                        .HasForeignKey("BlueprintId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BlueprintProWeb.Models.Cart", "Cart")
+                        .WithMany("Items")
+                        .HasForeignKey("CartId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Blueprint");
+
+                    b.Navigation("Cart");
+                });
+
             modelBuilder.Entity("BlueprintProWeb.Models.Compliance", b =>
                 {
                     b.HasOne("BlueprintProWeb.Models.ProjectTracker", "ProjectTracker")
@@ -559,6 +686,33 @@ namespace BlueprintProWeb.Migrations
                     b.Navigation("Architect");
 
                     b.Navigation("Client");
+                });
+
+            modelBuilder.Entity("BlueprintProWeb.Models.Message", b =>
+                {
+                    b.HasOne("BlueprintProWeb.Models.User", "Architect")
+                        .WithMany()
+                        .HasForeignKey("ArchitectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BlueprintProWeb.Models.User", "Client")
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BlueprintProWeb.Models.User", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Architect");
+
+                    b.Navigation("Client");
+
+                    b.Navigation("Sender");
                 });
 
             modelBuilder.Entity("BlueprintProWeb.Models.Notification", b =>
@@ -674,6 +828,11 @@ namespace BlueprintProWeb.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("BlueprintProWeb.Models.Cart", b =>
+                {
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("BlueprintProWeb.Models.ProjectTracker", b =>

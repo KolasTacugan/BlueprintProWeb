@@ -143,7 +143,7 @@
     </div>
 </div>
 
-<!-- Step 1 -->
+<!-- Step 1: Review -->
 <div id="step1Content" class="step-content @(Model.Status == "Review" ? "active" : "")">
     <h3>Review</h3>
 
@@ -347,11 +347,47 @@
     </form>
 </div>
 
-<!-- Step 3 -->
+<!-- Step 3: Finalization -->
 <div id="step3Content" class="step-content">
-    <h5>Step 3: Finalization</h5>
-    <p>Content for Finalization step...</p>
-    <button class="btn btn-success">Finish</button>
+    <h3>Finalization</h3>
+
+    <!-- Show current file -->
+    <h6><strong>Final File:</strong></h6>
+    <div class="form-control mb-3" style="height: 40px; overflow-y: auto;">
+        @if (!string.IsNullOrEmpty(Model.CurrentFilePath))
+        {
+            <a href="@Url.Content(Model.CurrentFilePath)" target="_blank">
+                Final_Blueprint
+            </a>
+        }
+        else
+        {
+            <span class="text-muted">No final file uploaded yet.</span>
+        }
+    </div>
+
+    <!-- Finalization notes -->
+    <form id="finalizationNotesForm">
+        <input type="hidden" name="projectTrackId" value="@Model.projectTrack_Id" />
+
+        <div class="form-group">
+            <label for="finalizationNotes"><strong>Finalization Notes</strong></label>
+            <p><i>You are required to edit this field.</i></p>
+            <textarea id="finalizationNotes" name="notes" class="form-control" rows="10">
+                @Model.FinalizationNotes
+            </textarea>
+        </div>
+
+        <button type="button" id="saveFinalizationBtn" class="btn replace-btn mt-2 mb-2">
+            Save Notes
+        </button>
+    </form>
+
+    <div class="text-end mt-3">
+        <button type="button" class="btn btn-success">
+            Finish
+        </button>
+    </div>
 </div>
 
 <!-- Confirmation Modal -->
@@ -573,6 +609,28 @@
                     }
                 });
             });
+        });
+
+        $(document).on("click", "#saveFinalizationBtn", function () {
+            const formData = {
+                projectTrackId: $("input[name='projectTrackId']").val(),
+                notes: $("#finalizationNotes").val()
+            };
+
+            $.post("/ArchitectInterface/SaveFinalizationNotes", formData)
+                .done(res => {
+                    if (res.success) {
+                        $("#uploadResultMessage").text(res.message);
+                        $("#uploadResultModal").modal("show");
+                    } else {
+                        $("#uploadResultMessage").text(res.message || "❌ Failed to save notes.");
+                        $("#uploadResultModal").modal("show");
+                    }
+                })
+                .fail(() => {
+                    $("#uploadResultMessage").text("❌ Error while saving notes.");
+                    $("#uploadResultModal").modal("show");
+                });
         });
     </script>
 }

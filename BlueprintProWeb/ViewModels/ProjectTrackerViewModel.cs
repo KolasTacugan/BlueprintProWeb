@@ -14,5 +14,6 @@ namespace BlueprintProWeb.ViewModels
 
         public List<ProjectFile> RevisionHistory { get; set; } = new();
         public Compliance? Compliance { get; set; }
+        public string FinalizationNotes { get; set; }
     }
 }

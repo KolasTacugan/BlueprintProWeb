@@ -453,7 +453,8 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 CurrentRevision = tracker.projectTrack_currentRevision,
                 Status = tracker.projectTrack_Status,
                 RevisionHistory = history,
-                Compliance = tracker.Compliance
+                Compliance = tracker.Compliance,
+                FinalizationNotes = tracker.projectTrack_FinalizationNotes
             };
 
             return View(vm);
@@ -573,6 +574,19 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             {
                 return Json(new { success = false, message = $"Server error: {ex.Message}" });
             }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SaveFinalizationNotes(int projectTrackId, string notes)
+        {
+            var tracker = await context.ProjectTrackers.FirstOrDefaultAsync(pt => pt.projectTrack_Id == projectTrackId);
+            if (tracker == null)
+                return Json(new { success = false, message = "ProjectTracker not found." });
+
+            tracker.projectTrack_FinalizationNotes = notes;
+            await context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "Finalization notes saved successfully." });
         }
     }
 }
