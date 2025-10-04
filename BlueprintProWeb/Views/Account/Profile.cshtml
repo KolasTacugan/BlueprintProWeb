@@ -4,10 +4,9 @@
     ViewData["Title"] = "Profile";
 }
 
-@section Styles{
+@section Styles {
     <style>
-        @@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-
+            @@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
         /* Override shared layout background for profile page */
         body::before {
             background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
@@ -30,7 +29,7 @@
             padding: 2rem;
             padding-top: 4rem;
             max-width: calc(100% - 320px);
-            transition: margin-left 0.4s ease, max-width 0.4s ease; 
+            transition: margin-left 0.4s ease, max-width 0.4s ease;
         }
 
         /* When sidebar is collapsed, adjust main content */
@@ -48,6 +47,33 @@
             margin: 0 20px 40px 20px;
             box-shadow: 0 12px 40px rgba(13, 60, 128, 0.15);
             border: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+        }
+
+        /* Pro Badge on Profile Card */
+        .pro-badge {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            background: linear-gradient(135deg, #0D3C80, #1a5bb8);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            box-shadow: 0 4px 15px rgba(13, 60, 128, 0.3);
+            animation: proBadgeGlow 2s ease-in-out infinite alternate;
+        }
+
+        @@keyframes proBadgeGlow {
+            0% {
+                box-shadow: 0 4px 15px rgba(13, 60, 128, 0.3);
+            }
+            100% {
+                box-shadow: 0 4px 20px rgba(13, 60, 128, 0.5);
+            }
         }
 
         .page-header {
@@ -55,11 +81,30 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
+            position: relative;
         }
 
-        .page-header h2 {
-            color: #0D3C80;
+            .page-header h2 {
+                color: #0D3C80;
+                font-weight: 700;
+            }
+
+        /* Pro indicator next to name */
+        .user-name-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pro-indicator {
+            background: linear-gradient(135deg, #0D3C80, #1a5bb8);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 0.7rem;
             font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .settings-btn {
@@ -85,6 +130,13 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: relative;
+        }
+
+        /* Pro border for profile card */
+        .profile-card.pro-user {
+            border: 2px solid #0D3C80;
+            background: linear-gradient(135deg, rgba(13, 60, 128, 0.02), rgba(255, 255, 255, 0.9));
         }
 
         .profile-info {
@@ -111,6 +163,12 @@
             justify-content: center;
             position: relative;
             cursor: pointer;
+        }
+
+        /* Pro user avatar styling */
+        .avatar.pro-user {
+            border: 3px solid #0D3C80;
+            box-shadow: 0 0 15px rgba(13, 60, 128, 0.3);
         }
 
         .avatar img {
@@ -173,10 +231,10 @@
             text-decoration: none;
         }
 
-        .edit-btn:hover {
-            background: #0A2F66;
-            color: white;
-        }
+            .edit-btn:hover {
+                background: #0A2F66;
+                color: white;
+            }
 
         .side-buttons {
             flex: 1;
@@ -185,13 +243,49 @@
             gap: 12px;
         }
 
-        .side-buttons .card {
-            background: rgba(255, 255, 255, 0.85);
-            border-radius: 16px;
-            padding: 16px;
-            text-align: center;
-            cursor: pointer;
-            box-shadow: 0px 4px 12px rgba(13, 60, 128, 0.08);
+            .side-buttons .card {
+                background: rgba(255, 255, 255, 0.85);
+                border-radius: 16px;
+                padding: 16px;
+                text-align: center;
+                cursor: pointer;
+                box-shadow: 0px 4px 12px rgba(13, 60, 128, 0.08);
+                text-decoration: none;
+                color: #0D3C80;
+                font-weight: 500;
+                transition: all 0.3s ease;
+                display: block;
+                border: none;
+                position: relative;
+            }
+
+                .side-buttons .card:hover {
+                    background: rgba(13, 60, 128, 0.1);
+                    transform: translateY(-2px);
+                    box-shadow: 0px 6px 16px rgba(13, 60, 128, 0.15);
+                    text-decoration: none;
+                    color: #0D3C80;
+                }
+
+        /* Pro subscription button styling */
+        .subscription-card-pro {
+            background: linear-gradient(135deg, rgba(13, 60, 128, 0.05), rgba(255, 255, 255, 0.9)) !important;
+            border: 2px solid #0D3C80 !important;
+        }
+
+        .subscription-card-pro::after {
+            content: "PRO";
+            position: absolute;
+            top: -1px;
+            right: -1px;
+            background: linear-gradient(135deg, #0D3C80, #1a5bb8);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 0 14px 0 12px;
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .credentials-card {
@@ -201,30 +295,11 @@
             box-shadow: 0px 4px 12px rgba(13, 60, 128, 0.08);
         }
 
-        .credentials-card h4 {
-            margin-top: 0;
-            color: #0D3C80;
-            font-weight: 600;
-        }
-
-        .credentials-card textarea {
-            width: 100%;
-            min-height: 400px;
-            border: 1px solid #EBF1FD;
-            border-radius: 8px;
-            padding: 10px;
-            font-family: 'Poppins', sans-serif;
-            margin-bottom: 12px;
-        }
-
-        .save-btn {
-            background: #0D3C80;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-        }
+            .credentials-card h4 {
+                margin-top: 0;
+                color: #0D3C80;
+                font-weight: 600;
+            }
 
         .alert {
             padding: 12px 16px;
@@ -245,6 +320,438 @@
             color: #721c24;
         }
 
+        /* SUBSCRIPTION MODAL STYLES - Updated to match page design */
+        .subscription-modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+        }
+
+            .subscription-modal.show {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+        .modal-content-large {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 24px;
+            padding: 0;
+            margin: 20px;
+            box-shadow: 0 20px 60px rgba(13, 60, 128, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-header-custom {
+            background: linear-gradient(135deg, #0D3C80, #1a5bb8);
+            color: white;
+            padding: 30px;
+            border-radius: 24px 24px 0 0;
+            text-align: center;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.8rem;
+            cursor: pointer;
+            padding: 0;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s ease;
+        }
+
+            .modal-close:hover {
+                background-color: rgba(255, 255, 255, 0.2);
+            }
+
+        .modal-title-custom {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0;
+            color: white;
+        }
+
+        .modal-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+            margin-top: 10px;
+            font-weight: 400;
+        }
+
+        .modal-body-custom {
+            padding: 40px;
+        }
+
+        /* Plans Container - Side by Side */
+        .plans-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            max-width: 100%;
+        }
+
+        .plan-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 35px 30px;
+            text-align: left;
+            position: relative;
+            box-shadow: 0 8px 30px rgba(13, 60, 128, 0.1);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+        }
+
+            .plan-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 16px 50px rgba(13, 60, 128, 0.2);
+            }
+
+            .plan-card.pro-plan {
+                border-color: #0D3C80;
+                background: linear-gradient(135deg, rgba(13, 60, 128, 0.05), rgba(255, 255, 255, 0.95));
+            }
+
+            .plan-card.current-plan {
+                border-color: #28a745;
+                background: linear-gradient(135deg, rgba(40, 167, 69, 0.05), rgba(255, 255, 255, 0.95));
+            }
+
+        .plan-badge {
+            position: absolute;
+            top: -1px;
+            right: -1px;
+            padding: 8px 16px;
+            border-radius: 0 20px 0 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .recommended-badge {
+            background: linear-gradient(135deg, #0D3C80, #1a5bb8);
+            color: white;
+        }
+
+        .current-badge {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+
+        .plan-header {
+            margin-bottom: 25px;
+        }
+
+        .plan-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #0D3C80;
+            margin-bottom: 15px;
+        }
+
+        .plan-price {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: #0D3C80;
+            margin-bottom: 8px;
+            line-height: 1;
+        }
+
+        .plan-billing {
+            color: #666;
+            font-size: 1rem;
+            font-weight: 400;
+            margin-bottom: 25px;
+        }
+
+        .plan-features {
+            flex: 1;
+            margin-bottom: 25px;
+        }
+
+        .features-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+            .features-list li {
+                color: #333;
+                font-size: 1rem;
+                line-height: 1.6;
+                margin-bottom: 8px;
+            }
+
+        .plan-button {
+            width: 100%;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: auto;
+        }
+
+            .plan-button.primary {
+                background: linear-gradient(135deg, #0D3C80, #1a5bb8);
+                color: white;
+            }
+
+                .plan-button.primary:hover {
+                    background: linear-gradient(135deg, #0A2F66, #164a9e);
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 25px rgba(13, 60, 128, 0.3);
+                }
+
+            .plan-button.current-btn {
+                background: linear-gradient(135deg, #28a745, #20c997);
+                color: white;
+                cursor: default;
+            }
+
+        /* CHECKOUT STYLES */
+        .checkout-container {
+            display: none;
+            max-width: 100%;
+        }
+
+            .checkout-container.show {
+                display: block;
+            }
+
+        .back-button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            padding: 5px 0;
+            transition: opacity 0.3s ease;
+        }
+
+            .back-button:hover {
+                opacity: 0.8;
+            }
+
+        .checkout-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .order-summary {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 30px rgba(13, 60, 128, 0.1);
+            border: 2px solid #0D3C80;
+        }
+
+        .summary-header {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #0D3C80;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(13, 60, 128, 0.1);
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px 0;
+        }
+
+        .summary-item-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .summary-item-price {
+            font-weight: 700;
+            color: #0D3C80;
+            font-size: 1.1rem;
+        }
+
+        .summary-total {
+            border-top: 2px solid rgba(13, 60, 128, 0.1);
+            padding-top: 15px;
+            margin-top: 15px;
+        }
+
+        .total-amount {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #0D3C80;
+        }
+
+        .payment-form {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 30px rgba(13, 60, 128, 0.1);
+        }
+
+        .form-section {
+            margin-bottom: 25px;
+        }
+
+        .form-section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #0D3C80;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(13, 60, 128, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #0D3C80;
+            font-size: 0.9rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+            .form-input:focus {
+                outline: none;
+                border-color: #0D3C80;
+                box-shadow: 0 0 0 3px rgba(13, 60, 128, 0.1);
+                background: white;
+            }
+
+        .payment-methods {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .payment-method {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+            .payment-method:hover {
+                border-color: #0D3C80;
+            }
+
+            .payment-method.selected {
+                border-color: #0D3C80;
+                background: rgba(13, 60, 128, 0.05);
+            }
+
+            .payment-method input[type="radio"] {
+                margin: 0;
+            }
+
+        .checkout-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn-back {
+            flex: 1;
+            padding: 15px 25px;
+            border: 2px solid #0D3C80;
+            border-radius: 12px;
+            background: transparent;
+            color: #0D3C80;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+            .btn-back:hover {
+                background: #0D3C80;
+                color: white;
+            }
+
+        .btn-confirm {
+            flex: 2;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #0D3C80, #1a5bb8);
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+            .btn-confirm:hover {
+                background: linear-gradient(135deg, #0A2F66, #164a9e);
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(13, 60, 128, 0.3);
+            }
+
         /* Responsive adjustments */
         @@media (max-width: 767.98px) {
             main.container {
@@ -260,15 +767,62 @@
                 margin: 0 10px 20px 10px;
             }
 
+            .pro-badge {
+                top: 15px;
+                right: 15px;
+                padding: 4px 12px;
+                font-size: 0.7rem;
+            }
+
             .profile-section {
                 flex-direction: column;
                 gap: 15px;
+            }
+
+            .modal-content-large {
+                margin: 10px;
+                width: 95%;
+            }
+
+            .modal-body-custom {
+                padding: 25px;
+            }
+
+            .plans-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .plan-card {
+                min-height: auto;
+            }
+
+            .modal-title-custom {
+                font-size: 1.6rem;
+            }
+
+            .checkout-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .checkout-buttons {
+                flex-direction: column;
             }
         }
     </style>
 }
 
 <div class="profile-main-card">
+    @if (Model.IsPro)
+    {
+        <div class="pro-badge">PRO</div>
+    }
+
     @if (TempData["Success"] != null)
     {
         <div class="alert alert-success">@TempData["Success"]</div>
@@ -284,10 +838,10 @@
     </div>
 
     <div class="profile-section">
-        <div class="profile-card">
+        <div class="profile-card @(Model.IsPro ? "pro-user" : "")">
             <div class="profile-info">
                 <div class="avatar-container">
-                    <div class="avatar" onclick="document.getElementById('profilePictureInput').click()">
+                    <div class="avatar @(Model.IsPro ? "pro-user" : "")" onclick="document.getElementById('profilePictureInput').click()">
                         @if (!string.IsNullOrEmpty(Model.ProfilePhoto))
                         {
                             <img src="@Url.Content(Model.ProfilePhoto)" alt="@Model.FullName">
@@ -300,21 +854,27 @@
                         }
                     </div>
                     <div class="avatar-upload-overlay" onclick="document.getElementById('profilePictureInput').click()">
-                        📷 Upload
+                        Upload Photo
                     </div>
                 </div>
                 <div class="user-details">
-                    <h3 class="name">@Model.FullName</h3>
+                    <div class="user-name-container">
+                        <h3 class="name">@Model.FullName</h3>
+                        @if (Model.IsPro)
+                        {
+                            <span class="pro-indicator">PRO</span>
+                        }
+                    </div>
                     <div class="email">@Model.Email</div>
                     <div class="phone">@Model.PhoneNumber</div>
                 </div>
             </div>
-            <a asp-controller="Account" asp-action="EditProfile" class="edit-btn">✏ Edit</a>
+            <a asp-controller="Account" asp-action="EditProfile" class="edit-btn">Edit Profile</a>
         </div>
 
         <div class="side-buttons">
-            <div class="card">♥ Favorites</div>
-            <div class="card">⚑ Subscription</div>
+            <div class="card">Favorites</div>
+            <button class="card @(Model.IsPro ? "subscription-card-pro" : "")" onclick="openSubscriptionModal()">Subscription</button>
         </div>
     </div>
 
@@ -342,6 +902,182 @@
     </form>
 </div>
 
+<!-- SUBSCRIPTION MODAL -->
+<div id="subscriptionModal" class="subscription-modal">
+    <div class="modal-content-large">
+        <div class="modal-header-custom">
+            <button class="modal-close" onclick="closeSubscriptionModal()">&times;</button>
+            <button class="back-button" id="backButton" onclick="showPlansView()" style="display: none;">
+                ← Back to Plans
+            </button>
+            <h2 class="modal-title-custom" id="modalTitle">Choose Your Plan</h2>
+            <p class="modal-subtitle" id="modalSubtitle">Select the subscription that fits your needs</p>
+        </div>
+
+        <div class="modal-body-custom">
+            <!-- Plans View -->
+            <div id="plansView" class="plans-container">
+                <!-- Free Plan -->
+                <div class="plan-card @(Model.IsPro ? "" : "current-plan")">
+                    @if (!Model.IsPro)
+                    {
+                        <div class="plan-badge current-badge">Current</div>
+                    }
+                    <div class="plan-header">
+                        <div class="plan-name">Free</div>
+                        <div class="plan-price">$0</div>
+                        <div class="plan-billing">per month, no credit card required</div>
+                    </div>
+
+                    <div class="plan-features">
+                        <ul class="features-list">
+                            <li>Standard AI matching</li>
+                        </ul>
+                    </div>
+
+                    @if (!Model.IsPro)
+                    {
+                        <button class="plan-button current-btn">Current Plan</button>
+                    }
+                    else
+                    {
+                        <button class="plan-button" style="background: #dc3545; color: white; cursor: pointer;" onclick="confirmDowngrade()">Downgrade</button>
+                    }
+                </div>
+
+                <!-- Pro Plan -->
+                <div class="plan-card @(Model.IsPro ? "current-plan" : "pro-plan")">
+                    @if (Model.IsPro)
+                    {
+                        <div class="plan-badge current-badge">Current</div>
+                    }
+                    else
+                    {
+                        <div class="plan-badge recommended-badge">Recommended</div>
+                    }
+                    <div class="plan-header">
+                        <div class="plan-name">Pro</div>
+                        <div class="plan-price">₱49</div>
+                        <div class="plan-billing">per month, billed monthly</div>
+                    </div>
+
+                    <div class="plan-features">
+                        <ul class="features-list">
+                            <li>Priority AI matching — appear at the top of client searches and gain more visibility in project recommendations</li>
+                        </ul>
+                    </div>
+
+                    @if (Model.IsPro)
+                    {
+                        <button class="plan-button current-btn">Current Plan</button>
+                    }
+                    else
+                    {
+                        <button class="plan-button primary" onclick="showCheckout()">Get started</button>
+                    }
+                </div>
+            </div>
+
+            <!-- Checkout View -->
+            <div id="checkoutView" class="checkout-container">
+                <div class="checkout-content">
+                    <!-- Order Summary -->
+                    <div class="order-summary">
+                        <div class="summary-header">Order Summary</div>
+
+                        <div class="summary-item">
+                            <div class="summary-item-name">Pro Plan</div>
+                            <div class="summary-item-price">₱49.00</div>
+                        </div>
+
+                        <div class="summary-item">
+                            <div class="summary-item-name">Monthly Billing</div>
+                            <div class="summary-item-price">₱49.00/month</div>
+                        </div>
+
+                        <div class="summary-item summary-total">
+                            <div class="summary-item-name">Total</div>
+                            <div class="summary-item-price total-amount">₱49.00</div>
+                        </div>
+
+                        <div style="margin-top: 20px; padding: 15px; background: rgba(13, 60, 128, 0.05); border-radius: 8px; font-size: 0.9rem; color: #666;">
+                            <strong>What you get:</strong><br>
+                            • Priority AI matching<br>
+                            • Top of client search results<br>
+                            • Enhanced project visibility<br>
+                            • Cancel anytime
+                        </div>
+                    </div>
+
+                    <!-- Payment Form -->
+                    <div class="payment-form">
+                        <form id="checkoutForm">
+                            @Html.AntiForgeryToken()
+                            <div class="form-section">
+                                <div class="form-section-title">Billing Information</div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label class="form-label">First Name</label>
+                                        <input type="text" class="form-input" id="firstName" value="@Model.FirstName" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Last Name</label>
+                                        <input type="text" class="form-input" id="lastName" value="@Model.LastName" required>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Email Address</label>
+                                    <input type="email" class="form-input" id="email" value="@Model.Email" required>
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <div class="form-section-title">Payment Method</div>
+
+                                <div class="payment-methods">
+                                    <div class="payment-method selected" onclick="selectPaymentMethod('card')">
+                                        <input type="radio" name="paymentMethod" value="card" checked>
+                                        <span>💳 Credit Card</span>
+                                    </div>
+                                    <div class="payment-method" onclick="selectPaymentMethod('paypal')">
+                                        <input type="radio" name="paymentMethod" value="paypal">
+                                        <span>🅿️ PayPal</span>
+                                    </div>
+                                </div>
+
+                                <div id="cardDetails" style="margin-top: 20px;">
+                                    <div class="form-group">
+                                        <label class="form-label">Card Number</label>
+                                        <input type="text" class="form-input" placeholder="1234 5678 9012 3456" maxlength="19" required>
+                                    </div>
+
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label class="form-label">Expiry Date</label>
+                                            <input type="text" class="form-input" placeholder="MM/YY" maxlength="5" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">CVV</label>
+                                            <input type="text" class="form-input" placeholder="123" maxlength="4" required>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+
+                        <div class="checkout-buttons">
+                            <button type="button" class="btn-back" onclick="showPlansView()">Back</button>
+                            <button type="button" class="btn-confirm" onclick="confirmPurchase()">Confirm Purchase</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         // Listen for sidebar toggle and adjust main content accordingly
@@ -349,7 +1085,7 @@
             const sidebar = document.querySelector('.sidebar');
             const sidebarToggler = document.querySelector('.sidebar-toggler');
             const mainContent = document.querySelector('main.container');
-            
+
             function adjustMainContent() {
                 if (sidebar && mainContent) {
                     if (sidebar.classList.contains('collapsed')) {
@@ -361,10 +1097,10 @@
                     }
                 }
             }
-            
+
             // Adjust on page load
             adjustMainContent();
-            
+
             // Listen for sidebar toggle
             if (sidebarToggler) {
                 sidebarToggler.addEventListener('click', function() {
@@ -396,11 +1132,210 @@
             // Show loading state
             const avatarContainer = document.querySelector('.avatar-container');
             const overlay = avatarContainer.querySelector('.avatar-upload-overlay');
-            overlay.innerHTML = '⏳ Uploading...';
+            overlay.innerHTML = 'Uploading...';
             overlay.style.opacity = '1';
 
             // Submit the form
             input.form.submit();
         }
+
+        // SUBSCRIPTION MODAL FUNCTIONS
+        function openSubscriptionModal() {
+            const modal = document.getElementById('subscriptionModal');
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+            showPlansView(); // Ensure we start with plans view
+        }
+
+        function closeSubscriptionModal() {
+            const modal = document.getElementById('subscriptionModal');
+            modal.classList.remove('show');
+            document.body.style.overflow = 'auto';
+            showPlansView(); // Reset to plans view when closing
+        }
+
+        function showPlansView() {
+            document.getElementById('plansView').style.display = 'grid';
+            document.getElementById('checkoutView').classList.remove('show');
+            document.getElementById('backButton').style.display = 'none';
+            document.getElementById('modalTitle').textContent = 'Choose Your Plan';
+            document.getElementById('modalSubtitle').textContent = 'Select the subscription that fits your needs';
+        }
+
+        function showCheckout() {
+            document.getElementById('plansView').style.display = 'none';
+            document.getElementById('checkoutView').classList.add('show');
+            document.getElementById('backButton').style.display = 'block';
+            document.getElementById('modalTitle').textContent = 'Complete Your Purchase';
+            document.getElementById('modalSubtitle').textContent = 'Upgrade to Pro Plan';
+        }
+
+        function selectPaymentMethod(method) {
+            // Remove selected class from all payment methods
+            document.querySelectorAll('.payment-method').forEach(pm => {
+                pm.classList.remove('selected');
+            });
+
+            // Add selected class to clicked method
+            event.currentTarget.classList.add('selected');
+
+            // Check the radio button
+            event.currentTarget.querySelector('input[type="radio"]').checked = true;
+
+            // Show/hide card details based on selection
+            const cardDetails = document.getElementById('cardDetails');
+            if (method === 'card') {
+                cardDetails.style.display = 'block';
+            } else {
+                cardDetails.style.display = 'none';
+            }
+        }
+
+        function confirmPurchase() {
+            // Basic form validation
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            const email = document.getElementById('email').value;
+
+            if (!firstName || !lastName || !email) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+
+            // Check payment method specific validation
+            const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+            if (paymentMethod === 'card') {
+                const cardNumber = document.querySelector('input[placeholder="1234 5678 9012 3456"]').value;
+                const expiryDate = document.querySelector('input[placeholder="MM/YY"]').value;
+                const cvv = document.querySelector('input[placeholder="123"]').value;
+
+                if (!cardNumber || !expiryDate || !cvv) {
+                    alert('Please fill in all card details.');
+                    return;
+                }
+            }
+
+            // Show loading state
+            const confirmButton = document.querySelector('.btn-confirm');
+            const originalText = confirmButton.textContent;
+            confirmButton.textContent = 'Processing...';
+            confirmButton.disabled = true;
+
+            // Get anti-forgery token
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+            // Call the actual upgrade endpoint
+            fetch('/Account/UpgradeToProPlan', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': token || ''
+                },
+                body: `__RequestVerificationToken=${encodeURIComponent(token || '')}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Payment successful! Welcome to Pro Plan. Your subscription is now active.');
+                    closeSubscriptionModal();
+                    // Reload to show Pro indicators
+                    location.reload();
+                } else {
+                    alert('Payment failed: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred during payment processing.');
+            })
+            .finally(() => {
+                // Reset button
+                confirmButton.textContent = originalText;
+                confirmButton.disabled = false;
+            });
+        }
+
+        function confirmDowngrade() {
+            if (confirm('Are you sure you want to downgrade to the Free plan? You will lose all Pro features immediately.')) {
+                // Show loading state
+                const downgradeButton = event.target;
+                const originalText = downgradeButton.textContent;
+                downgradeButton.textContent = 'Processing...';
+                downgradeButton.disabled = true;
+
+                // Get anti-forgery token
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+                // Call the downgrade endpoint
+                fetch('/Account/DowngradeToFreePlan', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': token || ''
+                    },
+                    body: `__RequestVerificationToken=${encodeURIComponent(token || '')}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Successfully downgraded to Free Plan!');
+                        closeSubscriptionModal();
+                        // Reload to hide Pro indicators
+                        location.reload();
+                    } else {
+                        alert('Downgrade failed: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred during downgrade processing.');
+                })
+                .finally(() => {
+                    // Reset button
+                    downgradeButton.textContent = originalText;
+                    downgradeButton.disabled = false;
+                });
+            }
+        }
+
+        // Close modal when clicking outside
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('subscriptionModal');
+            if (e.target === modal) {
+                closeSubscriptionModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeSubscriptionModal();
+            }
+        });
+
+        // Format card number input
+        document.addEventListener('DOMContentLoaded', function() {
+            const cardNumberInput = document.querySelector('input[placeholder="1234 5678 9012 3456"]');
+            if (cardNumberInput) {
+                cardNumberInput.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    let formattedValue = value.replace(/(.{4})/g, '$1 ').trim();
+                    if (formattedValue.length > 19) formattedValue = formattedValue.substring(0, 19);
+                    e.target.value = formattedValue;
+                });
+            }
+
+            // Format expiry date input
+            const expiryInput = document.querySelector('input[placeholder="MM/YY"]');
+            if (expiryInput) {
+                expiryInput.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.length >= 2) {
+                        value = value.substring(0, 2) + '/' + value.substring(2, 4);
+                    }
+                    e.target.value = value;
+                });
+            }
+        });
     </script>
 }

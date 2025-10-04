@@ -21,6 +21,12 @@ namespace BlueprintProWeb.Models
         public string? PortfolioText { get; set; }
         public string? PortfolioEmbedding { get; set; } // store comma-separated floats
 
+        // Subscription properties
+        public bool IsPro { get; set; } = false;
+        public DateTime? SubscriptionStartDate { get; set; }
+        public DateTime? SubscriptionEndDate { get; set; }
+        public string? SubscriptionPlan { get; set; } // "Free", "Pro"
+
         [NotMapped]
         public float[] PortfolioEmbeddingVector
         {
@@ -39,5 +45,8 @@ namespace BlueprintProWeb.Models
                 PortfolioEmbedding = string.Join(",", value);
             }
         }
+
+        [NotMapped]
+        public bool IsProActive => IsPro && (SubscriptionEndDate == null || SubscriptionEndDate > DateTime.UtcNow);
     }
 }

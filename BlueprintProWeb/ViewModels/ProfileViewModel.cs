@@ -24,5 +24,9 @@ namespace BlueprintProWeb.ViewModels
 
         public string? PortfolioText { get; set; }      // extracted PDF text
         public string? PortfolioEmbedding { get; set; } // stored as comma-separated floats
+
+        // Subscription status
+        public bool IsPro { get; set; } = false;
+        public string SubscriptionPlan => IsPro ? "Pro" : "Free";
     }
 }
