@@ -39,7 +39,6 @@ namespace BlueprintProWeb.Controllers
             _embeddingClient = embeddingClient;
         }
 
-
         // ---------------- LOGIN ----------------
         public IActionResult Login() => View();
 
@@ -95,7 +94,9 @@ namespace BlueprintProWeb.Controllers
                 Email = model.Email,
                 UserName = model.Email,
                 user_role = model.Role,
-                user_profilePhoto = null // No default profile picture for new accounts
+                user_profilePhoto = null, // No default profile picture for new accounts
+                IsPro = false, // New users start with free plan
+                SubscriptionPlan = "Free"
             };
 
             if (model.Role == "Architect")
@@ -107,7 +108,6 @@ namespace BlueprintProWeb.Controllers
                 user.user_Budget = model.LaborCost;
             }
 
-            // ✅ Corrected: use 'user' instead of 'client'
             var result = await _userManager.CreateAsync(user, model.Password);
 
             if (result.Succeeded)
@@ -131,7 +131,6 @@ namespace BlueprintProWeb.Controllers
             return View(model);
         }
 
-
         // ---------------- PROFILE ----------------
         [HttpGet, Authorize]
         public async Task<IActionResult> Profile()
@@ -153,7 +152,8 @@ namespace BlueprintProWeb.Controllers
                 Location = user.user_Location,
                 Budget = user.user_Budget,
                 CredentialsFilePath = user.user_CredentialsFile,
-                PortfolioText = user.PortfolioText ?? ""
+                PortfolioText = user.PortfolioText ?? "",
+                IsPro = user.IsProActive // Use the computed property to check active subscription
             };
 
             ViewData["Layout"] = user.user_role == "Architect"
@@ -161,6 +161,76 @@ namespace BlueprintProWeb.Controllers
                 : "~/Views/Shared/_ClientSharedLayout.cshtml";
 
             return View(model);
+        }
+
+        // NEW: Handle subscription upgrade
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpgradeToProPlan()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) 
+                return Json(new { success = false, message = "User not found" });
+
+            try
+            {
+                // Update subscription status
+                user.IsPro = true;
+                user.SubscriptionPlan = "Pro";
+                user.SubscriptionStartDate = DateTime.UtcNow;
+                user.SubscriptionEndDate = DateTime.UtcNow.AddMonths(1); // Monthly billing
+
+                var result = await _userManager.UpdateAsync(user);
+                
+                if (result.Succeeded)
+                {
+                    return Json(new { success = true, message = "Successfully upgraded to Pro Plan!" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Failed to update subscription status" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An error occurred during the upgrade process" });
+            }
+        }
+
+        // NEW: Handle subscription downgrade
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DowngradeToFreePlan()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) 
+                return Json(new { success = false, message = "User not found" });
+
+            try
+            {
+                // Update subscription status to Free
+                user.IsPro = false;
+                user.SubscriptionPlan = "Free";
+                user.SubscriptionStartDate = null;
+                user.SubscriptionEndDate = null;
+
+                var result = await _userManager.UpdateAsync(user);
+                
+                if (result.Succeeded)
+                {
+                    return Json(new { success = true, message = "Successfully downgraded to Free Plan!" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Failed to update subscription status" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An error occurred during the downgrade process" });
+            }
         }
 
         // NEW: Handle profile picture upload from Profile page
@@ -276,9 +346,11 @@ namespace BlueprintProWeb.Controllers
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
                 Role = user.user_role,
-                ProfilePhoto = user.user_profilePhoto // Preserve existing profile picture
+                ProfilePhoto = user.user_profilePhoto, // Preserve existing profile picture
+                IsPro = user.IsProActive
             });
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditProfile(ProfileViewModel model)
@@ -373,11 +445,11 @@ namespace BlueprintProWeb.Controllers
 
                     user.user_CredentialsFile = fileName;
 
-                    // 🔹 Extract text from the uploaded PDF
+                    // Extract text from the uploaded PDF
                     string extractedText = await ExtractTextFromPdf(filePath);
                     user.PortfolioText = extractedText;
 
-                    // 🔹 Generate embeddings from extracted text
+                    // Generate embeddings from extracted text
                     float[] embeddingVector = await GenerateEmbedding(extractedText);
 
                     // Save as comma-separated floats for persistence
@@ -409,7 +481,6 @@ namespace BlueprintProWeb.Controllers
 
             return RedirectToAction("Profile", "Account");
         }
-
 
         // ---------------- PASSWORD RESET ----------------
         public IActionResult VerifyEmail() => View();
@@ -465,6 +536,7 @@ namespace BlueprintProWeb.Controllers
             await _signInManager.SignOutAsync();
             return RedirectToAction("Index", "Home");
         }
+
         private async Task<string> ExtractTextFromPdf(string filePath)
         {
             var sb = new StringBuilder();
@@ -480,7 +552,7 @@ namespace BlueprintProWeb.Controllers
                 }
             }
 
-            var cleaned = Regex.Replace(sb.ToString(), @"\s+", " ").Trim(); // Changed from .trim() to .Trim()
+            var cleaned = Regex.Replace(sb.ToString(), @"\s+", " ").Trim();
 
             return await Task.FromResult(sb.ToString());
         }
@@ -490,13 +562,26 @@ namespace BlueprintProWeb.Controllers
             if (string.IsNullOrWhiteSpace(text))
                 return Array.Empty<float>();
 
-            // Use the injected EmbeddingClient (you already have _embeddingClient in the constructor)
             var embeddingResponse = await _embeddingClient.GenerateEmbeddingAsync(text);
-
-            // Convert to float[] the same way you do elsewhere
             return embeddingResponse.Value.ToFloats().ToArray();
         }
 
-
+        // Temporary method for testing - Add to AccountController
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> MakeUserPro()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user != null)
+            {
+                user.IsPro = true;
+                user.SubscriptionPlan = "Pro";
+                user.SubscriptionStartDate = DateTime.UtcNow;
+                user.SubscriptionEndDate = DateTime.UtcNow.AddMonths(1);
+                await _userManager.UpdateAsync(user);
+                TempData["Success"] = "You are now a Pro user!";
+            }
+            return RedirectToAction("Profile");
+        }
     }
 }
