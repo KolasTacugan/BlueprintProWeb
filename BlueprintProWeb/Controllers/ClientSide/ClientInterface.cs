@@ -1,14 +1,21 @@
 ﻿using BlueprintProWeb.Data;
+using BlueprintProWeb.Hubs;
 using BlueprintProWeb.Models;
+using BlueprintProWeb.Settings;
 using BlueprintProWeb.ViewModels;
 using iText.Commons.Actions.Contexts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using OpenAI;
 using OpenAI.Chat;
 using OpenAI.Embeddings;
+using Stripe;
+using Stripe.Checkout;
+using System.Globalization;
 using System.Globalization;
 using System.Text.Json;
 
@@ -20,31 +27,189 @@ namespace BlueprintProWeb.Controllers.ClientSide
         private readonly UserManager<User> userManager;
         private readonly OpenAIClient _openAi;
         private readonly EmbeddingClient _embeddingClient;
+        private readonly IHubContext<ChatHub> _hubContext;
+        private readonly StripeSettings _stripeSettings;
 
         public ClientInterfaceController(
            AppDbContext _context,
            UserManager<User> _userManager,
            OpenAIClient openAi,
-           EmbeddingClient embeddingClient)
+           EmbeddingClient embeddingClient,
+            IHubContext<ChatHub> hubContext,
+           IOptions<StripeSettings> stripeSettings)
         {
             context = _context;
             userManager = _userManager;
             _openAi = openAi;
             _embeddingClient = embeddingClient;
+            _hubContext = hubContext;
+            _stripeSettings = stripeSettings.Value;
+
         }
 
 
-        public IActionResult ClientDashboard()
+        public async Task<IActionResult> ClientDashboard()
         {
+            var currentUser = await userManager.GetUserAsync(User);
+            ViewData["UserFirstName"] = currentUser?.user_fname ?? "User";
             return View();
         }
 
         public IActionResult BlueprintMarketplace()
         {
+            ViewBag.StripePublishableKey = _stripeSettings.PublishableKey;
+
             var blueprints = context.Blueprints
-                .Where(bp => bp.blueprintIsForSale)
+                .Where(bp => bp.blueprintIsForSale == true) // only available ones
                 .ToList();
+
             return View("BlueprintMarketplace", blueprints);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddToCart([FromBody] CartRequest model)
+        {
+            var user = await userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            var cart = context.Carts
+                .Include(c => c.Items)
+                .FirstOrDefault(c => c.UserId == user.Id);
+
+            if (cart == null)
+            {
+                cart = new Cart { UserId = user.Id, Items = new List<CartItem>() };
+                context.Carts.Add(cart);
+            }
+
+            var existingItem = cart.Items.FirstOrDefault(i => i.BlueprintId == model.BlueprintId);
+            if (existingItem != null)
+                existingItem.Quantity += model.Quantity;
+            else
+                cart.Items.Add(new CartItem { BlueprintId = model.BlueprintId, Quantity = model.Quantity });
+
+            await context.SaveChangesAsync();
+            return Json(new { success = true });
+        }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> GetCart()
+        {
+            var user = await userManager.GetUserAsync(User);
+            if (user == null)
+                return Unauthorized();
+
+            var cart = context.Carts
+                .Where(c => c.UserId == user.Id)
+                .Select(c => new CartViewModel
+                {
+                    CartId = c.CartId,
+                    Items = c.Items.Select(i => new CartItemViewModel
+                    {
+                        CartItemId = i.CartItemId,
+                        BlueprintId = i.BlueprintId,
+                        Name = i.Blueprint.blueprintName,
+                        Image = i.Blueprint.blueprintImage,
+                        Price = i.Blueprint.blueprintPrice,
+                        Quantity = i.Quantity
+                    }).ToList()
+                })
+                .FirstOrDefault();
+
+            return Json(cart ?? new CartViewModel { CartId = 0, Items = new List<CartItemViewModel>() });
+        }
+
+
+        public class CartRequest
+        {
+            public int BlueprintId { get; set; }
+            public int Quantity { get; set; }
+        }
+
+        // -------------------- PAYMENT --------------------
+        [HttpPost]
+        public IActionResult CreateCheckoutSession([FromBody] List<CartItemViewModel> cart)
+        {
+            if (cart == null || !cart.Any())
+                return BadRequest("Cart is empty or not received");
+
+            if (cart.Any(c => c.Price <= 0))
+                return BadRequest("One or more items have invalid price.");
+
+            var lineItems = cart.Select(item => new SessionLineItemOptions
+            {
+                PriceData = new SessionLineItemPriceDataOptions
+                {
+                    UnitAmount = (long)(item.Price * 100), // already validated
+                    Currency = "php",
+                    ProductData = new SessionLineItemPriceDataProductDataOptions
+                    {
+                        Name = item.Name ?? "Blueprint"
+                    }
+                },
+                Quantity = item.Quantity > 0 ? item.Quantity : 1
+            }).ToList();
+
+            var options = new SessionCreateOptions
+            {
+                PaymentMethodTypes = new List<string> { "card" },
+                LineItems = lineItems,
+                Mode = "payment",
+                SuccessUrl = $"{Request.Scheme}://{Request.Host}/ClientInterface/BlueprintMarketplace?session_id={{CHECKOUT_SESSION_ID}}",
+                CancelUrl = $"{Request.Scheme}://{Request.Host}/ClientInterface/Cancel"
+            };
+
+            Stripe.StripeConfiguration.ApiKey = _stripeSettings.SecretKey;
+
+            var service = new SessionService();
+            var session = service.Create(options);
+
+            return Json(new { id = session.Id });
+        }
+
+
+
+
+        public IActionResult Success() => View();
+        public IActionResult Cancel() => View();
+
+        public class CartItemDto
+        {
+            public string id { get; set; }
+            public string name { get; set; }
+            public decimal price { get; set; }
+            public string image { get; set; }
+        }
+
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> CompletePurchase([FromBody] List<int> blueprintIds)
+        {
+            var user = await userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            var purchasedBlueprints = await context.Blueprints
+                .Where(bp => blueprintIds.Contains(bp.blueprintId))
+                .ToListAsync();
+
+            foreach (var bp in purchasedBlueprints)
+            {
+                bp.blueprintIsForSale = false; // no longer listed
+                bp.clentId = user.Id;         // record buyer
+            }
+
+            var cart = await context.Carts.Include(c => c.Items)
+                .FirstOrDefaultAsync(c => c.UserId == user.Id);
+
+            if (cart != null)
+                cart.Items.Clear();
+
+            await context.SaveChangesAsync();
+
+            return Json(new { success = true });
         }
 
         public async Task<IActionResult> Projects()
@@ -74,7 +239,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 return RedirectToAction("Login", "Account");
             }
 
-            // Step 1: Default query is user’s profile if empty
+            // Step 1: Default query is user's profile if empty
             string searchQuery = query;
             if (string.IsNullOrWhiteSpace(searchQuery))
             {
@@ -209,7 +374,151 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 .ToArray();
         }
 
-       
-    }
+        [HttpGet]
+        public async Task<IActionResult> Messages(string architectId)
+        {
+            var currentUser = await userManager.GetUserAsync(User);
+            if (currentUser == null) return Unauthorized();
+
+            // 1. Load matches for this client
+            var matches = await context.Matches
+                .Where(m => m.ClientId == currentUser.Id)
+                .Select(m => new MatchViewModel
+                {
+                    MatchId = m.MatchId.ToString(),
+                    ClientId = m.ClientId,
+                    ArchitectId = m.ArchitectId,
+                    ArchitectName = m.Architect.user_fname + " " + m.Architect.user_lname,
+                    ArchitectStyle = m.Architect.user_Style,
+                    ArchitectLocation = m.Architect.user_Location,
+                    ArchitectBudget = m.Architect.user_Budget,
+                    MatchStatus = m.MatchStatus,
+                    MatchDate = m.MatchDate
+                })
+                .ToListAsync();
+
+            // 2. Load conversations (one per partner)
+            var conversations = await context.Messages
+                .Where(m => m.ClientId == currentUser.Id || m.ArchitectId == currentUser.Id)
+                .GroupBy(m => m.ClientId == currentUser.Id ? m.ArchitectId : m.ClientId) // ✅ partner ID
+                .Select(g => new ChatViewModel
+                {
+                    ClientId = g.Key,
+                    ClientName = g.First().ArchitectId == g.Key
+                        ? g.First().Architect.user_fname + " " + g.First().Architect.user_lname
+                        : g.First().Client.user_fname + " " + g.First().Client.user_lname,
+                    ClientProfileUrl = null,
+                    LastMessageTime = g.Max(x => x.MessageDate),
+                    Messages = new List<MessageViewModel>(),
+
+                    // unread counter
+                    UnreadCount = g.Count(x => x.SenderId != currentUser.Id && !x.IsRead)
+                })
+                .ToListAsync();
+
+            // 3. Load ActiveChat if architectId provided
+            ChatViewModel? activeChat = null;
+            if (!string.IsNullOrEmpty(architectId))
+            {
+                // First load messages
+                var messages = await context.Messages
+                    .Include(m => m.Sender) // 👈 this makes sure Sender is loaded
+                    .Where(m =>
+                        (m.ArchitectId == architectId && m.ClientId == currentUser.Id) ||
+                        (m.ArchitectId == currentUser.Id && m.ClientId == architectId))
+                    .OrderBy(m => m.MessageDate)
+                    .ToListAsync();
+
+
+                // Then mark unread messages as read
+                var unreadMessages = messages
+                    .Where(m => m.SenderId != currentUser.Id && !m.IsRead)
+                    .ToList();
+
+                foreach (var msg in unreadMessages)
+                    msg.IsRead = true;
+
+                if (unreadMessages.Any())
+                    await context.SaveChangesAsync();
+
+                // Now map to viewmodels
+                var vmMessages = messages.Select(m => new MessageViewModel
+                {
+                    MessageId = m.MessageId.ToString(),
+                    ClientId = m.ClientId,
+                    ArchitectId = m.ArchitectId,
+                    SenderId = m.SenderId,
+                    MessageBody = m.MessageBody,
+                    MessageDate = m.MessageDate,
+                    IsRead = m.IsRead,
+                    IsDeleted = m.IsDeleted,
+                    AttachmentUrl = m.AttachmentUrl,
+                    SenderName = m.Sender.user_fname + " " + m.Sender.user_lname,
+                    SenderProfilePhoto = null,
+                    IsOwnMessage = (m.SenderId == currentUser.Id)
+                }).ToList();
+
+                activeChat = new ChatViewModel
+                {
+                    ClientId = architectId,
+                    ClientName = vmMessages.FirstOrDefault(m => m.ArchitectId == architectId)?.SenderName ?? "Unknown",
+                    ClientProfileUrl = null,
+                    LastMessageTime = vmMessages.LastOrDefault()?.MessageDate ?? DateTime.UtcNow,
+                    Messages = vmMessages
+                };
+            }
+
+            // 4. Build page model
+            var vm = new ChatPageViewModel
+            {
+                Matches = matches,
+                Conversations = conversations.OrderByDescending(c => c.LastMessageTime).ToList(),
+                ActiveChat = activeChat
+            };
+
+            return View(vm);
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SendMessage(string architectId, string messageBody)
+        {
+            var currentUser = await userManager.GetUserAsync(User);
+            if (currentUser == null) return Unauthorized();
+
+            if (string.IsNullOrWhiteSpace(messageBody))
+                return RedirectToAction("Messages", new { architectId });
+
+            var message = new Message
+            {
+                MessageId = Guid.NewGuid(),
+                ClientId = currentUser.Id,
+                ArchitectId = architectId,
+                SenderId = currentUser.Id,
+                MessageBody = messageBody,
+                MessageDate = DateTime.UtcNow,
+                IsRead = false
+            };
+
+            context.Messages.Add(message);
+            await context.SaveChangesAsync();
+
+            // notify architect in real-time
+            await _hubContext.Clients.User(architectId).SendAsync("ReceiveMessage", new
+            {
+                SenderId = currentUser.Id,
+                SenderName = currentUser.user_fname + " " + currentUser.user_lname,
+                MessageBody = messageBody,
+                MessageDate = DateTime.UtcNow.ToString("g")
+            });
+
+            return RedirectToAction("Messages", new { architectId });
+        }
+    
 }
+
+}
+
+
 
