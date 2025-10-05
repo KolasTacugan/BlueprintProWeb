@@ -1,6 +1,7 @@
 ﻿using BlueprintProWeb.Data;
 using BlueprintProWeb.Hubs;
 using BlueprintProWeb.Models;
+using BlueprintProWeb.Settings;
 using BlueprintProWeb.ViewModels;
 using iText.Commons.Actions.Contexts;
 using Microsoft.AspNetCore.Authorization;
@@ -11,8 +12,12 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
+using Stripe;
+using Stripe.Checkout;
 using System.Net;
 using static iText.StyledXmlParser.Jsoup.Select.Evaluator;
+
 
 namespace BlueprintProWeb.Controllers.ArchitectSide
 {
@@ -22,12 +27,14 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
         private readonly UserManager<User> _userManager;
         public IWebHostEnvironment WebHostEnvironment;
         private readonly IHubContext<ChatHub> _hubContext;
-        public ArchitectInterface(AppDbContext context, IWebHostEnvironment webHostEnvironment, UserManager<User> userManager, IHubContext<ChatHub> hubContext)
+        private readonly StripeSettings _stripeSettings;
+        public ArchitectInterface(AppDbContext context, IWebHostEnvironment webHostEnvironment, UserManager<User> userManager, IHubContext<ChatHub> hubContext, IOptions<StripeSettings> stripeSettings)
         {
             this.context = context;
             WebHostEnvironment = webHostEnvironment;
             _userManager = userManager;
             _hubContext = hubContext;
+            _stripeSettings = stripeSettings.Value;
         }
 
         public async Task<IActionResult> ArchitectDashboard()
@@ -288,7 +295,6 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             });
         }
 
-        // GET: ArchitectInterface/Messages/{clientId}
 
         // GET: ArchitectInterface/Messages
         [HttpGet]
@@ -427,6 +433,138 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
 
             return RedirectToAction("Messages", new { clientId });
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CreateCheckoutSession()
+        {
+            try
+            {
+                Stripe.StripeConfiguration.ApiKey = _stripeSettings.SecretKey;
+
+                var options = new SessionCreateOptions
+                {
+                    PaymentMethodTypes = new List<string> { "card" },
+                    LineItems = new List<SessionLineItemOptions>
+                {
+                    new SessionLineItemOptions
+                    {
+                        PriceData = new SessionLineItemPriceDataOptions
+                        {
+                            UnitAmount = 18000, // ₱180 * 100
+                            Currency = "php",
+                            ProductData = new SessionLineItemPriceDataProductDataOptions
+                            {
+                                Name = "Pro Subscription Plan (Monthly)"
+                            }
+                        },
+                        Quantity = 1
+                    }
+                },
+                    Mode = "payment",
+                    SuccessUrl = $"{Request.Scheme}://{Request.Host}/ArchitectInterface/ActivateProPlan?session_id={{CHECKOUT_SESSION_ID}}&redirect=edit",
+                    CancelUrl = $"{Request.Scheme}://{Request.Host}/ArchitectInterface/Cancel"
+                };
+
+                var service = new SessionService();
+                var session = service.Create(options);
+
+                return Json(new { url = session.Url });
+            }
+            catch (StripeException ex)
+            {
+                return Json(new { success = false, message = $"Stripe error: {ex.Message}" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Error: {ex.Message}" });
+            }
+        }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> ActivateProPlan(string session_id, string redirect)
+        {
+            if (string.IsNullOrEmpty(session_id))
+                return RedirectToAction("Profile", "ArchitectInterface");
+
+            try
+            {
+                StripeConfiguration.ApiKey = _stripeSettings.SecretKey;
+
+                var sessionService = new SessionService();
+                var session = sessionService.Get(session_id);
+
+                if (session == null || session.PaymentStatus != "paid")
+                {
+                    TempData["ErrorMessage"] = "Payment verification failed.";
+                    return RedirectToAction("Profile", "ArchitectInterface");
+                }
+            }
+            catch
+            {
+                TempData["ErrorMessage"] = "Unable to verify payment.";
+                return RedirectToAction("Profile", "ArchitectInterface");
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return RedirectToAction("Login", "Account");
+
+            user.IsPro = true;
+            user.SubscriptionPlan = "Pro";
+            user.SubscriptionStartDate = DateTime.UtcNow;
+            user.SubscriptionEndDate = DateTime.UtcNow.AddMonths(1);
+            await _userManager.UpdateAsync(user);
+
+            TempData["SuccessMessage"] = "Your Pro Plan is now active!";
+
+            // ✅ If we came from checkout, go to Edit page instead of Profile
+            if (redirect == "edit")
+                return RedirectToAction("Profile", "Account");
+
+            // Default fallback
+            return RedirectToAction("Profile", "Account");
+        }
+
+
+
+        [Authorize]
+        public IActionResult Cancel()
+        {
+            TempData["ErrorMessage"] = "Payment was canceled. You have not been charged.";
+            return RedirectToAction("ArchitectDashboard");
+        }
+
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DowngradeToFreePlan()
+        {
+            try
+            {
+                var user = await _userManager.GetUserAsync(User);
+
+                if (user == null)
+                {
+                    Response.StatusCode = 401; // Explicit unauthorized response
+                    return Json(new { success = false, message = "User not found or session expired." });
+                }
+
+                user.IsPro = false;
+                await _userManager.UpdateAsync(user);
+
+                return Json(new { success = true, message = "Successfully downgraded to Free Plan." });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error downgrading plan: {ex}");
+                Response.StatusCode = 500;
+                return Json(new { success = false, message = "An unexpected error occurred while downgrading." });
+            }
+        }
+
 
 
         [HttpPost]

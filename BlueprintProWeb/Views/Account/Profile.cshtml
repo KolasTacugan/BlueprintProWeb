@@ -907,16 +907,13 @@
     <div class="modal-content-large">
         <div class="modal-header-custom">
             <button class="modal-close" onclick="closeSubscriptionModal()">&times;</button>
-            <button class="back-button" id="backButton" onclick="showPlansView()" style="display: none;">
-                ← Back to Plans
-            </button>
             <h2 class="modal-title-custom" id="modalTitle">Choose Your Plan</h2>
             <p class="modal-subtitle" id="modalSubtitle">Select the subscription that fits your needs</p>
         </div>
 
         <div class="modal-body-custom">
-            <!-- Plans View -->
             <div id="plansView" class="plans-container">
+
                 <!-- Free Plan -->
                 <div class="plan-card @(Model.IsPro ? "" : "current-plan")">
                     @if (!Model.IsPro)
@@ -925,7 +922,7 @@
                     }
                     <div class="plan-header">
                         <div class="plan-name">Free</div>
-                        <div class="plan-price">$0</div>
+                        <div class="plan-price">₱0</div>
                         <div class="plan-billing">per month, no credit card required</div>
                     </div>
 
@@ -957,13 +954,15 @@
                     }
                     <div class="plan-header">
                         <div class="plan-name">Pro</div>
-                        <div class="plan-price">₱49</div>
+                        <div class="plan-price">₱180</div>
                         <div class="plan-billing">per month, billed monthly</div>
                     </div>
 
                     <div class="plan-features">
                         <ul class="features-list">
                             <li>Priority AI matching — appear at the top of client searches and gain more visibility in project recommendations</li>
+                            <li>Access to premium analytics and insights</li>
+                            <li>Cancel anytime</li>
                         </ul>
                     </div>
 
@@ -973,115 +972,20 @@
                     }
                     else
                     {
-                        <button class="plan-button primary" onclick="showCheckout()">Get started</button>
+                        <!-- Updated button: Directly redirects to Stripe -->
+                        <button class="plan-button primary" onclick="upgradeToPro()">Get Started</button>
                     }
-                </div>
-            </div>
-
-            <!-- Checkout View -->
-            <div id="checkoutView" class="checkout-container">
-                <div class="checkout-content">
-                    <!-- Order Summary -->
-                    <div class="order-summary">
-                        <div class="summary-header">Order Summary</div>
-
-                        <div class="summary-item">
-                            <div class="summary-item-name">Pro Plan</div>
-                            <div class="summary-item-price">₱49.00</div>
-                        </div>
-
-                        <div class="summary-item">
-                            <div class="summary-item-name">Monthly Billing</div>
-                            <div class="summary-item-price">₱49.00/month</div>
-                        </div>
-
-                        <div class="summary-item summary-total">
-                            <div class="summary-item-name">Total</div>
-                            <div class="summary-item-price total-amount">₱49.00</div>
-                        </div>
-
-                        <div style="margin-top: 20px; padding: 15px; background: rgba(13, 60, 128, 0.05); border-radius: 8px; font-size: 0.9rem; color: #666;">
-                            <strong>What you get:</strong><br>
-                            • Priority AI matching<br>
-                            • Top of client search results<br>
-                            • Enhanced project visibility<br>
-                            • Cancel anytime
-                        </div>
-                    </div>
-
-                    <!-- Payment Form -->
-                    <div class="payment-form">
-                        <form id="checkoutForm">
-                            @Html.AntiForgeryToken()
-                            <div class="form-section">
-                                <div class="form-section-title">Billing Information</div>
-
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label class="form-label">First Name</label>
-                                        <input type="text" class="form-input" id="firstName" value="@Model.FirstName" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="form-label">Last Name</label>
-                                        <input type="text" class="form-input" id="lastName" value="@Model.LastName" required>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label class="form-label">Email Address</label>
-                                    <input type="email" class="form-input" id="email" value="@Model.Email" required>
-                                </div>
-                            </div>
-
-                            <div class="form-section">
-                                <div class="form-section-title">Payment Method</div>
-
-                                <div class="payment-methods">
-                                    <div class="payment-method selected" onclick="selectPaymentMethod('card')">
-                                        <input type="radio" name="paymentMethod" value="card" checked>
-                                        <span>💳 Credit Card</span>
-                                    </div>
-                                    <div class="payment-method" onclick="selectPaymentMethod('paypal')">
-                                        <input type="radio" name="paymentMethod" value="paypal">
-                                        <span>🅿️ PayPal</span>
-                                    </div>
-                                </div>
-
-                                <div id="cardDetails" style="margin-top: 20px;">
-                                    <div class="form-group">
-                                        <label class="form-label">Card Number</label>
-                                        <input type="text" class="form-input" placeholder="1234 5678 9012 3456" maxlength="19" required>
-                                    </div>
-
-                                    <div class="form-row">
-                                        <div class="form-group">
-                                            <label class="form-label">Expiry Date</label>
-                                            <input type="text" class="form-input" placeholder="MM/YY" maxlength="5" required>
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label">CVV</label>
-                                            <input type="text" class="form-input" placeholder="123" maxlength="4" required>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-
-                        <div class="checkout-buttons">
-                            <button type="button" class="btn-back" onclick="showPlansView()">Back</button>
-                            <button type="button" class="btn-confirm" onclick="confirmPurchase()">Confirm Purchase</button>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+
 @section Scripts {
     <script>
-        // Listen for sidebar toggle and adjust main content accordingly
-        document.addEventListener('DOMContentLoaded', function() {
+        // SIDEBAR ADJUSTMENT
+        document.addEventListener('DOMContentLoaded', function () {
             const sidebar = document.querySelector('.sidebar');
             const sidebarToggler = document.querySelector('.sidebar-toggler');
             const mainContent = document.querySelector('main.container');
@@ -1098,30 +1002,26 @@
                 }
             }
 
-            // Adjust on page load
             adjustMainContent();
 
-            // Listen for sidebar toggle
             if (sidebarToggler) {
-                sidebarToggler.addEventListener('click', function() {
-                    // Wait for the sidebar transition to start
+                sidebarToggler.addEventListener('click', function () {
                     setTimeout(adjustMainContent, 50);
                 });
             }
         });
 
+        // PROFILE PICTURE UPLOAD
         function uploadProfilePicture(input) {
             const file = input.files[0];
             if (!file) return;
 
-            // Validate file size (5MB max)
             if (file.size > 5 * 1024 * 1024) {
                 alert('File size must be less than 5MB');
                 input.value = '';
                 return;
             }
 
-            // Validate file type
             const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
             if (!allowedTypes.includes(file.type)) {
                 alert('Please select a valid image file (JPG, PNG, or GIF)');
@@ -1129,212 +1029,144 @@
                 return;
             }
 
-            // Show loading state
             const avatarContainer = document.querySelector('.avatar-container');
             const overlay = avatarContainer.querySelector('.avatar-upload-overlay');
             overlay.innerHTML = 'Uploading...';
             overlay.style.opacity = '1';
 
-            // Submit the form
             input.form.submit();
         }
 
-        // SUBSCRIPTION MODAL FUNCTIONS
+        // SUBSCRIPTION FLOW
         function openSubscriptionModal() {
             const modal = document.getElementById('subscriptionModal');
             modal.classList.add('show');
             document.body.style.overflow = 'hidden';
-            showPlansView(); // Ensure we start with plans view
+            showPlansView();
         }
 
         function closeSubscriptionModal() {
             const modal = document.getElementById('subscriptionModal');
             modal.classList.remove('show');
             document.body.style.overflow = 'auto';
-            showPlansView(); // Reset to plans view when closing
+            showPlansView();
         }
 
         function showPlansView() {
             document.getElementById('plansView').style.display = 'grid';
-            document.getElementById('checkoutView').classList.remove('show');
             document.getElementById('backButton').style.display = 'none';
             document.getElementById('modalTitle').textContent = 'Choose Your Plan';
             document.getElementById('modalSubtitle').textContent = 'Select the subscription that fits your needs';
         }
 
-        function showCheckout() {
-            document.getElementById('plansView').style.display = 'none';
-            document.getElementById('checkoutView').classList.add('show');
-            document.getElementById('backButton').style.display = 'block';
-            document.getElementById('modalTitle').textContent = 'Complete Your Purchase';
-            document.getElementById('modalSubtitle').textContent = 'Upgrade to Pro Plan';
-        }
-
-        function selectPaymentMethod(method) {
-            // Remove selected class from all payment methods
-            document.querySelectorAll('.payment-method').forEach(pm => {
-                pm.classList.remove('selected');
-            });
-
-            // Add selected class to clicked method
-            event.currentTarget.classList.add('selected');
-
-            // Check the radio button
-            event.currentTarget.querySelector('input[type="radio"]').checked = true;
-
-            // Show/hide card details based on selection
-            const cardDetails = document.getElementById('cardDetails');
-            if (method === 'card') {
-                cardDetails.style.display = 'block';
-            } else {
-                cardDetails.style.display = 'none';
-            }
-        }
-
-        function confirmPurchase() {
-            // Basic form validation
-            const firstName = document.getElementById('firstName').value;
-            const lastName = document.getElementById('lastName').value;
-            const email = document.getElementById('email').value;
-
-            if (!firstName || !lastName || !email) {
-                alert('Please fill in all required fields.');
-                return;
-            }
-
-            // Check payment method specific validation
-            const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
-            if (paymentMethod === 'card') {
-                const cardNumber = document.querySelector('input[placeholder="1234 5678 9012 3456"]').value;
-                const expiryDate = document.querySelector('input[placeholder="MM/YY"]').value;
-                const cvv = document.querySelector('input[placeholder="123"]').value;
-
-                if (!cardNumber || !expiryDate || !cvv) {
-                    alert('Please fill in all card details.');
-                    return;
-                }
-            }
-
-            // Show loading state
-            const confirmButton = document.querySelector('.btn-confirm');
-            const originalText = confirmButton.textContent;
-            confirmButton.textContent = 'Processing...';
-            confirmButton.disabled = true;
-
-            // Get anti-forgery token
-            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-
-            // Call the actual upgrade endpoint
-            fetch('/Account/UpgradeToProPlan', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'RequestVerificationToken': token || ''
-                },
-                body: `__RequestVerificationToken=${encodeURIComponent(token || '')}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Payment successful! Welcome to Pro Plan. Your subscription is now active.');
-                    closeSubscriptionModal();
-                    // Reload to show Pro indicators
-                    location.reload();
-                } else {
-                    alert('Payment failed: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred during payment processing.');
-            })
-            .finally(() => {
-                // Reset button
-                confirmButton.textContent = originalText;
-                confirmButton.disabled = false;
-            });
-        }
-
-        function confirmDowngrade() {
-            if (confirm('Are you sure you want to downgrade to the Free plan? You will lose all Pro features immediately.')) {
-                // Show loading state
-                const downgradeButton = event.target;
-                const originalText = downgradeButton.textContent;
-                downgradeButton.textContent = 'Processing...';
-                downgradeButton.disabled = true;
+        // UPGRADE TO PRO USING STRIPE CHECKOUT
+        async function upgradeToPro() {
+            try {
+                // Show loading indicator
+                const upgradeBtn = event.target;
+                const originalText = upgradeBtn.textContent;
+                upgradeBtn.textContent = 'Redirecting to Checkout...';
+                upgradeBtn.disabled = true;
 
                 // Get anti-forgery token
                 const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
 
-                // Call the downgrade endpoint
-                fetch('/Account/DowngradeToFreePlan', {
+                // Call backend endpoint to create Stripe Checkout session
+                const response = await fetch('/ArchitectInterface/CreateCheckoutSession', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
                         'RequestVerificationToken': token || ''
                     },
                     body: `__RequestVerificationToken=${encodeURIComponent(token || '')}`
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Successfully downgraded to Free Plan!');
-                        closeSubscriptionModal();
-                        // Reload to hide Pro indicators
-                        location.reload();
-                    } else {
-                        alert('Downgrade failed: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred during downgrade processing.');
-                })
-                .finally(() => {
-                    // Reset button
-                    downgradeButton.textContent = originalText;
-                    downgradeButton.disabled = false;
                 });
+
+                const data = await response.json();
+
+                if (data && data.url) {
+                    window.location.href = data.url; // Redirect to Stripe Checkout
+                } else {
+                    alert('Failed to start checkout: ' + (data.message || 'Unknown error.'));
+                }
+            } catch (error) {
+                console.error('Error starting checkout:', error);
+                alert('An error occurred while redirecting to Stripe Checkout.');
+            } finally {
+                const upgradeBtn = event.target;
+                upgradeBtn.textContent = 'Upgrade to Pro';
+                upgradeBtn.disabled = false;
             }
         }
 
-        // Close modal when clicking outside
-        document.addEventListener('click', function(e) {
+        // DOWNGRADE FUNCTION
+        async function confirmDowngrade() {
+           if (!confirm("Are you sure you want to downgrade to the Free plan?")) return;
+
+           const downgradeButton = document.querySelector('.plan-button[onclick="confirmDowngrade()"]');
+           const originalText = downgradeButton.textContent;
+           downgradeButton.textContent = "Processing...";
+           downgradeButton.disabled = true;
+
+           try {
+               const response = await fetch('/Account/DowngradeToFreePlan', {
+                   method: 'POST',
+                   headers: {
+                       'Content-Type': 'application/json',
+                       'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                   },
+               });
+
+               const text = await response.text();
+               let data;
+               try {
+                   data = JSON.parse(text);
+               } catch {
+                   throw new Error('Non-JSON response received.');
+               }
+
+               if (data.success) {
+                   alert('✅ Successfully downgraded to Free Plan!');
+
+                   // 🔥 Update UI instantly (no need to reload)
+                   document.querySelectorAll('.pro-indicator').forEach(el => el.remove());
+                   document.querySelectorAll('.pro-user').forEach(el => el.classList.remove('pro-user'));
+                   document.querySelectorAll('.subscription-card-pro').forEach(el => el.classList.remove('subscription-card-pro'));
+
+                   // Update plan badges visually
+                   const freeCard = document.querySelector('.plan-card:nth-child(1)');
+                   const proCard = document.querySelector('.plan-card:nth-child(2)');
+                   freeCard.classList.add('current-plan');
+                   proCard.classList.remove('current-plan');
+                   proCard.classList.add('pro-plan');
+
+                   // Replace buttons
+                   downgradeButton.outerHTML = `<button class="plan-button current-btn">Current Plan</button>`;
+                   proCard.querySelector('.plan-button').outerHTML = `<button class="plan-button primary" onclick="upgradeToPro()">Get Started</button>`;
+
+                   closeSubscriptionModal();
+               } else {
+                   alert('❌ Downgrade failed: ' + (data.message || 'Unknown error.'));
+               }
+           } catch (error) {
+               console.error('Error during downgrade:', error);
+               
+           } finally {
+               downgradeButton.textContent = originalText;
+               downgradeButton.disabled = false;
+           }
+        }
+
+        // CLOSE MODAL EVENTS
+        document.addEventListener('click', function (e) {
             const modal = document.getElementById('subscriptionModal');
             if (e.target === modal) {
                 closeSubscriptionModal();
             }
         });
 
-        // Close modal with Escape key
-        document.addEventListener('keydown', function(e) {
+        document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
                 closeSubscriptionModal();
-            }
-        });
-
-        // Format card number input
-        document.addEventListener('DOMContentLoaded', function() {
-            const cardNumberInput = document.querySelector('input[placeholder="1234 5678 9012 3456"]');
-            if (cardNumberInput) {
-                cardNumberInput.addEventListener('input', function(e) {
-                    let value = e.target.value.replace(/\D/g, '');
-                    let formattedValue = value.replace(/(.{4})/g, '$1 ').trim();
-                    if (formattedValue.length > 19) formattedValue = formattedValue.substring(0, 19);
-                    e.target.value = formattedValue;
-                });
-            }
-
-            // Format expiry date input
-            const expiryInput = document.querySelector('input[placeholder="MM/YY"]');
-            if (expiryInput) {
-                expiryInput.addEventListener('input', function(e) {
-                    let value = e.target.value.replace(/\D/g, '');
-                    if (value.length >= 2) {
-                        value = value.substring(0, 2) + '/' + value.substring(2, 4);
-                    }
-                    e.target.value = value;
-                });
             }
         });
     </script>

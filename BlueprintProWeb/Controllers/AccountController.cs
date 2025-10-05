@@ -94,8 +94,8 @@ namespace BlueprintProWeb.Controllers
                 Email = model.Email,
                 UserName = model.Email,
                 user_role = model.Role,
-                user_profilePhoto = null, // No default profile picture for new accounts
-                IsPro = false, // New users start with free plan
+                user_profilePhoto = null,
+                IsPro = false,
                 SubscriptionPlan = "Free"
             };
 
@@ -106,16 +106,36 @@ namespace BlueprintProWeb.Controllers
                 user.user_Specialization = model.Specialization;
                 user.user_Location = model.Location;
                 user.user_Budget = model.LaborCost;
+
+                try
+                {
+                    // ✅ Create a descriptive text from architect data (acts as temp portfolio)
+                    user.PortfolioText =
+                        $"Architect specializing in {user.user_Specialization ?? "various fields"}, " +
+                        $"style: {user.user_Style ?? "adaptive"}, " +
+                        $"based in {user.user_Location ?? "unspecified location"}, " +
+                        $"budget preference: {user.user_Budget ?? "flexible"}, " +
+                        $"rating: {user.user_Rating?.ToString() ?? "unrated"}.";
+
+                    // ✅ Use your helper method to generate the embedding
+                    var embeddingVector = await GenerateEmbedding(user.PortfolioText);
+
+                    // ✅ Convert embedding vector to comma-separated string for database storage
+                    user.PortfolioEmbedding = string.Join(",",
+                        embeddingVector.Select(v => v.ToString(CultureInfo.InvariantCulture)));
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("⚠️ Embedding generation failed during registration: " + ex.Message);
+                }
             }
 
             var result = await _userManager.CreateAsync(user, model.Password);
 
             if (result.Succeeded)
             {
-                // Optionally auto sign-in after registration
                 await _signInManager.SignInAsync(user, isPersistent: false);
 
-                // Redirect based on role
                 return user.user_role switch
                 {
                     "Architect" => RedirectToAction("ArchitectDashboard", "ArchitectInterface"),
@@ -124,12 +144,13 @@ namespace BlueprintProWeb.Controllers
                 };
             }
 
-            // Collect and show errors if not succeeded
             foreach (var error in result.Errors)
                 ModelState.AddModelError("", error.Description);
 
             return View(model);
         }
+
+
 
         // ---------------- PROFILE ----------------
         [HttpGet, Authorize]
@@ -366,62 +387,50 @@ namespace BlueprintProWeb.Controllers
             user.user_fname = model.FirstName;
             user.user_lname = model.LastName;
             user.Email = model.Email;
-            user.UserName = model.Email; // keep username in sync
+            user.UserName = model.Email;
             user.PhoneNumber = model.PhoneNumber;
 
-            // Handle profile picture upload - only if a new file is selected
+            // ✅ Handle profile picture upload (unchanged)
             if (Request.Form.Files["ProfilePicture"] != null && Request.Form.Files["ProfilePicture"].Length > 0)
             {
                 var profilePicture = Request.Form.Files["ProfilePicture"];
-                
-                // Validate file type
                 var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
                 var fileExtension = Path.GetExtension(profilePicture.FileName).ToLowerInvariant();
-                
+
                 if (!allowedExtensions.Contains(fileExtension))
                 {
                     ModelState.AddModelError("", "Please upload a valid image file (jpg, jpeg, png, gif).");
                     return View(model);
                 }
 
-                // Validate file size (max 5MB)
                 if (profilePicture.Length > 5 * 1024 * 1024)
                 {
                     ModelState.AddModelError("", "Profile picture must be less than 5MB.");
                     return View(model);
                 }
 
-                // Create profile pictures directory if it doesn't exist
                 string uploadDir = Path.Combine(_webHostEnvironment.WebRootPath, "images", "profiles");
                 Directory.CreateDirectory(uploadDir);
 
-                // Delete old profile picture if it exists and is not the default
                 if (!string.IsNullOrEmpty(user.user_profilePhoto))
                 {
-                    var oldPhotoPath = Path.Combine(_webHostEnvironment.WebRootPath, 
+                    var oldPhotoPath = Path.Combine(_webHostEnvironment.WebRootPath,
                         user.user_profilePhoto.Replace("~/", "").Replace("/", Path.DirectorySeparatorChar.ToString()));
                     if (System.IO.File.Exists(oldPhotoPath))
-                    {
                         System.IO.File.Delete(oldPhotoPath);
-                    }
                 }
 
-                // Generate unique filename
                 string fileName = $"{user.Id}_{Guid.NewGuid()}{fileExtension}";
                 string filePath = Path.Combine(uploadDir, fileName);
-
-                // Save the file
                 using (var fileStream = new FileStream(filePath, FileMode.Create))
                 {
                     await profilePicture.CopyToAsync(fileStream);
                 }
 
-                // Update user profile photo path
                 user.user_profilePhoto = $"~/images/profiles/{fileName}";
             }
-            // If no new file is uploaded, keep the existing profile picture (user.user_profilePhoto remains unchanged)
 
-            // Architect-specific
+            // ✅ Architect-specific logic
             if (string.Equals(user.user_role, "Architect", StringComparison.OrdinalIgnoreCase))
             {
                 user.user_licenseNo = model.LicenseNo ?? user.user_licenseNo;
@@ -429,7 +438,8 @@ namespace BlueprintProWeb.Controllers
                 user.user_Specialization = model.Specialization ?? user.user_Specialization;
                 user.user_Location = model.Location ?? user.user_Location;
                 user.user_Budget = model.Budget ?? user.user_Budget;
-                // Handle credentials file upload
+
+                // ✅ If portfolio (credentials) file uploaded → OVERWRITE existing embedding
                 if (model.CredentialsFile != null)
                 {
                     string uploadDir = Path.Combine(_webHostEnvironment.WebRootPath, "credentials");
@@ -445,21 +455,37 @@ namespace BlueprintProWeb.Controllers
 
                     user.user_CredentialsFile = fileName;
 
-                    // Extract text from the uploaded PDF
+                    // Extract text and embed
                     string extractedText = await ExtractTextFromPdf(filePath);
                     user.PortfolioText = extractedText;
 
-                    // Generate embeddings from extracted text
                     float[] embeddingVector = await GenerateEmbedding(extractedText);
-
-                    // Save as comma-separated floats for persistence
                     user.PortfolioEmbedding = string.Join(",",
                         embeddingVector.Select(v => v.ToString(CultureInfo.InvariantCulture)));
+                }
+                else
+                {
+                    // ✅ No portfolio uploaded → fallback to profile-based embedding
+                    try
+                    {
+                        string profileText =
+                            $"Architect specializing in {user.user_Specialization}, style: {user.user_Style}, " +
+                            $"based in {user.user_Location}, budget preference: {user.user_Budget}, rating: {user.user_Rating}.";
+
+                        user.PortfolioText = profileText;
+
+                        float[] embeddingVector = await GenerateEmbedding(profileText);
+                        user.PortfolioEmbedding = string.Join(",",
+                            embeddingVector.Select(v => v.ToString(CultureInfo.InvariantCulture)));
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("⚠️ Profile-based embedding failed: " + ex.Message);
+                    }
                 }
             }
             else
             {
-                // Just in case someone tries to bypass UI and upload as Client
                 if (model.CredentialsFile != null)
                 {
                     ModelState.AddModelError("", "Only architects can upload credentials.");
@@ -476,9 +502,7 @@ namespace BlueprintProWeb.Controllers
                 return View(model);
             }
 
-            // Refresh sign-in so updated claims/roles are applied
             await _signInManager.RefreshSignInAsync(user);
-
             return RedirectToAction("Profile", "Account");
         }
 
@@ -540,7 +564,6 @@ namespace BlueprintProWeb.Controllers
         private async Task<string> ExtractTextFromPdf(string filePath)
         {
             var sb = new StringBuilder();
-
             using (var pdfReader = new PdfReader(filePath))
             using (var pdfDoc = new PdfDocument(pdfReader))
             {
@@ -551,10 +574,8 @@ namespace BlueprintProWeb.Controllers
                     sb.AppendLine(text);
                 }
             }
-
             var cleaned = Regex.Replace(sb.ToString(), @"\s+", " ").Trim();
-
-            return await Task.FromResult(sb.ToString());
+            return await Task.FromResult(cleaned);
         }
 
         private async Task<float[]> GenerateEmbedding(string text)

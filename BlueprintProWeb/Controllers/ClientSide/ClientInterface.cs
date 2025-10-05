@@ -35,7 +35,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
            UserManager<User> _userManager,
            OpenAIClient openAi,
            EmbeddingClient embeddingClient,
-            IHubContext<ChatHub> hubContext,
+           IHubContext<ChatHub> hubContext,
            IOptions<StripeSettings> stripeSettings)
         {
             context = _context;
@@ -270,47 +270,42 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 .ToList();
 
             var ranked = architects
-            .Select(a =>
-            {
-                var vecA = ParseEmbedding(a.PortfolioEmbedding);
+             .Select(a =>
+             {
+                 var vecA = ParseEmbedding(a.PortfolioEmbedding);
 
-                // ✅ Debug logging
-                Console.WriteLine($"--- Checking Architect: {a.user_fname} {a.user_lname} ---");
-                Console.WriteLine($"Query vector length: {queryVector.Length}");
-                Console.WriteLine($"Portfolio vector length: {vecA?.Length ?? 0}");
+                 if (vecA == null || vecA.Length == 0 || vecA.Length != queryVector.Length)
+                     return (Architect: a, Score: double.MinValue);
 
-                    if (vecA == null || vecA.Length == 0 || vecA.Length != queryVector.Length)
-                    {
-                        Console.WriteLine("⚠️ Skipping architect due to invalid or mismatched vector.");
-                        return (Architect: a, Score: double.MinValue);
-                    }
+                 var score = CosineSimilarity(queryVector, vecA);
 
-                    var score = CosineSimilarity(queryVector, vecA);
-                    Console.WriteLine($"✅ Cosine similarity score: {score}");
+                 // ✅ Pro user boost (e.g., +5% boost to score)
+                 if (a.IsPro)
+                     score += 0.05;  // you can tune this from 0.03–0.1 depending on how strong you want the bias
 
-                    return (Architect: a, Score: score);
-            })
-                        .Where(x => x.Score != double.MinValue)
-                        .OrderByDescending(x => x.Score)
-                        .Take(10)
-                        .Select(x => new MatchViewModel
-                        {
-                            MatchId = null,
-                            ClientId = currentUser.Id,
-                            ClientName = $"{currentUser.user_fname} {currentUser.user_lname}",
-                            ArchitectId = x.Architect.Id,
-                            ArchitectName = $"{x.Architect.user_fname} {x.Architect.user_lname}",
-                            ArchitectStyle = x.Architect.user_Style,
-                            ArchitectLocation = x.Architect.user_Location,
-                            ArchitectBudget = x.Architect.user_Budget,
-                            MatchStatus = "AI + Portfolio Match",
-                            MatchDate = DateTime.UtcNow
-                        })
-                        .ToList();
+                 return (Architect: a, Score: score);
+             })
+             .Where(x => x.Score != double.MinValue)
+             .OrderByDescending(x => x.Score)
+             .Take(10)
+             .Select(x => new MatchViewModel
+             {
+                 MatchId = null,
+                 ClientId = currentUser.Id,
+                 ClientName = $"{currentUser.user_fname} {currentUser.user_lname}",
+                 ArchitectId = x.Architect.Id,
+                 ArchitectName = $"{x.Architect.user_fname} {x.Architect.user_lname}",
+                 ArchitectStyle = x.Architect.user_Style,
+                 ArchitectLocation = x.Architect.user_Location,
+                 ArchitectBudget = x.Architect.user_Budget,
+                 MatchStatus = x.Architect.IsPro ? "AI + Portfolio Match (Pro)" : "AI + Portfolio Match",
+                 MatchDate = DateTime.UtcNow
+             })
+             .ToList();
 
 
-                // Step 5: Return JSON if AJAX, else View
-                        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            // Step 5: Return JSON if AJAX, else View
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                         {
                             return Json(ranked);
                         }
