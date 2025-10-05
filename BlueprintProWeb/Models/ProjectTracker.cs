@@ -23,6 +23,10 @@ namespace BlueprintProWeb.Models
         public string projectTrack_currentFileName { get; set; }
         public string projectTrack_currentFilePath { get; set; }
         public int projectTrack_currentRevision { get; set; } = 1;
+        public string projectTrack_FinalizationNotes { get; set; }
+        = "Estimated Cost (construction materials):\n\n--\n\n" +
+          "Total Payment (payment for architect):\n\n--\n\n" +
+          "Other Information:\n\n--";
 
         // Navigation
         public Compliance Compliance { get; set; }
