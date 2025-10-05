@@ -301,11 +301,13 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
         public async Task<IActionResult> Messages(string clientId)
         {
             var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null) return Unauthorized();
+            if (currentUser == null)
+                return Unauthorized();
 
-            // 1. Load matches for this architect
+            // ✅ 1. Load all matches for this architect
             var matches = await context.Matches
                 .Where(m => m.ArchitectId == currentUser.Id)
+                .Include(m => m.Client)
                 .Select(m => new MatchViewModel
                 {
                     MatchId = m.MatchId.ToString(),
@@ -316,11 +318,14 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                     ClientPhone = m.Client.PhoneNumber,
                     ArchitectName = currentUser.user_fname + " " + currentUser.user_lname,
                     MatchStatus = m.MatchStatus,
-                    MatchDate = m.MatchDate
+                    MatchDate = m.MatchDate,
+                    ClientProfileUrl = string.IsNullOrEmpty(m.Client.user_profilePhoto)
+                        ? "/images/default-profile.png"
+                        : m.Client.user_profilePhoto
                 })
                 .ToListAsync();
 
-            // 2. Load conversations (one per client)
+            // ✅ 2. Load conversations
             var conversations = await context.Messages
                 .Where(m => m.ArchitectId == currentUser.Id || m.ClientId == currentUser.Id)
                 .Include(m => m.Client)
@@ -332,13 +337,14 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                     ClientName = g.First().Client.user_fname + " " + g.First().Client.user_lname,
                     LastMessageTime = g.Max(x => x.MessageDate),
                     Messages = new List<MessageViewModel>(),
-
-                    // ✅ unread counter
-                    UnreadCount = g.Count(x => x.SenderId != currentUser.Id && !x.IsRead)
+                    UnreadCount = g.Count(x => x.SenderId != currentUser.Id && !x.IsRead),
+                    ClientProfileUrl = string.IsNullOrEmpty(g.First().Client.user_profilePhoto)
+                        ? "/images/default-profile.png"
+                        : g.First().Client.user_profilePhoto
                 })
                 .ToListAsync();
 
-            // 3. Load ActiveChat (if clientId is provided)
+            // ✅ 3. Load Active Chat
             ChatViewModel? activeChat = null;
             if (!string.IsNullOrEmpty(clientId))
             {
@@ -350,7 +356,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                     .OrderBy(m => m.MessageDate)
                     .ToListAsync();
 
-                // ✅ mark unread messages as read
+                // Mark unread messages as read
                 var unreadMessages = messages
                     .Where(m => m.SenderId != currentUser.Id && !m.IsRead)
                     .ToList();
@@ -361,6 +367,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 if (unreadMessages.Any())
                     await context.SaveChangesAsync();
 
+                // ✅ Build message view models (with profile photos)
                 var vmMessages = messages.Select(m => new MessageViewModel
                 {
                     MessageId = m.MessageId.ToString(),
@@ -375,19 +382,27 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                     SenderName = m.Sender != null
                         ? m.Sender.user_fname + " " + m.Sender.user_lname
                         : "Unknown",
+                    SenderProfilePhoto = m.Sender != null && !string.IsNullOrEmpty(m.Sender.user_profilePhoto)
+                        ? m.Sender.user_profilePhoto
+                        : "/images/default-profile.png",
                     IsOwnMessage = (m.SenderId == currentUser.Id)
                 }).ToList();
+
+                // ✅ Use match photo as chat header
+                var matchPhoto = matches.FirstOrDefault(m => m.ClientId == clientId)?.ClientProfileUrl
+                                 ?? "/images/default-profile.png";
 
                 activeChat = new ChatViewModel
                 {
                     ClientId = clientId,
-                    ClientName = vmMessages.FirstOrDefault()?.SenderName ?? "Unknown",
+                    ClientName = matches.FirstOrDefault(m => m.ClientId == clientId)?.ClientName ?? "Unknown",
                     LastMessageTime = vmMessages.LastOrDefault()?.MessageDate ?? DateTime.UtcNow,
-                    Messages = vmMessages
+                    Messages = vmMessages,
+                    ClientProfileUrl = matchPhoto
                 };
             }
 
-            // 4. Build page model
+            // ✅ 4. Return the combined view model
             var vm = new ChatPageViewModel
             {
                 Matches = matches,
@@ -398,12 +413,14 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             return View(vm);
         }
 
+        // ✅ POST: Send a message
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SendMessage(string clientId, string messageBody)
         {
             var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null) return Unauthorized();
+            if (currentUser == null)
+                return Unauthorized();
 
             if (string.IsNullOrWhiteSpace(messageBody))
                 return RedirectToAction("Messages", new { clientId });
@@ -422,13 +439,16 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             context.Messages.Add(message);
             await context.SaveChangesAsync();
 
-            // Notify all connected clients in real-time
+            // ✅ Optional real-time update via SignalR
             await _hubContext.Clients.User(clientId).SendAsync("ReceiveMessage", new
             {
                 SenderId = currentUser.Id,
                 SenderName = currentUser.user_fname + " " + currentUser.user_lname,
                 MessageBody = messageBody,
-                MessageDate = DateTime.UtcNow.ToString("g")
+                MessageDate = DateTime.UtcNow.ToString("g"),
+                SenderProfilePhoto = string.IsNullOrEmpty(currentUser.user_profilePhoto)
+                    ? "/images/default-profile.png"
+                    : currentUser.user_profilePhoto
             });
 
             return RedirectToAction("Messages", new { clientId });

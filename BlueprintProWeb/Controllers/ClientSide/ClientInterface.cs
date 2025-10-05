@@ -391,59 +391,61 @@ namespace BlueprintProWeb.Controllers.ClientSide
         public async Task<IActionResult> Messages(string architectId)
         {
             var currentUser = await userManager.GetUserAsync(User);
-            if (currentUser == null) return Unauthorized();
+            if (currentUser == null)
+                return Unauthorized();
 
-            // 1. Load matches for this client
+            // ✅ 1. Load all matches for this client
             var matches = await context.Matches
                 .Where(m => m.ClientId == currentUser.Id)
+                .Include(m => m.Architect)
                 .Select(m => new MatchViewModel
                 {
                     MatchId = m.MatchId.ToString(),
                     ClientId = m.ClientId,
                     ArchitectId = m.ArchitectId,
                     ArchitectName = m.Architect.user_fname + " " + m.Architect.user_lname,
-                    ArchitectStyle = m.Architect.user_Style,
-                    ArchitectLocation = m.Architect.user_Location,
-                    ArchitectBudget = m.Architect.user_Budget,
+                    ArchitectEmail = m.Architect.Email,              // make sure your User entity has Email
+                    ArchitectPhone = m.Architect.PhoneNumber,        // make sure your User entity has PhoneNumber
                     MatchStatus = m.MatchStatus,
-                    MatchDate = m.MatchDate
+                    MatchDate = m.MatchDate,
+                    ArchitectProfileUrl = string.IsNullOrEmpty(m.Architect.user_profilePhoto)
+                        ? "/images/default-profile.png"
+                        : m.Architect.user_profilePhoto
                 })
                 .ToListAsync();
 
-            // 2. Load conversations (one per partner)
+            // ✅ 2. Load conversations (group by Architect)
             var conversations = await context.Messages
                 .Where(m => m.ClientId == currentUser.Id || m.ArchitectId == currentUser.Id)
-                .GroupBy(m => m.ClientId == currentUser.Id ? m.ArchitectId : m.ClientId) // ✅ partner ID
+                .Include(m => m.Architect)
+                .Include(m => m.Sender)
+                .GroupBy(m => m.ArchitectId)
                 .Select(g => new ChatViewModel
                 {
-                    ClientId = g.Key,
-                    ClientName = g.First().ArchitectId == g.Key
-                        ? g.First().Architect.user_fname + " " + g.First().Architect.user_lname
-                        : g.First().Client.user_fname + " " + g.First().Client.user_lname,
-                    ClientProfileUrl = null,
+                    ArchitectId = g.Key,
+                    ArchitectName = g.First().Architect.user_fname + " " + g.First().Architect.user_lname,
                     LastMessageTime = g.Max(x => x.MessageDate),
                     Messages = new List<MessageViewModel>(),
-
-                    // unread counter
-                    UnreadCount = g.Count(x => x.SenderId != currentUser.Id && !x.IsRead)
+                    UnreadCount = g.Count(x => x.SenderId != currentUser.Id && !x.IsRead),
+                    ArchitectProfileUrl = string.IsNullOrEmpty(g.First().Architect.user_profilePhoto)
+                        ? "/images/default-profile.png"
+                        : g.First().Architect.user_profilePhoto
                 })
                 .ToListAsync();
 
-            // 3. Load ActiveChat if architectId provided
+            // ✅ 3. Load active chat (if selected)
             ChatViewModel? activeChat = null;
             if (!string.IsNullOrEmpty(architectId))
             {
-                // First load messages
                 var messages = await context.Messages
-                    .Include(m => m.Sender) // 👈 this makes sure Sender is loaded
                     .Where(m =>
-                        (m.ArchitectId == architectId && m.ClientId == currentUser.Id) ||
-                        (m.ArchitectId == currentUser.Id && m.ClientId == architectId))
+                        (m.ClientId == currentUser.Id && m.ArchitectId == architectId) ||
+                        (m.ClientId == architectId && m.ArchitectId == currentUser.Id))
+                    .Include(m => m.Sender)
                     .OrderBy(m => m.MessageDate)
                     .ToListAsync();
 
-
-                // Then mark unread messages as read
+                // mark unread messages as read
                 var unreadMessages = messages
                     .Where(m => m.SenderId != currentUser.Id && !m.IsRead)
                     .ToList();
@@ -454,7 +456,6 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 if (unreadMessages.Any())
                     await context.SaveChangesAsync();
 
-                // Now map to viewmodels
                 var vmMessages = messages.Select(m => new MessageViewModel
                 {
                     MessageId = m.MessageId.ToString(),
@@ -466,22 +467,28 @@ namespace BlueprintProWeb.Controllers.ClientSide
                     IsRead = m.IsRead,
                     IsDeleted = m.IsDeleted,
                     AttachmentUrl = m.AttachmentUrl,
-                    SenderName = m.Sender.user_fname + " " + m.Sender.user_lname,
-                    SenderProfilePhoto = null,
+                    SenderName = m.Sender != null
+                        ? m.Sender.user_fname + " " + m.Sender.user_lname
+                        : "Unknown",
+                    SenderProfilePhoto = m.Sender != null && !string.IsNullOrEmpty(m.Sender.user_profilePhoto)
+                        ? m.Sender.user_profilePhoto
+                        : "/images/default-profile.png",
                     IsOwnMessage = (m.SenderId == currentUser.Id)
                 }).ToList();
 
+                var matchInfo = matches.FirstOrDefault(m => m.ArchitectId == architectId);
+
                 activeChat = new ChatViewModel
                 {
-                    ClientId = architectId,
-                    ClientName = vmMessages.FirstOrDefault(m => m.ArchitectId == architectId)?.SenderName ?? "Unknown",
-                    ClientProfileUrl = null,
+                    ArchitectId = architectId,
+                    ArchitectName = matchInfo?.ArchitectName ?? "Unknown",
                     LastMessageTime = vmMessages.LastOrDefault()?.MessageDate ?? DateTime.UtcNow,
-                    Messages = vmMessages
+                    Messages = vmMessages,
+                    ArchitectProfileUrl = matchInfo?.ArchitectProfileUrl ?? "/images/default-profile.png"
                 };
             }
 
-            // 4. Build page model
+            // ✅ 4. Combine everything
             var vm = new ChatPageViewModel
             {
                 Matches = matches,
@@ -492,13 +499,13 @@ namespace BlueprintProWeb.Controllers.ClientSide
             return View(vm);
         }
 
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SendMessage(string architectId, string messageBody)
         {
             var currentUser = await userManager.GetUserAsync(User);
-            if (currentUser == null) return Unauthorized();
+            if (currentUser == null)
+                return Unauthorized();
 
             if (string.IsNullOrWhiteSpace(messageBody))
                 return RedirectToAction("Messages", new { architectId });
@@ -517,19 +524,23 @@ namespace BlueprintProWeb.Controllers.ClientSide
             context.Messages.Add(message);
             await context.SaveChangesAsync();
 
-            // notify architect in real-time
+            // ✅ Optional SignalR broadcast
             await _hubContext.Clients.User(architectId).SendAsync("ReceiveMessage", new
             {
                 SenderId = currentUser.Id,
                 SenderName = currentUser.user_fname + " " + currentUser.user_lname,
                 MessageBody = messageBody,
-                MessageDate = DateTime.UtcNow.ToString("g")
+                MessageDate = DateTime.UtcNow.ToString("g"),
+                SenderProfilePhoto = string.IsNullOrEmpty(currentUser.user_profilePhoto)
+                    ? "/images/default-profile.png"
+                    : currentUser.user_profilePhoto
             });
 
             return RedirectToAction("Messages", new { architectId });
         }
-    
-}
+
+
+    }
 
 }
 

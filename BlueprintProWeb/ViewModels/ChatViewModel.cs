@@ -13,6 +13,10 @@
         public string ClientId { get; set; }
         public string ClientName { get; set; }
         public string? ClientProfileUrl { get; set; }
+
+        public string? ArchitectProfileUrl { get; set; }
+        public string ArchitectId { get; set; }
+        public string ArchitectName { get; set; }
         public DateTime LastMessageTime { get; set; }
         public List<MessageViewModel> Messages { get; set; } = new();
         public int UnreadCount { get; set; }

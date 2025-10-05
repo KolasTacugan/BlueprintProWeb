@@ -15,10 +15,15 @@
                 {
                     foreach (var match in Model.Matches)
                     {
-                        <a asp-controller="ArchitectInterface" asp-action="Messages"
+                        var profilePhoto = string.IsNullOrEmpty(match.ClientProfileUrl)
+                        ? "/images/default-profile.png"
+                        : match.ClientProfileUrl.Replace("~", "").Replace("wwwroot", "");
+
+                        <a asp-controller="ArchitectInterface"
+                           asp-action="Messages"
                            asp-route-clientId="@match.ClientId"
                            class="text-center text-decoration-none">
-                            <img src="/images/default-profile.png"
+                            <img src="@profilePhoto"
                                  class="rounded-circle"
                                  style="width:60px; height:60px; object-fit:cover;" />
                             <div class="small text-dark">@match.ClientName</div>
@@ -37,21 +42,27 @@
                 {
                     foreach (var convo in Model.Conversations)
                     {
-                        <a asp-controller="ArchitectInterface" asp-action="Messages"
+                        var convoPhoto = string.IsNullOrEmpty(convo.ClientProfileUrl)
+                        ? "/images/default-profile.png"
+                        : convo.ClientProfileUrl.Replace("~", "").Replace("wwwroot", "");
+
+                        <a asp-controller="ArchitectInterface"
+                           asp-action="Messages"
                            asp-route-clientId="@convo.ClientId"
                            class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
 
-                            <!-- Left side: Client name -->
-                            <span>@convo.ClientName</span>
+                            <div class="d-flex align-items-center">
+                                <img src="@convoPhoto" class="rounded-circle me-2"
+                                     style="width:40px; height:40px; object-fit:cover;" />
+                                <span>@convo.ClientName</span>
+                            </div>
 
-                            <!-- Right side: Time + New message badge -->
                             <div class="d-flex align-items-center gap-2">
                                 <small class="text-muted">@convo.LastMessageTime.ToShortTimeString()</small>
                                 @if (convo.UnreadCount > 0)
                                 {
                                     <span class="badge bg-danger rounded-pill">@convo.UnreadCount</span>
                                 }
-
                             </div>
                         </a>
                     }
@@ -67,34 +78,56 @@
         <div class="col-md-8 d-flex flex-column bg-light" style="height: 90vh;">
             @if (Model.ActiveChat != null)
             {
+                var chatPhoto = string.IsNullOrEmpty(Model.ActiveChat.ClientProfileUrl)
+                ? "/images/default-profile.png"
+                : Model.ActiveChat.ClientProfileUrl.Replace("~", "").Replace("wwwroot", "");
+
                 <!-- Chat Header -->
                 <div class="border-bottom p-2 d-flex align-items-center bg-white">
-                    <img src="/images/default-profile.png"
+                    <img src="@chatPhoto"
                          class="rounded-circle me-2"
                          style="width:40px; height:40px; object-fit:cover;" />
                     <strong>@Model.ActiveChat.ClientName</strong>
                 </div>
 
                 <!-- Chat History -->
-                <div class="flex-grow-1 overflow-auto p-3">
+                <div class="flex-grow-1 overflow-auto p-3" id="chat-container">
                     @foreach (var msg in Model.ActiveChat.Messages)
                     {
-                        <div class="mb-2 @(msg.IsOwnMessage ? "text-end" : "text-start")">
-                            <div class="d-inline-block p-2 rounded"
+                        var msgPhoto = string.IsNullOrEmpty(msg.SenderProfilePhoto)
+                        ? "/images/default-profile.png"
+                        : msg.SenderProfilePhoto.Replace("~", "").Replace("wwwroot", "");
+
+                        <div class="d-flex mb-2 @(msg.IsOwnMessage ? "justify-content-end" : "justify-content-start")">
+                            @if (!msg.IsOwnMessage)
+                            {
+                                <img src="@msgPhoto" class="rounded-circle me-2"
+                                     style="width:30px; height:30px; object-fit:cover;" />
+                            }
+
+                            <div class="p-2 rounded shadow-sm"
                                  style="background:@(msg.IsOwnMessage ? "#071744" : "#f1f1f1");
-                                        color:@(msg.IsOwnMessage ? "white" : "black");
-                                        max-width:70%;">
+                                                color:@(msg.IsOwnMessage ? "white" : "black");
+                                                max-width:70%;">
                                 @msg.MessageBody
                             </div>
-                            <div class="small text-muted">
-                                @msg.MessageDate.ToShortTimeString()
-                            </div>
+
+                            @if (msg.IsOwnMessage)
+                            {
+                                <img src="@msgPhoto" class="rounded-circle ms-2"
+                                     style="width:30px; height:30px; object-fit:cover;" />
+                            }
+                        </div>
+                        <div class="small text-muted @(msg.IsOwnMessage ? "text-end" : "text-start")">
+                            @msg.MessageDate.ToShortTimeString()
                         </div>
                     }
                 </div>
 
                 <!-- Chat Input -->
-                <form asp-controller="ArchitectInterface" asp-action="SendMessage" method="post"
+                <form asp-controller="ArchitectInterface"
+                      asp-action="SendMessage"
+                      method="post"
                       class="d-flex border-top p-2 bg-white">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="clientId" value="@Model.ActiveChat.ClientId" />
@@ -111,5 +144,6 @@
                 </div>
             }
         </div>
+
     </div>
 </div>
