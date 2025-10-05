@@ -105,7 +105,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 blueprintPrice = vm.blueprintPrice,
                 blueprintDescription = vm.blueprintDescription,
                 blueprintStyle = vm.blueprintStyle,
-                blueprintIsForSale = vm.blueprintIsForSale,
+                blueprintIsForSale = true,
                 architectId = userId
             };
             context.Blueprints.Add(blueprint);
@@ -132,7 +132,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 blueprintPrice = 0,
                 blueprintDescription = vm.blueprintDescription,
                 blueprintStyle = vm.blueprintStyle,
-                blueprintIsForSale = vm.blueprintIsForSale,
+                blueprintIsForSale = false,
                 architectId = userId
             };
             context.Blueprints.Add(blueprint);

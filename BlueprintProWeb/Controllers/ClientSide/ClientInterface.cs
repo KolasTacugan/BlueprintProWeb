@@ -59,12 +59,14 @@ namespace BlueprintProWeb.Controllers.ClientSide
         {
             ViewBag.StripePublishableKey = _stripeSettings.PublishableKey;
 
-            var blueprints = context.Blueprints
-                .Where(bp => bp.blueprintIsForSale == true) // only available ones
+            // Fetch only blueprints that are marked as for sale
+            var availableBlueprints = context.Blueprints
+                .Where(bp => bp.blueprintIsForSale)
                 .ToList();
 
-            return View("BlueprintMarketplace", blueprints);
+            return View("BlueprintMarketplace", availableBlueprints);
         }
+
 
         [HttpPost]
         [Authorize]
@@ -189,28 +191,44 @@ namespace BlueprintProWeb.Controllers.ClientSide
         public async Task<IActionResult> CompletePurchase([FromBody] List<int> blueprintIds)
         {
             var user = await userManager.GetUserAsync(User);
-            if (user == null) return Unauthorized();
+            if (user == null)
+                return Unauthorized();
 
+            if (blueprintIds == null || !blueprintIds.Any())
+                return BadRequest(new { success = false, message = "No blueprints selected for purchase." });
+
+            // Get all purchased blueprints
             var purchasedBlueprints = await context.Blueprints
                 .Where(bp => blueprintIds.Contains(bp.blueprintId))
                 .ToListAsync();
 
+            if (!purchasedBlueprints.Any())
+                return NotFound(new { success = false, message = "No matching blueprints found." });
+
             foreach (var bp in purchasedBlueprints)
             {
-                bp.blueprintIsForSale = false; // no longer listed
-                bp.clentId = user.Id;         // record buyer
+                // ✅ Mark as sold
+                bp.blueprintIsForSale = false;
+
+                // ✅ Record buyer (if your model has clientId)
+                bp.clentId = user.Id;
+
+                // Optionally log or handle transfer ownership timestamp, etc.
             }
 
-            var cart = await context.Carts.Include(c => c.Items)
+            // ✅ Clear user's cart after successful purchase
+            var cart = await context.Carts
+                .Include(c => c.Items)
                 .FirstOrDefaultAsync(c => c.UserId == user.Id);
 
-            if (cart != null)
+            if (cart != null && cart.Items.Any())
                 cart.Items.Clear();
 
             await context.SaveChangesAsync();
 
-            return Json(new { success = true });
+            return Json(new { success = true, message = "Purchase completed successfully." });
         }
+
 
         public async Task<IActionResult> Projects()
         {
