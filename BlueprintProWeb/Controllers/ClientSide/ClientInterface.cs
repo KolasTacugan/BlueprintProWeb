@@ -1,14 +1,21 @@
 ﻿using BlueprintProWeb.Data;
+using BlueprintProWeb.Hubs;
 using BlueprintProWeb.Models;
+using BlueprintProWeb.Settings;
 using BlueprintProWeb.ViewModels;
 using iText.Commons.Actions.Contexts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using OpenAI;
 using OpenAI.Chat;
 using OpenAI.Embeddings;
+using Stripe;
+using Stripe.Checkout;
+using System.Globalization;
 using System.Globalization;
 using System.Text.Json;
 
@@ -20,32 +27,208 @@ namespace BlueprintProWeb.Controllers.ClientSide
         private readonly UserManager<User> userManager;
         private readonly OpenAIClient _openAi;
         private readonly EmbeddingClient _embeddingClient;
+        private readonly IHubContext<ChatHub> _hubContext;
+        private readonly StripeSettings _stripeSettings;
 
         public ClientInterfaceController(
            AppDbContext _context,
            UserManager<User> _userManager,
            OpenAIClient openAi,
-           EmbeddingClient embeddingClient)
+           EmbeddingClient embeddingClient,
+           IHubContext<ChatHub> hubContext,
+           IOptions<StripeSettings> stripeSettings)
         {
             context = _context;
             userManager = _userManager;
             _openAi = openAi;
             _embeddingClient = embeddingClient;
+            _hubContext = hubContext;
+            _stripeSettings = stripeSettings.Value;
+
         }
 
 
-        public IActionResult ClientDashboard()
+        public async Task<IActionResult> ClientDashboard()
         {
+            var currentUser = await userManager.GetUserAsync(User);
+            ViewData["UserFirstName"] = currentUser?.user_fname ?? "User";
             return View();
         }
 
         public IActionResult BlueprintMarketplace()
         {
-            var blueprints = context.Blueprints
+            ViewBag.StripePublishableKey = _stripeSettings.PublishableKey;
+
+            // Fetch only blueprints that are marked as for sale
+            var availableBlueprints = context.Blueprints
                 .Where(bp => bp.blueprintIsForSale)
                 .ToList();
-            return View("BlueprintMarketplace", blueprints);
+
+            return View("BlueprintMarketplace", availableBlueprints);
         }
+
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddToCart([FromBody] CartRequest model)
+        {
+            var user = await userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            var cart = context.Carts
+                .Include(c => c.Items)
+                .FirstOrDefault(c => c.UserId == user.Id);
+
+            if (cart == null)
+            {
+                cart = new Cart { UserId = user.Id, Items = new List<CartItem>() };
+                context.Carts.Add(cart);
+            }
+
+            var existingItem = cart.Items.FirstOrDefault(i => i.BlueprintId == model.BlueprintId);
+            if (existingItem != null)
+                existingItem.Quantity += model.Quantity;
+            else
+                cart.Items.Add(new CartItem { BlueprintId = model.BlueprintId, Quantity = model.Quantity });
+
+            await context.SaveChangesAsync();
+            return Json(new { success = true });
+        }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> GetCart()
+        {
+            var user = await userManager.GetUserAsync(User);
+            if (user == null)
+                return Unauthorized();
+
+            var cart = context.Carts
+                .Where(c => c.UserId == user.Id)
+                .Select(c => new CartViewModel
+                {
+                    CartId = c.CartId,
+                    Items = c.Items.Select(i => new CartItemViewModel
+                    {
+                        CartItemId = i.CartItemId,
+                        BlueprintId = i.BlueprintId,
+                        Name = i.Blueprint.blueprintName,
+                        Image = i.Blueprint.blueprintImage,
+                        Price = i.Blueprint.blueprintPrice,
+                        Quantity = i.Quantity
+                    }).ToList()
+                })
+                .FirstOrDefault();
+
+            return Json(cart ?? new CartViewModel { CartId = 0, Items = new List<CartItemViewModel>() });
+        }
+
+
+        public class CartRequest
+        {
+            public int BlueprintId { get; set; }
+            public int Quantity { get; set; }
+        }
+
+        // -------------------- PAYMENT --------------------
+        [HttpPost]
+        public IActionResult CreateCheckoutSession([FromBody] List<CartItemViewModel> cart)
+        {
+            if (cart == null || !cart.Any())
+                return BadRequest("Cart is empty or not received");
+
+            if (cart.Any(c => c.Price <= 0))
+                return BadRequest("One or more items have invalid price.");
+
+            var lineItems = cart.Select(item => new SessionLineItemOptions
+            {
+                PriceData = new SessionLineItemPriceDataOptions
+                {
+                    UnitAmount = (long)(item.Price * 100), // already validated
+                    Currency = "php",
+                    ProductData = new SessionLineItemPriceDataProductDataOptions
+                    {
+                        Name = item.Name ?? "Blueprint"
+                    }
+                },
+                Quantity = item.Quantity > 0 ? item.Quantity : 1
+            }).ToList();
+
+            var options = new SessionCreateOptions
+            {
+                PaymentMethodTypes = new List<string> { "card" },
+                LineItems = lineItems,
+                Mode = "payment",
+                SuccessUrl = $"{Request.Scheme}://{Request.Host}/ClientInterface/BlueprintMarketplace?session_id={{CHECKOUT_SESSION_ID}}",
+                CancelUrl = $"{Request.Scheme}://{Request.Host}/ClientInterface/Cancel"
+            };
+
+            Stripe.StripeConfiguration.ApiKey = _stripeSettings.SecretKey;
+
+            var service = new SessionService();
+            var session = service.Create(options);
+
+            return Json(new { id = session.Id });
+        }
+
+
+
+
+        public IActionResult Success() => View();
+        public IActionResult Cancel() => View();
+
+        public class CartItemDto
+        {
+            public string id { get; set; }
+            public string name { get; set; }
+            public decimal price { get; set; }
+            public string image { get; set; }
+        }
+
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> CompletePurchase([FromBody] List<int> blueprintIds)
+        {
+            var user = await userManager.GetUserAsync(User);
+            if (user == null)
+                return Unauthorized();
+
+            if (blueprintIds == null || !blueprintIds.Any())
+                return BadRequest(new { success = false, message = "No blueprints selected for purchase." });
+
+            // Get all purchased blueprints
+            var purchasedBlueprints = await context.Blueprints
+                .Where(bp => blueprintIds.Contains(bp.blueprintId))
+                .ToListAsync();
+
+            if (!purchasedBlueprints.Any())
+                return NotFound(new { success = false, message = "No matching blueprints found." });
+
+            foreach (var bp in purchasedBlueprints)
+            {
+                // ✅ Mark as sold
+                bp.blueprintIsForSale = false;
+
+                // ✅ Record buyer (if your model has clientId)
+                bp.clentId = user.Id;
+
+                // Optionally log or handle transfer ownership timestamp, etc.
+            }
+
+            // ✅ Clear user's cart after successful purchase
+            var cart = await context.Carts
+                .Include(c => c.Items)
+                .FirstOrDefaultAsync(c => c.UserId == user.Id);
+
+            if (cart != null && cart.Items.Any())
+                cart.Items.Clear();
+
+            await context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "Purchase completed successfully." });
+        }
+
 
         public async Task<IActionResult> Projects()
         {
@@ -74,7 +257,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 return RedirectToAction("Login", "Account");
             }
 
-            // Step 1: Default query is user’s profile if empty
+            // Step 1: Default query is user's profile if empty
             string searchQuery = query;
             if (string.IsNullOrWhiteSpace(searchQuery))
             {
@@ -105,47 +288,42 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 .ToList();
 
             var ranked = architects
-            .Select(a =>
-            {
-                var vecA = ParseEmbedding(a.PortfolioEmbedding);
+             .Select(a =>
+             {
+                 var vecA = ParseEmbedding(a.PortfolioEmbedding);
 
-                // ✅ Debug logging
-                Console.WriteLine($"--- Checking Architect: {a.user_fname} {a.user_lname} ---");
-                Console.WriteLine($"Query vector length: {queryVector.Length}");
-                Console.WriteLine($"Portfolio vector length: {vecA?.Length ?? 0}");
+                 if (vecA == null || vecA.Length == 0 || vecA.Length != queryVector.Length)
+                     return (Architect: a, Score: double.MinValue);
 
-                    if (vecA == null || vecA.Length == 0 || vecA.Length != queryVector.Length)
-                    {
-                        Console.WriteLine("⚠️ Skipping architect due to invalid or mismatched vector.");
-                        return (Architect: a, Score: double.MinValue);
-                    }
+                 var score = CosineSimilarity(queryVector, vecA);
 
-                    var score = CosineSimilarity(queryVector, vecA);
-                    Console.WriteLine($"✅ Cosine similarity score: {score}");
+                 // ✅ Pro user boost (e.g., +5% boost to score)
+                 if (a.IsPro)
+                     score += 0.05;  // you can tune this from 0.03–0.1 depending on how strong you want the bias
 
-                    return (Architect: a, Score: score);
-            })
-                        .Where(x => x.Score != double.MinValue)
-                        .OrderByDescending(x => x.Score)
-                        .Take(10)
-                        .Select(x => new MatchViewModel
-                        {
-                            MatchId = null,
-                            ClientId = currentUser.Id,
-                            ClientName = $"{currentUser.user_fname} {currentUser.user_lname}",
-                            ArchitectId = x.Architect.Id,
-                            ArchitectName = $"{x.Architect.user_fname} {x.Architect.user_lname}",
-                            ArchitectStyle = x.Architect.user_Style,
-                            ArchitectLocation = x.Architect.user_Location,
-                            ArchitectBudget = x.Architect.user_Budget,
-                            MatchStatus = "AI + Portfolio Match",
-                            MatchDate = DateTime.UtcNow
-                        })
-                        .ToList();
+                 return (Architect: a, Score: score);
+             })
+             .Where(x => x.Score != double.MinValue)
+             .OrderByDescending(x => x.Score)
+             .Take(10)
+             .Select(x => new MatchViewModel
+             {
+                 MatchId = null,
+                 ClientId = currentUser.Id,
+                 ClientName = $"{currentUser.user_fname} {currentUser.user_lname}",
+                 ArchitectId = x.Architect.Id,
+                 ArchitectName = $"{x.Architect.user_fname} {x.Architect.user_lname}",
+                 ArchitectStyle = x.Architect.user_Style,
+                 ArchitectLocation = x.Architect.user_Location,
+                 ArchitectBudget = x.Architect.user_Budget,
+                 MatchStatus = x.Architect.IsPro ? "AI + Portfolio Match (Pro)" : "AI + Portfolio Match",
+                 MatchDate = DateTime.UtcNow
+             })
+             .ToList();
 
 
-                // Step 5: Return JSON if AJAX, else View
-                        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            // Step 5: Return JSON if AJAX, else View
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                         {
                             return Json(ranked);
                         }
@@ -209,7 +387,193 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 .ToArray();
         }
 
-       
+        [HttpGet]
+        public async Task<IActionResult> Messages(string architectId)
+        {
+            var currentUser = await userManager.GetUserAsync(User);
+            if (currentUser == null)
+                return Unauthorized();
+
+            // ✅ 1. Load all matches for this client
+            var matches = await context.Matches
+                .Where(m => m.ClientId == currentUser.Id)
+                .Include(m => m.Architect)
+                .Select(m => new MatchViewModel
+                {
+                    MatchId = m.MatchId.ToString(),
+                    ClientId = m.ClientId,
+                    ArchitectId = m.ArchitectId,
+                    ArchitectName = m.Architect.user_fname + " " + m.Architect.user_lname,
+                    ArchitectEmail = m.Architect.Email,              // make sure your User entity has Email
+                    ArchitectPhone = m.Architect.PhoneNumber,        // make sure your User entity has PhoneNumber
+                    MatchStatus = m.MatchStatus,
+                    MatchDate = m.MatchDate,
+                    ArchitectProfileUrl = string.IsNullOrEmpty(m.Architect.user_profilePhoto)
+                        ? "/images/default-profile.png"
+                        : m.Architect.user_profilePhoto
+                })
+                .ToListAsync();
+
+            // ✅ 2. Load conversations (group by Architect)
+            var conversations = await context.Messages
+                .Where(m => m.ClientId == currentUser.Id || m.ArchitectId == currentUser.Id)
+                .Include(m => m.Architect)
+                .Include(m => m.Sender)
+                .GroupBy(m => m.ArchitectId)
+                .Select(g => new ChatViewModel
+                {
+                    ArchitectId = g.Key,
+                    ArchitectName = g.First().Architect.user_fname + " " + g.First().Architect.user_lname,
+                    LastMessageTime = g.Max(x => x.MessageDate),
+                    Messages = new List<MessageViewModel>(),
+                    UnreadCount = g.Count(x => x.SenderId != currentUser.Id && !x.IsRead),
+                    ArchitectProfileUrl = string.IsNullOrEmpty(g.First().Architect.user_profilePhoto)
+                        ? "/images/default-profile.png"
+                        : g.First().Architect.user_profilePhoto
+                })
+                .ToListAsync();
+
+            // ✅ 3. Load active chat (if selected)
+            ChatViewModel? activeChat = null;
+            if (!string.IsNullOrEmpty(architectId))
+            {
+                var messages = await context.Messages
+                    .Where(m =>
+                        (m.ClientId == currentUser.Id && m.ArchitectId == architectId) ||
+                        (m.ClientId == architectId && m.ArchitectId == currentUser.Id))
+                    .Include(m => m.Sender)
+                    .OrderBy(m => m.MessageDate)
+                    .ToListAsync();
+
+                // mark unread messages as read
+                var unreadMessages = messages
+                    .Where(m => m.SenderId != currentUser.Id && !m.IsRead)
+                    .ToList();
+
+                foreach (var msg in unreadMessages)
+                    msg.IsRead = true;
+
+                if (unreadMessages.Any())
+                    await context.SaveChangesAsync();
+
+                var vmMessages = messages.Select(m => new MessageViewModel
+                {
+                    MessageId = m.MessageId.ToString(),
+                    ClientId = m.ClientId,
+                    ArchitectId = m.ArchitectId,
+                    SenderId = m.SenderId,
+                    MessageBody = m.MessageBody,
+                    MessageDate = m.MessageDate,
+                    IsRead = m.IsRead,
+                    IsDeleted = m.IsDeleted,
+                    AttachmentUrl = m.AttachmentUrl,
+                    SenderName = m.Sender != null
+                        ? m.Sender.user_fname + " " + m.Sender.user_lname
+                        : "Unknown",
+                    SenderProfilePhoto = m.Sender != null && !string.IsNullOrEmpty(m.Sender.user_profilePhoto)
+                        ? m.Sender.user_profilePhoto
+                        : "/images/default-profile.png",
+                    IsOwnMessage = (m.SenderId == currentUser.Id)
+                }).ToList();
+
+                var matchInfo = matches.FirstOrDefault(m => m.ArchitectId == architectId);
+
+                activeChat = new ChatViewModel
+                {
+                    ArchitectId = architectId,
+                    ArchitectName = matchInfo?.ArchitectName ?? "Unknown",
+                    LastMessageTime = vmMessages.LastOrDefault()?.MessageDate ?? DateTime.UtcNow,
+                    Messages = vmMessages,
+                    ArchitectProfileUrl = matchInfo?.ArchitectProfileUrl ?? "/images/default-profile.png"
+                };
+            }
+
+            // ✅ 4. Combine everything
+            var vm = new ChatPageViewModel
+            {
+                Matches = matches,
+                Conversations = conversations.OrderByDescending(c => c.LastMessageTime).ToList(),
+                ActiveChat = activeChat
+            };
+
+            return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SendMessage(string architectId, string messageBody)
+        {
+            var currentUser = await userManager.GetUserAsync(User);
+            if (currentUser == null)
+                return Unauthorized();
+
+            if (string.IsNullOrWhiteSpace(messageBody))
+                return RedirectToAction("Messages", new { architectId });
+
+            var message = new Message
+            {
+                MessageId = Guid.NewGuid(),
+                ClientId = currentUser.Id,
+                ArchitectId = architectId,
+                SenderId = currentUser.Id,
+                MessageBody = messageBody,
+                MessageDate = DateTime.UtcNow,
+                IsRead = false
+            };
+
+            context.Messages.Add(message);
+            await context.SaveChangesAsync();
+
+            // ✅ Optional SignalR broadcast
+            await _hubContext.Clients.User(architectId).SendAsync("ReceiveMessage", new
+            {
+                SenderId = currentUser.Id,
+                SenderName = currentUser.user_fname + " " + currentUser.user_lname,
+                MessageBody = messageBody,
+                MessageDate = DateTime.UtcNow.ToString("g"),
+                SenderProfilePhoto = string.IsNullOrEmpty(currentUser.user_profilePhoto)
+                    ? "/images/default-profile.png"
+                    : currentUser.user_profilePhoto
+            });
+
+            return RedirectToAction("Messages", new { architectId });
+        }
+
+        [HttpGet]
+        public IActionResult ProjectTracker(int id)
+        {
+            var project = context.Projects.FirstOrDefault(p => p.blueprint_Id == id);
+            if (project == null) return NotFound();
+
+            var tracker = context.ProjectTrackers
+                .Include(t => t.Compliance)
+                .FirstOrDefault(t => t.project_Id == project.project_Id);
+            if (tracker == null) return NotFound();
+
+            var history = context.ProjectFiles
+                .Where(f => f.project_Id == project.project_Id)
+                .OrderByDescending(f => f.projectFile_Version)
+                .ToList();
+
+            var vm = new ProjectTrackerViewModel
+            {
+                projectTrack_Id = tracker.projectTrack_Id,
+                project_Id = project.project_Id,
+                CurrentFileName = tracker.projectTrack_currentFileName,
+                CurrentFilePath = tracker.projectTrack_currentFilePath,
+                CurrentRevision = tracker.projectTrack_currentRevision,
+                Status = tracker.projectTrack_Status,
+                RevisionHistory = history,
+                Compliance = tracker.Compliance,
+                FinalizationNotes = tracker.projectTrack_FinalizationNotes
+            };
+
+            return View(vm);
+        }
+
     }
+
 }
+
+
 

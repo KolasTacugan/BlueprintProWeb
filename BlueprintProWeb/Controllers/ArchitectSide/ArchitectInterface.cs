@@ -455,7 +455,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 RevisionHistory = history,
                 Compliance = tracker.Compliance,
                 FinalizationNotes = tracker.projectTrack_FinalizationNotes,
-                ProjectStatus = project.project_Status,
+                ProjectStatus = project.project_Status
             };
 
             return View(vm);
@@ -595,7 +595,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
         public async Task<IActionResult> FinalizeProject(string projectId)
         {
             var project = await context.Projects
-                .FirstOrDefaultAsync(p => p.project_Id == projectId); 
+                .FirstOrDefaultAsync(p => p.project_Id == projectId);
 
             if (project == null)
                 return Json(new { success = false, message = "Project not found." });
@@ -605,8 +605,15 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
 
             await context.SaveChangesAsync();
 
-            return Json(new { success = true, message = "✅ Project finalized successfully!" });
-        }
+            // ✅ Return redirect to ProjectTracker view for this project
+            var redirectUrl = Url.Action("ProjectTracker", "ArchitectInterface", new { id = project.blueprint_Id });
 
+            return Json(new
+            {
+                success = true,
+                message = "✅ Project finalized successfully!",
+                redirectUrl
+            });
+        }
     }
 }

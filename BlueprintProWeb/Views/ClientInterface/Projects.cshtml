@@ -88,7 +88,12 @@
                             </div>
                         </td>
                         <td class="text-end">
-                            <input type="submit" value="Track" class="track-btn btn" />
+                            <a asp-controller="ClientInterface"
+                               asp-action="ProjectTracker"
+                               asp-route-id="@project.blueprint_Id"
+                               class="track-btn btn">
+                                Track
+                            </a>
                         </td>
                     </tr>
                 }
