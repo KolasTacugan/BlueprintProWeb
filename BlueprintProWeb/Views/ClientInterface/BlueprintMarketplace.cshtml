@@ -39,7 +39,14 @@
         height: 100%;
         display: flex;
         flex-direction: column;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
 
     .card-img-top {
         height: 200px;
@@ -54,6 +61,282 @@
 
         .card-body .btn {
             margin-top: auto;
+        }
+
+    /* Blueprint Details Modal */
+    .blueprint-details-modal {
+        display: none;
+        position: fixed;
+        z-index: 2100;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(5px);
+    }
+
+    .blueprint-details-modal-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(15px);
+        border-radius: 20px;
+        box-shadow: 0 25px 70px rgba(13, 60, 128, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        width: 90%;
+        max-width: 800px;
+        max-height: 85vh;
+        overflow: hidden;
+        animation: blueprintModalSlide 0.4s ease-out;
+    }
+
+    @@keyframes blueprintModalSlide {
+        from {
+            opacity: 0;
+            transform: translate(-50%, -60%);
+            scale: 0.9;
+        }
+
+        to {
+            opacity: 1;
+            transform: translate(-50%, -50%);
+            scale: 1;
+        }
+    }
+
+    .blueprint-details-header {
+        background: #fff;
+        color: #091635;
+        padding: 24px;
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid #f8f9fa;
+    }
+
+    .blueprint-details-title {
+        font-size: 1.6rem;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: #091635;
+    }
+
+        .blueprint-details-title i {
+            color: #0D3C80;
+        }
+
+    .blueprint-details-close {
+        background: none;
+        border: none;
+        color: #6c757d;
+        font-size: 1.8rem;
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .blueprint-details-close:hover {
+            background-color: #f8f9fa;
+            color: #091635;
+        }
+
+    .blueprint-details-body {
+        padding: 0;
+        max-height: calc(85vh - 160px);
+        overflow-y: auto;
+        background: #fff;
+    }
+
+    .blueprint-image-section {
+        position: relative;
+        height: 350px;
+        overflow: hidden;
+    }
+
+    .blueprint-main-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .blueprint-image-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+        color: white;
+        padding: 20px 24px;
+    }
+
+    .blueprint-price-tag {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #fff;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .blueprint-info-section {
+        padding: 32px 24px;
+    }
+
+    .blueprint-details-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-bottom: 24px;
+    }
+
+    .blueprint-detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .blueprint-detail-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .blueprint-detail-value {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #091635;
+    }
+
+    .blueprint-description-section {
+        margin-bottom: 24px;
+    }
+
+    .blueprint-description {
+        font-size: 1rem;
+        line-height: 1.6;
+        color: #495057;
+        background: rgba(13, 60, 128, 0.03);
+        border-left: 4px solid #0D3C80;
+        padding: 16px 20px;
+        border-radius: 0 8px 8px 0;
+        margin-top: 12px;
+    }
+
+    .blueprint-features-section {
+        margin-bottom: 24px;
+    }
+
+    .blueprint-features-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 12px;
+        margin-top: 16px;
+    }
+
+    .blueprint-feature-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        background: rgba(13, 60, 128, 0.05);
+        border-radius: 8px;
+        font-size: 0.95rem;
+        color: #091635;
+    }
+
+    .blueprint-feature-icon {
+        color: #0D3C80;
+        font-size: 1.1rem;
+    }
+
+    .blueprint-rating-section {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+        padding: 16px;
+        background: rgba(255, 193, 7, 0.1);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 193, 7, 0.2);
+    }
+
+    .blueprint-stars {
+        color: #ffc107;
+        font-size: 1.2rem;
+    }
+
+    .blueprint-rating-text {
+        color: #6c757d;
+        font-size: 0.95rem;
+    }
+
+    .blueprint-details-footer {
+        padding: 20px 24px;
+        background: rgba(248, 249, 250, 0.8);
+        border-top: 1px solid rgba(13, 60, 128, 0.1);
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        align-items: center;
+    }
+
+    .blueprint-btn-secondary {
+        background: rgba(255, 255, 255, 0.9);
+        color: #0D3C80;
+        border: 2px solid rgba(13, 60, 128, 0.2);
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .blueprint-btn-secondary:hover {
+            background: rgba(13, 60, 128, 0.05);
+            border-color: rgba(13, 60, 128, 0.3);
+            transform: translateY(-1px);
+        }
+
+    .blueprint-btn-primary {
+        background: linear-gradient(135deg, #0D3C80 0%, #071744 100%);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 15px rgba(13, 60, 128, 0.3);
+    }
+
+        .blueprint-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(13, 60, 128, 0.4);
         }
 
     .cart-modal {
@@ -417,6 +700,26 @@
 
     /* Responsive adjustments */
     @@media (max-width: 768px) {
+        .blueprint-details-modal-content {
+            width: 95%;
+            max-width: none;
+            margin: 0 10px;
+        }
+
+        .blueprint-details-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .blueprint-features-list {
+            grid-template-columns: 1fr;
+        }
+
+        .blueprint-details-footer {
+            flex-direction: column;
+            gap: 8px;
+        }
+
         .cart-modal-content {
             right: 10px;
             left: 10px;
@@ -478,7 +781,13 @@
         @foreach (var item in Model)
         {
             <div class="col-md-3 mb-4 blueprint-item" data-category="@item.blueprintStyle">
-                <div class="card shadow-sm">
+                <div class="card shadow-sm blueprint-card"
+                     data-id="@item.blueprintId"
+                     data-name="@item.blueprintName"
+                     data-price="@item.blueprintPrice"
+                     data-description="@item.blueprintDescription"
+                     data-style="@item.blueprintStyle"
+                     data-image="@(string.IsNullOrEmpty(item.blueprintImage) ? "placeholder-blueprint.png" : item.blueprintImage)">
                     @if (!string.IsNullOrEmpty(item.blueprintImage))
                     {
                         <img src="~/images/@item.blueprintImage"
@@ -508,13 +817,130 @@
                                 data-id="@item.blueprintId"
                                 data-name="@item.blueprintName"
                                 data-price="@item.blueprintPrice"
-                                data-image="@(string.IsNullOrEmpty(item.blueprintImage) ? "placeholder-blueprint.png" : item.blueprintImage)">
+                                data-image="@(string.IsNullOrEmpty(item.blueprintImage) ? "placeholder-blueprint.png" : item.blueprintImage)"
+                                onclick="event.stopPropagation();">
                             Add to Cart
                         </button>
                     </div>
                 </div>
             </div>
         }
+    </div>
+</div>
+
+<!-- Blueprint Details Modal -->
+<div id="blueprintDetailsModal" class="blueprint-details-modal">
+    <div class="blueprint-details-modal-content">
+        <div class="blueprint-details-header">
+            <h3 class="blueprint-details-title">
+                <i class="fas fa-drafting-compass"></i>
+                <span id="modalBlueprintName">Blueprint Details</span>
+            </h3>
+            <button class="blueprint-details-close" id="blueprintDetailsCloseBtn">&times;</button>
+        </div>
+
+        <div class="blueprint-details-body">
+            <div class="blueprint-image-section">
+                <img id="modalBlueprintImage" src="" alt="" class="blueprint-main-image protected-img">
+                <div class="blueprint-image-overlay">
+                    <div class="blueprint-price-tag">₱<span id="modalBlueprintPrice">0</span></div>
+                </div>
+            </div>
+
+            <div class="blueprint-info-section">
+                <div class="blueprint-details-grid">
+                    <div class="blueprint-detail-item">
+                        <div class="blueprint-detail-label">
+                            <i class="fas fa-palette"></i>
+                            Style
+                        </div>
+                        <div class="blueprint-detail-value" id="modalBlueprintStyle">-</div>
+                    </div>
+                    <div class="blueprint-detail-item">
+                        <div class="blueprint-detail-label">
+                            <i class="fas fa-tag"></i>
+                            Product ID
+                        </div>
+                        <div class="blueprint-detail-value" id="modalBlueprintId">-</div>
+                    </div>
+                    <div class="blueprint-detail-item">
+                        <div class="blueprint-detail-label">
+                            <i class="fas fa-calendar-alt"></i>
+                            Availability
+                        </div>
+                        <div class="blueprint-detail-value">Available Now</div>
+                    </div>
+                    <div class="blueprint-detail-item">
+                        <div class="blueprint-detail-label">
+                            <i class="fas fa-download"></i>
+                            Format
+                        </div>
+                        <div class="blueprint-detail-value">Digital Download</div>
+                    </div>
+                </div>
+
+                <div class="blueprint-rating-section">
+                    <div class="blueprint-stars">★★★★★</div>
+                    <div class="blueprint-rating-text">
+                        <strong>5.0</strong> out of 5 stars (No reviews yet)
+                    </div>
+                </div>
+
+                <div class="blueprint-description-section">
+                    <div class="blueprint-detail-label">
+                        <i class="fas fa-info-circle"></i>
+                        Description
+                    </div>
+                    <div class="blueprint-description" id="modalBlueprintDescription">
+                        Blueprint description will appear here.
+                    </div>
+                </div>
+
+                <div class="blueprint-features-section">
+                    <div class="blueprint-detail-label">
+                        <i class="fas fa-check-circle"></i>
+                        Features & Specifications
+                    </div>
+                    <div class="blueprint-features-list">
+                        <div class="blueprint-feature-item">
+                            <i class="fas fa-ruler-combined blueprint-feature-icon"></i>
+                            Detailed Floor Plans
+                        </div>
+                        <div class="blueprint-feature-item">
+                            <i class="fas fa-cube blueprint-feature-icon"></i>
+                            3D Visualization Ready
+                        </div>
+                        <div class="blueprint-feature-item">
+                            <i class="fas fa-tools blueprint-feature-icon"></i>
+                            Construction Ready
+                        </div>
+                        <div class="blueprint-feature-item">
+                            <i class="fas fa-file-alt blueprint-feature-icon"></i>
+                            Technical Specifications
+                        </div>
+                        <div class="blueprint-feature-item">
+                            <i class="fas fa-home blueprint-feature-icon"></i>
+                            Professional Design
+                        </div>
+                        <div class="blueprint-feature-item">
+                            <i class="fas fa-shield-alt blueprint-feature-icon"></i>
+                            Quality Assured
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="blueprint-details-footer">
+            <button class="blueprint-btn-secondary" id="modalCloseBtn">
+                <i class="fas fa-times"></i>
+                Close
+            </button>
+            <button class="blueprint-btn-primary" id="modalAddToCartBtn">
+                <i class="fas fa-shopping-cart"></i>
+                Add to Cart
+            </button>
+        </div>
     </div>
 </div>
 
@@ -641,11 +1067,79 @@
             return "₱" + parseFloat(num).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         }
 
+        // --- Blueprint Details Modal ---
+        const blueprintDetailsModal = document.getElementById('blueprintDetailsModal');
+        const blueprintDetailsCloseBtn = document.getElementById('blueprintDetailsCloseBtn');
+        const modalCloseBtn = document.getElementById('modalCloseBtn');
+        const modalAddToCartBtn = document.getElementById('modalAddToCartBtn');
+
+        let currentModalBlueprint = null;
+
+        function showBlueprintDetails(blueprintData) {
+            currentModalBlueprint = blueprintData;
+
+            // Populate modal with blueprint data
+            document.getElementById('modalBlueprintName').textContent = blueprintData.name;
+            document.getElementById('modalBlueprintImage').src = `/images/${blueprintData.image}`;
+            document.getElementById('modalBlueprintImage').alt = blueprintData.name;
+            document.getElementById('modalBlueprintPrice').textContent = formatNumber(parseFloat(blueprintData.price).toFixed(0));
+            document.getElementById('modalBlueprintStyle').textContent = blueprintData.style;
+            document.getElementById('modalBlueprintId').textContent = `BP-${blueprintData.id.toString().padStart(4, '0')}`;
+            document.getElementById('modalBlueprintDescription').textContent = blueprintData.description;
+
+            // Show modal
+            blueprintDetailsModal.style.display = 'block';
+        }
+
+        function hideBlueprintDetails() {
+            blueprintDetailsModal.style.display = 'none';
+            currentModalBlueprint = null;
+        }
+
+        // Modal event listeners
+        blueprintDetailsCloseBtn.addEventListener('click', hideBlueprintDetails);
+        modalCloseBtn.addEventListener('click', hideBlueprintDetails);
+        blueprintDetailsModal.addEventListener('click', e => {
+            if (e.target === blueprintDetailsModal) hideBlueprintDetails();
+        });
+
+        modalAddToCartBtn.addEventListener('click', () => {
+            if (currentModalBlueprint) {
+                addToCart(
+                    currentModalBlueprint.id,
+                    currentModalBlueprint.name,
+                    currentModalBlueprint.price,
+                    currentModalBlueprint.image
+                );
+                hideBlueprintDetails();
+            }
+        });
+
         // --- Page load setup (format prices, tabs, sidebar adjust) ---
         document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('.price-value').forEach(function(element) {
                 const price = parseFloat(element.textContent.replace(/,/g, ''));
                 element.textContent = formatNumber(price);
+            });
+
+            // Add click listeners to blueprint cards
+            document.querySelectorAll('.blueprint-card').forEach(card => {
+                card.addEventListener('click', function(e) {
+                    // Don't open modal if clicking on the add to cart button
+                    if (e.target.classList.contains('add-to-cart') || e.target.closest('.add-to-cart')) {
+                        return;
+                    }
+
+                    const blueprintData = {
+                        id: this.dataset.id,
+                        name: this.dataset.name,
+                        price: this.dataset.price,
+                        description: this.dataset.description,
+                        style: this.dataset.style,
+                        image: this.dataset.image
+                    };
+                    showBlueprintDetails(blueprintData);
+                });
             });
 
             const categoryTabs = document.querySelectorAll('#categoryTabs .nav-link');
@@ -863,7 +1357,7 @@
     <script>
         // --- Protection Script ---
         (function () {
-            const protectedSelector = '.card .protected-img';
+            const protectedSelector = '.protected-img';
             document.querySelectorAll(protectedSelector).forEach(img => {
                 img.addEventListener('contextmenu', e => e.preventDefault());
                 img.addEventListener('dragstart', e => e.preventDefault());
