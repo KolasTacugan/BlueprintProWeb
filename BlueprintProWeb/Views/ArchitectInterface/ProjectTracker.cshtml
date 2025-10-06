@@ -384,7 +384,7 @@
     </form>
 
     <div class="text-end mt-3">
-        <button type="button" class="btn btn-success">
+        <button type="button" id="finishBtn" class="btn btn-success mb-2">
             Finish
         </button>
     </div>
@@ -632,6 +632,36 @@
                     $("#uploadResultModal").modal("show");
                 });
         });
+
+        $(document).on("click", "#finishBtn", function () {
+            const projectId = $("input[name='projectId']").val();
+
+            $.post("/ArchitectInterface/FinalizeProject", { projectId: projectId })
+                .done(res => {
+                    $("#uploadResultMessage").text(res.message);
+                    $("#uploadResultModal").modal("show");
+
+                    if (res.success) {
+                        setTimeout(() => location.reload(), 2000);
+                    }
+                })
+                .fail(() => {
+                    $("#uploadResultMessage").text("❌ Error while finalizing project.");
+                    $("#uploadResultModal").modal("show");
+                });
+        });
+
+
+        $(document).ready(function () {
+            const projectStatus = "@Model.ProjectStatus";
+
+            if (projectStatus === "Finished") {
+                    $("#saveFinalizationBtn").hide();
+                    $("#finishBtn").hide();
+                    $("#finalizationNotes").prop("readonly", true);
+                }
+            });
+
     </script>
 }
 
