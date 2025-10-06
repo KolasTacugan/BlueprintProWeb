@@ -570,7 +570,6 @@ namespace BlueprintProWeb.Controllers.ClientSide
 
             return View(vm);
         }
-
     }
 
 }

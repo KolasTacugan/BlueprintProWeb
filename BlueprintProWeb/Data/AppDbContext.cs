@@ -19,6 +19,9 @@ namespace BlueprintProWeb.Data
         public DbSet<ProjectTracker> ProjectTrackers { get; set; }
         public DbSet<Compliance> Compliances { get; set; }
         public DbSet<ProjectFile> ProjectFiles { get; set; }
+        public DbSet<Cart> Carts { get; set; }
+        public DbSet<CartItem> CartItems { get; set; }
+
 
 
         protected override void OnModelCreating(ModelBuilder builder)

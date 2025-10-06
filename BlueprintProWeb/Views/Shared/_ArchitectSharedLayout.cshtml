@@ -1,4 +1,7 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Identity
+@using BlueprintProWeb.Models
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -13,28 +16,34 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     @*STYLES*@
     <style>
-        *{
+        * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: "Poppins", sans-serif;
         }
-        body{
+
+        body {
             min-height: 100vh;
             background-color: #D6D9E0; /* base color */
             margin: 0;
             position: relative;
             overflow: hidden; /* just in case */
         }
-        body::before{
-            content: "";
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat;
-            opacity: 0.4;
-            z-index: -1;
-            pointer-events: none;
-        }
+
+            body::before {
+                content: "";
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat;
+                opacity: 0.4;
+                z-index: -1;
+                pointer-events: none;
+            }
+
         .sidebar {
             width: 270px;
             position: fixed;
@@ -45,43 +54,50 @@
             transition: 0.4s ease;
             z-index: 1000;
         }
-        .sidebar.collapsed{
-            width: 85px;
-        }
-        .sidebar-header{
+
+            .sidebar.collapsed {
+                width: 85px;
+            }
+
+        .sidebar-header {
             position: relative;
             display: flex;
             padding: 25px 20px;
             align-items: center;
             justify-content: space-between;
         }
-        .sidebar-header .header-logo {
-            display: flex; /* so it hugs the img */
-            align-items: center;
-            justify-content: center;
-            padding: 0; /* remove extra padding */
-            margin: 0; /* remove extra margin */
-        }
-        .sidebar-header .header-logo img{
-            width: 46px;
-            height: 46px;
-            display: block;
-            object-fit: contain;
-            border-radius: 50%;
-        }
-        .sidebar-header .system-name {
-            font-size: 1.2rem;   /* bigger than nav-labels */
-            font-weight: 700;   /* bold */
-            color: #fff;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            transition: opacity 0.4s ease, width 0.4s ease;
-        }
-        .system-name{
+
+            .sidebar-header .header-logo {
+                display: flex; /* so it hugs the img */
+                align-items: center;
+                justify-content: center;
+                padding: 0; /* remove extra padding */
+                margin: 0; /* remove extra margin */
+            }
+
+                .sidebar-header .header-logo img {
+                    width: 46px;
+                    height: 46px;
+                    display: block;
+                    object-fit: contain;
+                    border-radius: 50%;
+                }
+
+            .sidebar-header .system-name {
+                font-size: 1.2rem; /* bigger than nav-labels */
+                font-weight: 700; /* bold */
+                color: #fff;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                transition: opacity 0.4s ease, width 0.4s ease;
+            }
+
+        .system-name {
             margin-right: 24px;
             margin-top: 10px;
         }
+
         .sidebar-nav .nav-list {
             list-style: none;
             display: flex;
@@ -90,7 +106,8 @@
             flex-direction: column;
             transform: translateY(15px);
         }
-        .sidebar-header .toggler{
+
+        .sidebar-header .toggler {
             position: absolute;
             right: -15px;
             height: 35px;
@@ -105,35 +122,41 @@
             background: #fff;
             transition: 0.4s ease;
         }
-        .sidebar.collapsed .sidebar-header .toggler{
+
+        .sidebar.collapsed .sidebar-header .toggler {
             transform: translate(5px, 0px);
         }
-        .sidebar.collapsed .sidebar-header .toggler span{
-            transform: rotate(180deg);
-            border-radius: 50%;
-            outline: 4px solid #071744;
-            outline-offset: 4px;
-            transition: transform ease-in-out.4s ease;
-        }
+
+            .sidebar.collapsed .sidebar-header .toggler span {
+                transform: rotate(180deg);
+                border-radius: 50%;
+                outline: 4px solid #071744;
+                outline-offset: 4px;
+                transition: transform ease-in-out.4s ease;
+            }
 
         .sidebar-header .system-name {
             transition: opacity 1.5s ease;
         }
+
         .sidebar.collapsed .sidebar-header .system-name {
             opacity: 0;
             width: 0;
             pointer-events: none;
         }
-        .sidebar-header .toggler:hover{
+
+        .sidebar-header .toggler:hover {
             background: #dde4fb;
         }
-        .sidebar-header .toggler span{
+
+        .sidebar-header .toggler span {
             font-size: 1.75rem;
             border-radius: 50%;
             outline: 4px solid #071744;
             outline-offset: 4px;
             transition: transform 0.4s ease, outline 0.4s ease;
         }
+
         .sidebar-nav .nav-link {
             display: flex;
             align-items: center;
@@ -144,18 +167,22 @@
             border-radius: 8px;
             transition: 0.4s ease;
         }
-        .sidebar-nav .nav-link:hover{
-            background: #fff;
-            color: #071744;
-        }
-        .sidebar-nav .nav-link .nav-label{
-            transition: opacity 0.4s ease;
-        }
-        .sidebar.collapsed .sidebar-nav .nav-link .nav-label{
+
+            .sidebar-nav .nav-link:hover {
+                background: #fff;
+                color: #071744;
+            }
+
+            .sidebar-nav .nav-link .nav-label {
+                transition: opacity 0.4s ease;
+            }
+
+        .sidebar.collapsed .sidebar-nav .nav-link .nav-label {
             opacity: 0;
             pointer-events: none;
         }
-        .sidebar-nav{
+
+        .sidebar-nav {
             position: absolute;
             width: 100%;
             padding-top: 20px;
@@ -170,20 +197,48 @@
             background: #fff;
             z-index: 90;
             display: flex;
-            justify-content: flex-end; 
-            align-items: center; 
+            justify-content: space-between; /* Changed from flex-end to space-between */
+            align-items: center;
             border-radius: 8px;
+            padding: 0 25px; /* Add horizontal padding */
+        }
+
+        /* Pro indicator in header */
+        .header-pro-indicator {
+            background: linear-gradient(135deg, #0D3C80, #1a5bb8);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            box-shadow: 0 4px 15px rgba(13, 60, 128, 0.3);
+            animation: headerProGlow 2s ease-in-out infinite alternate;
+        }
+
+        @@keyframes headerProGlow {
+            0%
+
+        {
+            box-shadow: 0 4px 15px rgba(13, 60, 128, 0.3);
+        }
+
+        100% {
+            box-shadow: 0 4px 20px rgba(13, 60, 128, 0.5);
+        }
+
         }
 
         .navbar-div {
             display: flex;
-            align-items: center; 
-            height: 100%; 
+            align-items: center;
+            height: 100%;
         }
 
         .navbar-list {
-            display: flex; 
-            align-items: center; 
+            display: flex;
+            align-items: center;
             margin: 0;
             padding: 0;
         }
@@ -192,16 +247,16 @@
             list-style: none;
         }
 
-        .top-nav-item a {
-            display: flex;
-            align-items: center; 
-            justify-content: center;
-            color: #071744;
-            margin-right: 25px;
-            text-decoration: none;
-            height: 100%; 
-            gap: 6px; 
-        }
+            .top-nav-item a {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #071744;
+                margin-right: 25px;
+                text-decoration: none;
+                height: 100%;
+                gap: 6px;
+            }
 
         .logout-form {
             position: absolute;
@@ -226,10 +281,10 @@
             transition: 0.3s ease;
         }
 
-        .logout-btn:hover {
-            background: #fff;
-            border-color: #d62828;
-        }
+            .logout-btn:hover {
+                background: #fff;
+                border-color: #d62828;
+            }
 
         #notificationPanel {
             max-height: 300px;
@@ -242,13 +297,19 @@
             font-size: 0.9rem;
         }
 
-        .notification-item:last-child {
-            border-bottom: none;
-        }
+            .notification-item:last-child {
+                border-bottom: none;
+            }
     </style>
     @RenderSection("Styles", required: false)
 </head>
 <body>
+    @inject UserManager<User> UserManager
+    @{
+        var user = await UserManager.GetUserAsync(User);
+        var isPro = user?.IsProActive ?? false;
+    }
+
     @* SIDEBAR *@
     <aside class="sidebar collapsed">
         @* SideBar Header *@
@@ -298,10 +359,19 @@
     </aside>
     @*NAVBAR*@
     <nav class="navbar">
+        <!-- Pro indicator (left side) -->
+        <div>
+            @if (isPro)
+            {
+                <span class="header-pro-indicator">PRO</span>
+            }
+        </div>
+
+        <!-- Navigation items (right side) -->
         <div class="navbar-div">
             <ul class="navbar-list">
                 <li class="top-nav-item">
-                    <a href="#" class="top-nav-link">
+                    <a asp-controller="ArchitectInterface" asp-action="Messages" class="top-nav-link">
                         <span class="material-symbols-rounded">chat_bubble</span>
                     </a>
                 </li>
@@ -353,12 +423,14 @@
         const emptyState = document.getElementById("emptyNotification");
 
         // Toggle panel on bell click
-        bell.addEventListener("click", (e) => {
-            e.preventDefault();
-            panel.style.display = (panel.style.display === "none" || panel.style.display === "")
-                ? "block"
-                : "none";
-        });
+        if (bell) {
+            bell.addEventListener("click", (e) => {
+                e.preventDefault();
+                panel.style.display = (panel.style.display === "none" || panel.style.display === "")
+                    ? "block"
+                    : "none";
+            });
+        }
 
         // Add a new notification
         function addNotification(message) {
@@ -368,7 +440,7 @@
             item.className = "notification-item";
             item.textContent = message;
 
-            list.appendChild(item);
+            if (list) list.appendChild(item);
         }
 
     </script>
