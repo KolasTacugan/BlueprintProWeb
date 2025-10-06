@@ -454,7 +454,8 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 Status = tracker.projectTrack_Status,
                 RevisionHistory = history,
                 Compliance = tracker.Compliance,
-                FinalizationNotes = tracker.projectTrack_FinalizationNotes
+                FinalizationNotes = tracker.projectTrack_FinalizationNotes,
+                ProjectStatus = project.project_Status,
             };
 
             return View(vm);
@@ -588,5 +589,24 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
 
             return Json(new { success = true, message = "Finalization notes saved successfully." });
         }
+
+        [HttpPost]
+        [Route("ArchitectInterface/FinalizeProject")]
+        public async Task<IActionResult> FinalizeProject(string projectId)
+        {
+            var project = await context.Projects
+                .FirstOrDefaultAsync(p => p.project_Id == projectId); 
+
+            if (project == null)
+                return Json(new { success = false, message = "Project not found." });
+
+            project.project_Status = "Finished";
+            project.project_endDate = DateTime.Now;
+
+            await context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "✅ Project finalized successfully!" });
+        }
+
     }
 }
