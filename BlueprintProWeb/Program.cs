@@ -8,11 +8,15 @@ using BlueprintProWeb.Settings;
 using OpenAI;
 using OpenAI.Embeddings;
 using System.Text.Json;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -60,6 +64,18 @@ builder.Services.AddSingleton(sp =>
     return new EmbeddingClient("text-embedding-3-small", apiKey);
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAndroidApp",
+        policy =>
+        {
+            policy.WithOrigins("http://10.0.2.2:8080", "http://localhost:8080") // For emulator
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+});
+
+
 builder.Services.AddSignalR();
 
 builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
@@ -68,26 +84,35 @@ builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Str
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-//Hello Nicole Tacugan!
-//Fuck you
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseCors("AllowAndroidApp");
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+app.MapControllers();
 app.MapHub<ChatHub>("/chatHub");
 
 
