@@ -539,7 +539,37 @@ namespace BlueprintProWeb.Controllers.ClientSide
             return RedirectToAction("Messages", new { architectId });
         }
 
+        [HttpGet]
+        public IActionResult ProjectTracker(int id)
+        {
+            var project = context.Projects.FirstOrDefault(p => p.blueprint_Id == id);
+            if (project == null) return NotFound();
 
+            var tracker = context.ProjectTrackers
+                .Include(t => t.Compliance)
+                .FirstOrDefault(t => t.project_Id == project.project_Id);
+            if (tracker == null) return NotFound();
+
+            var history = context.ProjectFiles
+                .Where(f => f.project_Id == project.project_Id)
+                .OrderByDescending(f => f.projectFile_Version)
+                .ToList();
+
+            var vm = new ProjectTrackerViewModel
+            {
+                projectTrack_Id = tracker.projectTrack_Id,
+                project_Id = project.project_Id,
+                CurrentFileName = tracker.projectTrack_currentFileName,
+                CurrentFilePath = tracker.projectTrack_currentFilePath,
+                CurrentRevision = tracker.projectTrack_currentRevision,
+                Status = tracker.projectTrack_Status,
+                RevisionHistory = history,
+                Compliance = tracker.Compliance,
+                FinalizationNotes = tracker.projectTrack_FinalizationNotes
+            };
+
+            return View(vm);
+        }
     }
 
 }

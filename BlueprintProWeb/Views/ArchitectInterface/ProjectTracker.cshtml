@@ -1,6 +1,5 @@
 ﻿@model BlueprintProWeb.ViewModels.ProjectTrackerViewModel
 
-
 @{
     ViewData["Title"] = "Project Stepper";
     Layout = "~/Views/Shared/_ArchitectSharedLayout.cshtml";
@@ -8,7 +7,6 @@
 
 @section Styles {
     <style>
-
         .stepper {
             display: flex;
             justify-content: space-between;
@@ -35,13 +33,11 @@
             font-size: 14px;
         }
 
-        /* active step */
         .step.active .icon {
             background: #071744;
             color: #fff;
         }
 
-        /* completed step */
         .step.completed .icon {
             background: #fff;
             color: #071744;
@@ -89,14 +85,14 @@
             z-index: -1;
         }
 
-        .next-btn, .replace-btn, .confirm-btn {
+        .next-btn, .replace-btn, .confirm-btn, .confirm-finish-btn {
             position: relative;
             color: #fff;
             background: #071744;
             transition: 0.2s ease;
         }
 
-        .next-btn:hover, .replace-btn:hover, .confirm-btn:hover {
+        .next-btn:hover, .replace-btn:hover, .confirm-btn:hover, .confirm-finish-btn:hover {
         background: #fff;
         color: #071744;
         border-color: #071744;
@@ -383,7 +379,7 @@
         </button>
     </form>
 
-    <div class="text-end mt-3">
+    <div class="text-end">
         <button type="button" id="finishBtn" class="btn btn-success mb-2">
             Finish
         </button>
@@ -443,6 +439,26 @@
             </div>
             <div class="modal-body" id="uploadResultMessage">
                 <!-- message will be injected here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Final Confirmation Modal -->
+<div class="modal fade" id="finalConfirmModal" tabindex="-1" aria-labelledby="finalConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-3 shadow">
+            <div class="modal-header">
+                <h5 class="modal-title" id="finalConfirmModalLabel">Final Confirmation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Before finishing, please make sure all steps are correctly filled out and uploaded.
+                <br /><br />
+                <strong>Are you sure you want to mark this project as finished?</strong>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="confirmFinishBtn" class="btn confirm-finish-btn">Yes, finish project</button>
             </div>
         </div>
     </div>
@@ -634,7 +650,24 @@
         });
 
         $(document).on("click", "#finishBtn", function () {
+            const notes = $("#finalizationNotes").val().trim();
+
+            // Optional safeguard: ensure notes are filled
+            if (!notes) {
+                $("#uploadResultMessage").text("⚠️ Please provide finalization notes before finishing.");
+                $("#uploadResultModal").modal("show");
+                return;
+            }
+
+            // Show confirmation modal
+            $("#finalConfirmModal").modal("show");
+        });
+
+        // 🔥 If confirmed, finalize project
+        $(document).on("click", "#confirmFinishBtn", function () {
             const projectId = $("input[name='projectId']").val();
+
+            $("#finalConfirmModal").modal("hide");
 
             $.post("/ArchitectInterface/FinalizeProject", { projectId: projectId })
                 .done(res => {
@@ -642,8 +675,9 @@
                     $("#uploadResultModal").modal("show");
 
                     if (res.success) {
-                        setTimeout(() => location.reload(), 2000);
+                        window.location.href = res.redirectUrl;
                     }
+
                 })
                 .fail(() => {
                     $("#uploadResultMessage").text("❌ Error while finalizing project.");
@@ -652,17 +686,17 @@
         });
 
 
+
         $(document).ready(function () {
             const projectStatus = "@Model.ProjectStatus";
 
             if (projectStatus === "Finished") {
-                    $("#saveFinalizationBtn").hide();
-                    $("#finishBtn").hide();
-                    $("#finalizationNotes").prop("readonly", true);
-                }
-            });
+                $("#saveFinalizationBtn").hide();
+                $("#finishBtn").hide();
+                $("#finalizationNotes").prop("readonly", true);
+            }
+        });
+
 
     </script>
 }
-
-
