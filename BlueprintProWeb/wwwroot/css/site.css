@@ -8,6 +8,11 @@
     overflow: hidden;
 }
 
+/* Global font family */
+* {
+    font-family: 'Raleway', sans-serif;
+}
+
 /* =====================
    Hero Section
    ===================== */

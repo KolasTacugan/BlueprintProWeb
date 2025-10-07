@@ -7,9 +7,12 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/BlueprintProWeb.styles.css" asp-append-version="true" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     @RenderSection("Styles", required: false)
 </head>
-<body class="@(ViewData["HideNavigation"] != null ? "landing-page" : "")">
+<body class="@(ViewData["HideNavigation"] != null ? "landing-page" : "")" style="font-family: 'Raleway', sans-serif;">
     @if (ViewData["HideNavigation"] == null)
     {
         <header>
