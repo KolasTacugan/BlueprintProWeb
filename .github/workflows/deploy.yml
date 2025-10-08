@@ -33,6 +33,12 @@ jobs:
         run: dotnet build --configuration Release --no-restore
         working-directory: ./BlueprintProWeb
 
+      - name: Install EF Core tools
+        run: dotnet tool install --global dotnet-ef  
+
+      - name: Add .NET tools to PATH
+        run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH  
+
       - name: Apply EF Core Migrations
         run: dotnet ef database update --project ./BlueprintProWeb
         env:
