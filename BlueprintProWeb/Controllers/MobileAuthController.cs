@@ -1,6 +1,8 @@
 ﻿using BlueprintProWeb.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using OpenAI;
+using OpenAI.Embeddings;
 using System.Globalization;
 
 namespace BlueprintProWeb.Controllers
@@ -11,11 +13,14 @@ namespace BlueprintProWeb.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
+        private readonly OpenAIClient _openAi;
+        private readonly OpenAI.Embeddings.EmbeddingClient _embeddingClient;
 
-        public MobileAuthController(UserManager<User> userManager, SignInManager<User> signInManager)
+        public MobileAuthController(UserManager<User> userManager, SignInManager<User> signInManager, OpenAIClient openAi, OpenAI.Embeddings.EmbeddingClient embeddingClient)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _embeddingClient = embeddingClient;
         }
 
         // ✅ REGISTER (Mobile)
@@ -112,11 +117,48 @@ namespace BlueprintProWeb.Controllers
         // 🧠 Placeholder — your embedding generator (implement as in your web controller)
         private async Task<float[]> GenerateEmbedding(string text)
         {
-            // TODO: Replace this with your real embedding generation logic
-            await Task.Delay(100);
-            return new float[] { 0.12f, 0.45f, 0.88f }; // mock example
+            if (string.IsNullOrWhiteSpace(text))
+                return Array.Empty<float>();
+
+            var embeddingResponse = await _embeddingClient.GenerateEmbeddingAsync(text);
+            return embeddingResponse.Value.ToFloats().ToArray();
         }
+
+
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest model)
+        {
+            if (model == null || string.IsNullOrEmpty(model.Email) || string.IsNullOrEmpty(model.NewPassword))
+                return BadRequest(new { message = "Invalid request data", success = false, statusCode = 400 });
+
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+                return NotFound(new { message = "Email not found", success = false, statusCode = 404 });
+
+            // ✅ Verify if email is confirmed
+            if (!user.EmailConfirmed)
+                return BadRequest(new { message = "Email not verified. Please verify your email before changing the password.", success = false, statusCode = 400 });
+
+            var removeResult = await _userManager.RemovePasswordAsync(user);
+            if (!removeResult.Succeeded)
+            {
+                var errors = string.Join(", ", removeResult.Errors.Select(e => e.Description));
+                return BadRequest(new { message = $"Failed to remove old password: {errors}", success = false, statusCode = 400 });
+            }
+
+            var addResult = await _userManager.AddPasswordAsync(user, model.NewPassword);
+            if (!addResult.Succeeded)
+            {
+                var errors = string.Join(", ", addResult.Errors.Select(e => e.Description));
+                return BadRequest(new { message = $"Failed to add new password: {errors}", success = false, statusCode = 400 });
+            }
+
+            return Ok(new { message = "Password changed successfully", success = true, statusCode = 200 });
+        }
+
     }
+
+
 
     // ✅ REGISTER REQUEST MODEL (matches User model)
     public class RegisterRequest
@@ -142,5 +184,11 @@ namespace BlueprintProWeb.Controllers
     {
         public string Email { get; set; }
         public string Password { get; set; }
+    }
+
+    public class ChangePasswordRequest
+    {
+        public string Email { get; set; }
+        public string NewPassword { get; set; }
     }
 }
