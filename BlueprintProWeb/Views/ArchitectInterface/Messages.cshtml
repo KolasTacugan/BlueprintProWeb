@@ -5,145 +5,878 @@
     Layout = "~/Views/Shared/_ArchitectSharedLayout.cshtml";
 }
 
-<div class="container-fluid mt-3">
-    <div class="row">
-        <!-- LEFT PANEL -->
-        <div class="col-md-4 border-end bg-white" style="height: 90vh; overflow-y: auto;">
-            <h5 class="mb-3">Matches</h5>
-            <div class="d-flex flex-wrap gap-3 mb-4">
-                @if (Model.Matches.Any())
+@section Styles {
+    <style>
+        /* Override shared layout background for messages */
+        body::before {
+            background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
+            opacity: 0.1 !important;
+        }
+
+        /* Ensure scrollable page */
+        body {
+            background: #F1F7F9 !important;
+            overflow-y: auto !important;
+            height: auto !important;
+            font-family: 'Raleway', sans-serif !important;
+        }
+
+        /* Main content positioning that responds to sidebar state */
+        main.container {
+            margin-left: 300px; /* Default for expanded sidebar */
+            margin-top: 90px; /* Account for navbar */
+            padding: 1.5rem;
+            padding-top: 4rem;
+            max-width: calc(100% - 320px);
+            transition: margin-left 0.4s ease, max-width 0.4s ease;
+        }
+
+        /* When sidebar is collapsed, adjust main content */
+        .sidebar.collapsed ~ * main.container,
+        body:has(.sidebar.collapsed) main.container {
+            margin-left: 110px;
+            max-width: calc(100% - 130px);
+        }
+
+        .messages-layout {
+            display: flex;
+            gap: 1.5rem;
+            height: calc(100vh - 200px);
+            min-height: 600px;
+        }
+
+        /* Left Panel Styling */
+        .messages-sidebar {
+            background: #FFFFFF;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: none;
+            width: 350px;
+            min-width: 300px;
+            overflow-y: auto;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            display: flex;
+            flex-direction: column; /* Ensures vertical stacking */
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+        }
+
+        .sidebar-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 0.25rem;
+            font-family: 'Raleway', sans-serif;
+            display: block; /* Ensure block behavior */
+        }
+
+        .sidebar-subtitle {
+            font-size: 0.875rem;
+            color: #64748B;
+            font-weight: 500;
+            margin-bottom: 0;
+            display: block; /* Ensure block behavior */
+        }
+
+        .search-container {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            background: #F8FAFC;
+            font-size: 0.875rem;
+            font-family: 'Raleway', sans-serif;
+            transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #344EAD;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(52, 78, 173, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 0.875rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748B;
+            font-size: 1rem;
+        }
+
+        .section-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #64748B;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .matches-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .match-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #475569;
+            padding: 1rem 0.75rem;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+        }
+
+        .match-item:hover {
+            background: #F0F4FF;
+            border-color: #344EAD;
+            color: #344EAD;
+            text-decoration: none;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(52, 78, 173, 0.15);
+        }
+
+        .match-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #E2E8F0;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .match-item:hover .match-avatar {
+            border-color: #344EAD;
+        }
+
+        .match-name {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-align: center;
+            line-height: 1.2;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .conversations-list {
+            flex: 1;
+        }
+
+        .conversation-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem 0.75rem;
+            margin-bottom: 0.5rem;
+            border-radius: 12px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .conversation-item:hover {
+            background: #F8FAFC;
+            border-color: #E2E8F0;
+            text-decoration: none;
+        }
+
+        .conversation-item.active {
+            background: #F0F4FF;
+            border-color: #344EAD;
+        }
+
+        .conversation-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 0.75rem;
+            border: 2px solid #E2E8F0;
+        }
+
+        .conversation-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .conversation-name {
+            font-weight: 600;
+            color: #1E293B;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .conversation-preview {
+            font-size: 0.8rem;
+            color: #64748B;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .conversation-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.5rem;
+        }
+
+        .conversation-time {
+            font-size: 0.75rem;
+            color: #94A3B8;
+            font-weight: 500;
+        }
+
+        .unread-badge {
+            background: #344EAD;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .no-items-message {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: #64748B;
+            font-style: italic;
+            margin-top: 3rem; 
+        }
+
+        /* Right Panel Styling */
+        .chat-panel {
+            background: #FFFFFF;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: none;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid #E2E8F0;
+            background: #F8FAFC;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chat-user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .chat-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #E2E8F0;
+        }
+
+        .chat-user-details h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1E293B;
+            margin: 0;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .chat-user-status {
+            font-size: 0.8rem;
+            color: #344EAD;
+            font-weight: 500;
+        }
+
+        .chat-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .chat-action-btn {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #E2E8F0;
+            background: #FFFFFF;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748B;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .chat-action-btn:hover {
+            background: #F8FAFC;
+            border-color: #344EAD;
+            color: #344EAD;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            background: #FAFAFA;
+        }
+
+        .message-day-divider {
+            text-align: center;
+            margin: 1.5rem 0 1rem;
+            position: relative;
+        }
+
+        .message-day-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #E2E8F0;
+            z-index: 1;
+        }
+
+        .message-day-label {
+            background: #F8FAFC;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #64748B;
+            position: relative;
+            z-index: 2;
+            display: inline-block;
+            border: 1px solid #E2E8F0;
+        }
+
+        .message-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .message-container {
+            display: flex;
+            margin-bottom: 0.5rem;
+            align-items: flex-end;
+            gap: 0.75rem;
+        }
+
+        .message-container.own {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #E2E8F0;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 0.875rem 1.125rem;
+            border-radius: 18px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            font-size: 0.9rem;
+            line-height: 1.4;
+            word-wrap: break-word;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .message-bubble.own {
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            color: white;
+            border-bottom-right-radius: 6px;
+        }
+
+        .message-bubble.other {
+            background: #FFFFFF;
+            color: #374151;
+            border: 1px solid #E2E8F0;
+            border-bottom-left-radius: 6px;
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            color: #94A3B8;
+            margin-top: 0.25rem;
+            padding: 0 0.5rem;
+            font-weight: 500;
+        }
+
+        .message-time.own {
+            text-align: right;
+        }
+
+        .chat-input-area {
+            padding: 1.25rem 1.5rem;
+            background: #FFFFFF;
+            border-top: 1px solid #E2E8F0;
+            border-radius: 0 0 12px 12px;
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-end;
+            background: #F8FAFC;
+            border-radius: 16px;
+            border: 1px solid #E2E8F0;
+            padding: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .chat-input-container:focus-within {
+            border-color: #344EAD;
+            background: #FFFFFF;
+            box-shadow: 0 0 0 3px rgba(52, 78, 173, 0.1);
+        }
+
+        .message-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 0.9rem;
+            font-family: 'Raleway', sans-serif;
+            resize: none;
+            min-height: 20px;
+            max-height: 100px;
+            line-height: 1.4;
+        }
+
+        .message-input:focus {
+            outline: none;
+        }
+
+        .message-input::placeholder {
+            color: #94A3B8;
+        }
+
+        .input-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .send-button {
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            border: none;
+            border-radius: 12px;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.1rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(52, 78, 173, 0.3);
+        }
+
+        .send-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(52, 78, 173, 0.4);
+        }
+
+        .no-chat-selected {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #64748B;
+            background: #FAFAFA;
+        }
+
+        .no-chat-content {
+            max-width: 400px;
+        }
+
+        .no-chat-icon {
+            font-size: 3rem;
+            color: #CBD5E1;
+            margin-top: 5rem;
+            margin-bottom: 1rem;
+        }
+
+        .no-chat-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 0.5rem;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .no-chat-subtitle {
+            font-size: 0.9rem;
+            color: #64748B;
+            line-height: 1.5;
+        }
+
+        /* Responsive Design */
+        @@media (max-width: 1200px) {
+            .messages-sidebar {
+                width: 300px;
+                min-width: 250px;
+            }
+        }
+
+        @@media (max-width: 992px) {
+            .messages-layout {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .messages-sidebar {
+                width: 100%;
+                max-height: 300px;
+            }
+            
+            .chat-panel {
+                min-height: 500px;
+            }
+        }
+
+        @@media (max-width: 767.98px) {
+            main.container {
+                margin-left: 0 !important;
+                margin-top: 75px;
+                max-width: 100% !important;
+                padding: 1rem;
+                padding-top: 2rem;
+            }
+
+            .matches-grid {
+                grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+                gap: 0.75rem;
+            }
+
+            .match-avatar {
+                width: 50px;
+                height: 50px;
+            }
+
+            .match-name {
+                font-size: 0.7rem;
+            }
+
+            .message-bubble {
+                max-width: 85%;
+            }
+
+            .chat-messages {
+                padding: 1rem;
+            }
+        }
+
+        /* Custom scrollbars */
+        .messages-sidebar::-webkit-scrollbar,
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .messages-sidebar::-webkit-scrollbar-track,
+        .chat-messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .messages-sidebar::-webkit-scrollbar-thumb,
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 3px;
+        }
+
+        .messages-sidebar::-webkit-scrollbar-thumb:hover,
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #94A3B8;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarToggler = document.querySelector('.sidebar-toggler');
+            const mainContent = document.querySelector('main.container');
+            
+            function adjustMainContent() {
+                if (sidebar && mainContent) {
+                    if (sidebar.classList.contains('collapsed')) {
+                        mainContent.style.marginLeft = '110px';
+                        mainContent.style.maxWidth = 'calc(100% - 130px)';
+                    } else {
+                        mainContent.style.marginLeft = '300px';
+                        mainContent.style.maxWidth = 'calc(100% - 320px)';
+                    }
+                }
+            }
+            
+            // Adjust on page load
+            adjustMainContent();
+            
+            // Listen for sidebar toggle
+            if (sidebarToggler) {
+                sidebarToggler.addEventListener('click', function() {
+                    setTimeout(adjustMainContent, 50);
+                });
+            }
+
+            // Auto-scroll to bottom of chat
+            const chatContainer = document.getElementById('chat-container');
+            if (chatContainer) {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+
+            // Auto-resize textarea and handle Enter key for sending
+            const messageInput = document.querySelector('.message-input');
+            if (messageInput) {
+                // Auto-resize functionality
+                messageInput.addEventListener('input', function() {
+                    this.style.height = 'auto';
+                    this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+                });
+                
+                // Handle Enter key to send message
+                messageInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault(); // Prevent default line break behavior
+                        
+                        // Check if there's text to send
+                        const messageText = this.value.trim();
+                        if (messageText) {
+                            // Find the form and submit it
+                            const form = this.closest('form');
+                            if (form) {
+                                form.submit();
+                            }
+                        }
+                    }
+                    // Allow Shift+Enter for line breaks
+                });
+            }
+
+            // Enter key functionality for sending messages
+            const messageForm = document.querySelector('form[asp-action="SendMessage"]');
+            if (messageForm) {
+                messageForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const formData = new FormData(this);
+                    const actionUrl = this.action;
+                    
+                    // Send message via fetch API
+                    fetch(actionUrl, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Clear message input
+                            messageInput.value = '';
+                            messageInput.style.height = 'auto';
+
+                            // Optionally, you can trigger a chat refresh here
+                            // location.reload();
+                        }
+                    })
+                    .catch(error => console.error('Error sending message:', error));
+                });
+            }
+        });
+    </script>
+}
+
+<div class="messages-layout">
+    <!-- Left Panel - Conversations Sidebar -->
+    <div class="messages-sidebar">
+        <div class="sidebar-header">
+            <h1 class="sidebar-title">Messages</h1>
+            <p class="sidebar-subtitle">Connect with your clients</p>
+        </div>
+
+        <div class="search-container">
+            <span class="search-icon material-symbols-rounded">search</span>
+            <input type="text" class="search-input" placeholder="Search conversations..." />
+        </div>
+
+        <!-- Matches Section -->
+        @if (Model.Matches.Any())
+        {
+            <div class="section-label">Available Matches</div>
+            <div class="matches-grid">
+                @foreach (var match in Model.Matches)
                 {
-                    foreach (var match in Model.Matches)
-                    {
-                        var profilePhoto = string.IsNullOrEmpty(match.ClientProfileUrl)
+                    var profilePhoto = string.IsNullOrEmpty(match.ClientProfileUrl)
                         ? "/images/default-profile.png"
                         : match.ClientProfileUrl.Replace("~", "").Replace("wwwroot", "");
 
-                        <a asp-controller="ArchitectInterface"
-                           asp-action="Messages"
-                           asp-route-clientId="@match.ClientId"
-                           class="text-center text-decoration-none">
-                            <img src="@profilePhoto"
-                                 class="rounded-circle"
-                                 style="width:60px; height:60px; object-fit:cover;" />
-                            <div class="small text-dark">@match.ClientName</div>
-                        </a>
-                    }
-                }
-                else
-                {
-                    <p class="text-muted">No matches yet</p>
+                    <a asp-controller="ArchitectInterface"
+                       asp-action="Messages"
+                       asp-route-clientId="@match.ClientId"
+                       class="match-item">
+                        <img src="@profilePhoto" class="match-avatar" alt="@match.ClientName" />
+                        <div class="match-name">@match.ClientName</div>
+                    </a>
                 }
             </div>
+        }
 
-            <h6 class="mt-4">Conversations</h6>
-            <ul class="list-group">
-                @if (Model.Conversations.Any())
+        <!-- Conversations Section -->
+        <div class="section-label">Recent Conversations</div>
+        <div class="conversations-list">
+            @if (Model.Conversations.Any())
+            {
+                @foreach (var convo in Model.Conversations)
                 {
-                    foreach (var convo in Model.Conversations)
-                    {
-                        var convoPhoto = string.IsNullOrEmpty(convo.ClientProfileUrl)
+                    var convoPhoto = string.IsNullOrEmpty(convo.ClientProfileUrl)
                         ? "/images/default-profile.png"
                         : convo.ClientProfileUrl.Replace("~", "").Replace("wwwroot", "");
 
-                        <a asp-controller="ArchitectInterface"
-                           asp-action="Messages"
-                           asp-route-clientId="@convo.ClientId"
-                           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-
-                            <div class="d-flex align-items-center">
-                                <img src="@convoPhoto" class="rounded-circle me-2"
-                                     style="width:40px; height:40px; object-fit:cover;" />
-                                <span>@convo.ClientName</span>
-                            </div>
-
-                            <div class="d-flex align-items-center gap-2">
-                                <small class="text-muted">@convo.LastMessageTime.ToShortTimeString()</small>
-                                @if (convo.UnreadCount > 0)
-                                {
-                                    <span class="badge bg-danger rounded-pill">@convo.UnreadCount</span>
-                                }
-                            </div>
-                        </a>
-                    }
-                }
-                else
-                {
-                    <li class="list-group-item text-muted">No conversations yet</li>
-                }
-            </ul>
-        </div>
-
-        <!-- RIGHT PANEL -->
-        <div class="col-md-8 d-flex flex-column bg-light" style="height: 90vh;">
-            @if (Model.ActiveChat != null)
-            {
-                var chatPhoto = string.IsNullOrEmpty(Model.ActiveChat.ClientProfileUrl)
-                ? "/images/default-profile.png"
-                : Model.ActiveChat.ClientProfileUrl.Replace("~", "").Replace("wwwroot", "");
-
-                <!-- Chat Header -->
-                <div class="border-bottom p-2 d-flex align-items-center bg-white">
-                    <img src="@chatPhoto"
-                         class="rounded-circle me-2"
-                         style="width:40px; height:40px; object-fit:cover;" />
-                    <strong>@Model.ActiveChat.ClientName</strong>
-                </div>
-
-                <!-- Chat History -->
-                <div class="flex-grow-1 overflow-auto p-3" id="chat-container">
-                    @foreach (var msg in Model.ActiveChat.Messages)
-                    {
-                        var msgPhoto = string.IsNullOrEmpty(msg.SenderProfilePhoto)
-                        ? "/images/default-profile.png"
-                        : msg.SenderProfilePhoto.Replace("~", "").Replace("wwwroot", "");
-
-                        <div class="d-flex mb-2 @(msg.IsOwnMessage ? "justify-content-end" : "justify-content-start")">
-                            @if (!msg.IsOwnMessage)
+                    <a asp-controller="ArchitectInterface"
+                       asp-action="Messages"
+                       asp-route-clientId="@convo.ClientId"
+                       class="conversation-item @(Model.ActiveChat?.ClientId == convo.ClientId ? "active" : "")">
+                        <img src="@convoPhoto" class="conversation-avatar" alt="@convo.ClientName" />
+                        <div class="conversation-info">
+                            <div class="conversation-name">@convo.ClientName</div>
+                            <div class="conversation-preview">Click to start conversation</div>
+                        </div>
+                        <div class="conversation-meta">
+                            <div class="conversation-time">@convo.LastMessageTime.ToString("HH:mm")</div>
+                            @if (convo.UnreadCount > 0)
                             {
-                                <img src="@msgPhoto" class="rounded-circle me-2"
-                                     style="width:30px; height:30px; object-fit:cover;" />
-                            }
-
-                            <div class="p-2 rounded shadow-sm"
-                                 style="background:@(msg.IsOwnMessage ? "#071744" : "#f1f1f1");
-                                                color:@(msg.IsOwnMessage ? "white" : "black");
-                                                max-width:70%;">
-                                @msg.MessageBody
-                            </div>
-
-                            @if (msg.IsOwnMessage)
-                            {
-                                <img src="@msgPhoto" class="rounded-circle ms-2"
-                                     style="width:30px; height:30px; object-fit:cover;" />
+                                <div class="unread-badge">@convo.UnreadCount</div>
                             }
                         </div>
-                        <div class="small text-muted @(msg.IsOwnMessage ? "text-end" : "text-start")">
-                            @msg.MessageDate.ToShortTimeString()
-                        </div>
-                    }
-                </div>
-
-                <!-- Chat Input -->
-                <form asp-controller="ArchitectInterface"
-                      asp-action="SendMessage"
-                      method="post"
-                      class="d-flex border-top p-2 bg-white">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="clientId" value="@Model.ActiveChat.ClientId" />
-                    <input type="text" name="messageBody" class="form-control me-2" placeholder="Type a message..." />
-                    <button type="submit" class="btn btn-primary">
-                        <span class="material-symbols-rounded">send</span>
-                    </button>
-                </form>
+                    </a>
+                }
             }
             else
             {
-                <div class="d-flex justify-content-center align-items-center flex-grow-1">
-                    <p class="text-muted">Select a conversation to start chatting</p>
-                </div>
+                <div class="no-items-message">No conversations yet</div>
             }
         </div>
+    </div>
 
+    <!-- Right Panel - Chat Area -->
+    <div class="chat-panel">
+        @if (Model.ActiveChat != null)
+        {
+            var chatPhoto = string.IsNullOrEmpty(Model.ActiveChat.ClientProfileUrl)
+                ? "/images/default-profile.png"
+                : Model.ActiveChat.ClientProfileUrl.Replace("~", "").Replace("wwwroot", "");
+
+            <!-- Chat Header -->
+            <div class="chat-header">
+                <div class="chat-user-info">
+                    <img src="@chatPhoto" class="chat-avatar" alt="@Model.ActiveChat.ClientName" />
+                    <div class="chat-user-details">
+                        <h3>@Model.ActiveChat.ClientName</h3>
+                        <div class="chat-user-status">Online</div>
+                    </div>
+                </div>
+                <div class="chat-actions">
+                    <button class="chat-action-btn" title="Call">
+                        <span class="material-symbols-rounded">call</span>
+                    </button>
+                    <button class="chat-action-btn" title="Video Call">
+                        <span class="material-symbols-rounded">videocam</span>
+                    </button>
+                    <button class="chat-action-btn" title="More Options">
+                        <span class="material-symbols-rounded">more_vert</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Chat Messages -->
+            <div class="chat-messages" id="chat-container">
+                <div class="message-day-divider">
+                    <span class="message-day-label">Today</span>
+                </div>
+
+                @foreach (var msg in Model.ActiveChat.Messages)
+                {
+                    var msgPhoto = string.IsNullOrEmpty(msg.SenderProfilePhoto)
+                        ? "/images/default-profile.png"
+                        : msg.SenderProfilePhoto.Replace("~", "").Replace("wwwroot", "");
+
+                    <div class="message-group">
+                        <div class="message-container @(msg.IsOwnMessage ? "own" : "")">
+                            <img src="@msgPhoto" class="message-avatar" alt="Sender" />
+                            <div class="message-bubble @(msg.IsOwnMessage ? "own" : "other")">
+                                @msg.MessageBody
+                            </div>
+                        </div>
+                        <div class="message-time @(msg.IsOwnMessage ? "own" : "")">
+                            @msg.MessageDate.ToString("HH:mm")
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Chat Input -->
+            <div class="chat-input-area">
+                <form asp-controller="ArchitectInterface"
+                      asp-action="SendMessage"
+                      method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="clientId" value="@Model.ActiveChat.ClientId" />
+                    
+                    <div class="chat-input-container">
+                        <textarea name="messageBody" class="message-input" placeholder="Type your message..." rows="1"></textarea>
+                        <div class="input-actions">
+                            <button type="submit" class="send-button" title="Send Message">
+                                <span class="material-symbols-rounded">send</span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        }
+        else
+        {
+            <div class="no-chat-selected">
+                <div class="no-chat-content">
+                    <div class="no-chat-icon material-symbols-rounded">chat</div>
+                    <h2 class="no-chat-title">Welcome to Messages</h2>
+                    <p class="no-chat-subtitle">Select a conversation from the sidebar to start chatting with your clients, or browse available matches to connect with new professionals.</p>
+                </div>
+            </div>
+        }
     </div>
 </div>

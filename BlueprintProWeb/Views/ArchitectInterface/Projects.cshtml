@@ -1,202 +1,259 @@
-﻿@model IEnumerable<BlueprintProWeb.Models.Blueprint>
+﻿@model IEnumerable<BlueprintProWeb.Models.Project>
 
 @{
-	ViewData["Title"] = "ArchitectDashboard";
-	Layout = "~/Views/Shared/_ArchitectSharedLayout.cshtml";
+    ViewData["Title"] = "ArchitectDashboard";
+    Layout = "~/Views/Shared/_ArchitectSharedLayout.cshtml";
 }
 
 @section Styles {
-	<style>
+    <style>
+        body::before {
+            background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
+            opacity: 0.1 !important;
+        }
 
-		/* Override shared layout background for projects page */
-		body::before {
-			background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
-			opacity: 0.1 !important;
-		}
-    
-		/* Ensure scrollable page */
-		body {
-			overflow-y: auto !important;
-			height: auto !important;
-		}
+        body {
+            overflow-y: auto !important;
+            height: auto !important;
+        }
 
-		/* Main content positioning that responds to sidebar state */
-		main.container {
-			margin-left: 300px; /* Default for expanded sidebar */
-			margin-top: 90px; /* Account for navbar */
-			padding: 2rem;
-			padding-top: 3rem; /* Add extra top padding to avoid header overlap */
-			max-width: calc(100% - 320px);
-			transition: margin-left 0.4s ease, max-width 0.4s ease; /* Smooth transition */
-		}
+        main.container {
+            margin-left: 300px;
+            margin-top: 90px;
+            padding: 2rem;
+            padding-top: 3rem;
+            max-width: calc(100% - 320px);
+            transition: margin-left 0.4s ease, max-width 0.4s ease;
+        }
 
-		/* When sidebar is collapsed, adjust main content */
-		.sidebar.collapsed ~ * main.container,
-		body:has(.sidebar.collapsed) main.container {
-			margin-left: 110px; /* Account for collapsed sidebar (85px + margins) */
-			max-width: calc(100% - 130px);
-		}
+        .sidebar.collapsed ~ * main.container,
+        body:has(.sidebar.collapsed) main.container {
+            margin-left: 110px;
+            max-width: calc(100% - 130px);
+        }
 
-		.blueprint-title {
-			font-weight: 700;
-			color: #091635;
-			padding-top: 50px;
-		}
+        .blueprint-title {
+            font-weight: 700;
+            color: #091635;
+            padding-top: 50px;
+            margin-bottom: 2rem;
+        }
 
-		.blueprint-table {
-			border-collapse: separate;
-			border-spacing: 0 12px;
-			background: transparent;
-			width: 100%;
-		}
+        .blueprint-table {
+            border-collapse: separate;
+            border-spacing: 0 12px;
+            background: transparent;
+            width: 100%;
+        }
 
-		.blueprint-table tr {
-			background: #fff;
-			overflow: hidden;
-			vertical-align: middle;
-			box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-			border-radius: 8px;
-		}
+        .blueprint-table tr {
+            background: #fff;
+            overflow: hidden;
+            vertical-align: middle;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            border-radius: 8px;
+        }
 
-		.blueprint-table td {
-			padding: 15px;
-			border: none;
-		}
+        .blueprint-table td {
+            padding: 15px;
+            border: none;
+        }
 
-		.bp-image {
-			width: 160px;
-			height: 80px;
-			border-radius: 8px;
-			object-fit: cover;
-			opacity: 1;
-		}
+        .bp-image {
+            width: 160px;
+            height: 80px;
+            border-radius: 8px;
+            object-fit: cover;
+            opacity: 1;
+        }
 
-		.bp-name {
-			margin-left: 40px;
-			font-weight: 600;
-		}
+        .bp-name {
+            margin-left: 40px;
+            font-weight: 600;
+            color: #091635;
+        }
 
-		.track-btn {
-			background: #071744;
-			color: #fff;
-			transition: 0.2s ease;
-			border: 1px solid #071744;
-			padding: 8px 16px;
-			border-radius: 6px;
-		}
+        .client-link {
+            color: #091635;
+            cursor: pointer;
+            transition: 0.1s ease;
+            
+        }
 
-		.track-btn:hover {
-			color: #071744;
-			background: #fff;
-			border-color: #071744;
-		}
+        .client-link:hover{
+            font-weight: 600;
+            text-decoration: none;
+        }
 
-		.bp-row {
-			cursor: pointer;
-		}
+        .track-btn {
+            background: #071744;
+            color: #fff;
+            transition: 0.2s ease;
+            border: 1px solid #071744;
+            padding: 8px 16px;
+            border-radius: 6px;
+        }
 
-		.delete-title {
-			font-weight: 600;
-		}
+        .track-btn:hover {
+            color: #071744;
+            background: #fff;
+            border-color: #071744;
+        }
+        
+        .place-holder{
+            margin-left: 40px;
+        }
 
-		.save-btn {
-			color: #fff;
-			background: #071744;
-			border-color: #fff;
-			transition: 0.2s ease;
-		}
+        @@media (max-width: 767.98px) {
+            main.container {
+                margin-left: 0 !important;
+                margin-top: 75px;
+                max-width: 100% !important;
+                padding: 1rem;
+                padding-top: 2rem;
+            }
 
-		.save-btn:hover {
-			background: #fff;
-			color: #071744;
-		}
+            .bp-name {
+                margin-left: 20px;
+            }
 
-		/* Responsive adjustments */
-		@@media (max-width: 767.98px) {
-			main.container {
-				margin-left: 0 !important;
-				margin-top: 75px;
-				max-width: 100% !important;
-				padding: 1rem;
-				padding-top: 2rem;
-			}
-
-			.bp-name {
-				margin-left: 20px;
-			}
-
-			.bp-image {
-				width: 120px;
-				height: 60px;
-			}
-		}
-	</style>
+            .bp-image {
+                width: 120px;
+                height: 60px;
+            }
+        }
+    </style>
 }
 
 <div class="row mb-5 align-items-center">
-	<div class="col">
-		<h1 class="blueprint-title">My Projects</h1>
-	</div>
+    <div class="col">
+        <h1 class="blueprint-title">My Projects</h1>
+    </div>
 </div>
 
 <div class="row">
-	<div class="col">
-		<table class="table blueprint-table">
-			<tbody>
-				@foreach (var item in Model)
-				{
-					<tr class="bp-row">
-						<td>
-							<div class="d-flex align-items-center">
-								<img src="~/images/@item.blueprintImage" class="bp-image me-2" asp-append-version="true" />
-								<span class="bp-name">@item.blueprintName</span>
-							</div>
-						</td>
-						<td class="text-end">
-							<a asp-controller="ArchitectInterface"
-							   asp-action="ProjectTracker"
-							   asp-route-id="@item.blueprintId"
-							   class="track-btn btn">
-								Track
-							</a>
-						</td>
-					</tr>
-				}
-			</tbody>
-		</table>
-	</div>
+    <div class="col">
+        <table class="table blueprint-table">
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr class="bp-row">
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <img src="~/images/@item.Blueprint.blueprintImage" class="bp-image me-2" asp-append-version="true" />
+                                <div>
+                                    <span class="bp-name">@item.project_Title</span>
+                                    <div class="mt-2">
+                                        <small>
+                                            <strong class="place-holder">Budget:</strong> ₱@item.project_Budget
+                                        </small><br />
+                                        <small>
+                                            <strong class="place-holder">Client:</strong>
+                                            <a href="#"
+                                               class="client-link text-decoration-none"
+                                               data-client-id="@item.Client.Id">
+                                                @item.Client.user_fname @item.Client.user_lname
+                                            </a>
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-end">
+                            <a asp-controller="ArchitectInterface"
+                               asp-action="ProjectTracker"
+                               asp-route-id="@item.blueprint_Id"
+                               class="track-btn btn">
+                                Track
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Client Profile Modal -->
+<div class="modal fade" id="clientProfileModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Client Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="profile-container">
+                    <div class="profile-main-card p-3">
+                        <div class="profile-info d-flex align-items-center gap-3 mb-3">
+                            <div class="avatar">
+                                <img src="~/images/profile.jpg" alt="Avatar" style="width:64px;height:64px;border-radius:50%;">
+                            </div>
+                            <div class="user-details">
+                                <h3 id="clientProfileName" class="client-name mb-1 fw-bold"></h3>
+                                <div id="clientProfileEmail" class="text-muted"></div>
+                                <div id="clientProfilePhone" class="text-muted"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
-	<script>
-		// Listen for sidebar toggle and adjust main content accordingly
-		document.addEventListener('DOMContentLoaded', function() {
-			const sidebar = document.querySelector('.sidebar');
-			const sidebarToggler = document.querySelector('.sidebar-toggler');
-			const mainContent = document.querySelector('main.container');
-			
-			function adjustMainContent() {
-				if (sidebar && mainContent) {
-					if (sidebar.classList.contains('collapsed')) {
-						mainContent.style.marginLeft = '110px';
-						mainContent.style.maxWidth = 'calc(100% - 130px)';
-					} else {
-						mainContent.style.marginLeft = '300px';
-						mainContent.style.maxWidth = 'calc(100% - 320px)';
-					}
-				}
-			}
-			
-			// Adjust on page load
-			adjustMainContent();
-			
-			// Listen for sidebar toggle
-			if (sidebarToggler) {
-				sidebarToggler.addEventListener('click', function() {
-					// Wait for the sidebar transition to start
-					setTimeout(adjustMainContent, 50);
-				});
-			}
-		});
-	</script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarToggler = document.querySelector('.sidebar-toggler');
+            const mainContent = document.querySelector('main.container');
+
+            function adjustMainContent() {
+                if (sidebar && mainContent) {
+                    if (sidebar.classList.contains('collapsed')) {
+                        mainContent.style.marginLeft = '110px';
+                        mainContent.style.maxWidth = 'calc(100% - 130px)';
+                    } else {
+                        mainContent.style.marginLeft = '300px';
+                        mainContent.style.maxWidth = 'calc(100% - 320px)';
+                    }
+                }
+            }
+
+            adjustMainContent();
+
+            if (sidebarToggler) {
+                sidebarToggler.addEventListener('click', function () {
+                    setTimeout(adjustMainContent, 50);
+                });
+            }
+
+            // logic for client info
+            const clientProfileModal = new bootstrap.Modal(document.getElementById('clientProfileModal'));
+
+            document.querySelectorAll('.client-link').forEach(link => {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    const clientId = this.dataset.clientId;
+
+                    fetch(`/ArchitectInterface/GetClientProfile?clientId=${clientId}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                document.getElementById("clientProfileName").innerText = data.name;
+                                document.getElementById("clientProfileEmail").innerText = data.email || "No email provided";
+                                document.getElementById("clientProfilePhone").innerText = data.phone || "No phone provided";
+
+                                clientProfileModal.show();
+                            } else {
+                                alert("❌ " + data.message);
+                            }
+                        })
+                        .catch(() => alert("❌ Failed to load client profile."));
+                });
+            });
+        });
+    </script>
 }

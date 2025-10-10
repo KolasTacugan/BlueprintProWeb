@@ -1,4 +1,5 @@
-﻿@{
+﻿@model BlueprintProWeb.ViewModels.ClientDashboardViewModel
+@{
     ViewData["Title"] = "ClientDashboard";
     Layout = "~/Views/Shared/_ClientSharedLayout.cshtml";
 }
@@ -463,15 +464,15 @@
 <!-- First Row: Stats Cards Only -->
 <div class="dashboard-stats-row">
     <div class="stat-card">
-        <span class="stat-value">3</span>
+        <span class="stat-value">@Model.TotalMatches</span>
         <span class="stat-label">Total Matches</span>
     </div>
     <div class="stat-card">
-        <span class="stat-value">1</span>
+        <span class="stat-value">@Model.TotalPurchases</span>
         <span class="stat-label">Total Purchase</span>
     </div>
     <div class="stat-card">
-        <span class="stat-value">1</span>
+        <span class="stat-value">@Model.TotalProjects</span>
         <span class="stat-label">Total Projects</span>
     </div>
 </div>
@@ -497,14 +498,22 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>Clark Moore</td>
-                        <td>Residential Architecture</td>
-                    </tr>
-                    <tr>
-                        <td>Vanessa Kang</td>
-                        <td>Commercial Architecture</td>
-                    </tr>
+                    @if (Model.RecentMatches.Any())
+                    {
+                        @foreach (var match in Model.RecentMatches)
+                        {
+                            <tr>
+                                <td>@match.ArchitectName</td>
+                                <td>@match.ArchitectSpecialty</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="2" class="text-center text-muted">No matches found</td>
+                        </tr>
+                    }
                 </tbody>
             </table>
         </div>
@@ -522,7 +531,17 @@
         </div>
         <div class="blueprint-content">Blueprint Purchased</div>
         <div class="blueprint-list">
-            <div class="blueprint-item">1. White House Design</div>
+            @if (Model.RecentPurchases.Any())
+            {
+                @foreach (var purchase in Model.RecentPurchases.Take(3))
+                {
+                    <div class="blueprint-item">@purchase.BlueprintName</div>
+                }
+            }
+            else
+            {
+                <div class="blueprint-item text-muted">No blueprints purchased yet</div>
+            }
         </div>
     </div>
 </div>
@@ -535,51 +554,69 @@
         </div>
         Project Overview
     </div>
-    <div class="overview-controls">
-        <span class="project-badge">White H..</span>
-        <button class="nav-btn"><i class="fas fa-chevron-left"></i></button>
-        <button class="nav-btn"><i class="fas fa-chevron-right"></i></button>
-        <div class="project-progress">
-            <div class="project-progress-bar" style="width: 60%"></div>
+    @if (Model.CurrentProject != null)
+    {
+        <div class="overview-controls">
+            <span class="project-badge">@(Model.CurrentProject.ProjectTitle.Length > 8 ? Model.CurrentProject.ProjectTitle.Substring(0, 8) + ".." : Model.CurrentProject.ProjectTitle)</span>
+            <button class="nav-btn"><i class="fas fa-chevron-left"></i></button>
+            <button class="nav-btn"><i class="fas fa-chevron-right"></i></button>
+            <div class="project-progress">
+                <div class="project-progress-bar" style="width: @(Model.CurrentProject.ProgressPercentage)%"></div>
+            </div>
         </div>
-    </div>
-    <div class="overview-circles">
-        <div class="overview-circle">
-            <svg width="100" height="100" class="circle-chart">
-                <circle cx="50" cy="50" r="42" fill="none" stroke="#E2E8F0" stroke-width="6"></circle>
-                <circle cx="50" cy="50" r="42" fill="none" stroke="#344EAD" stroke-width="6"
-                        stroke-dasharray="264" stroke-dashoffset="0"
-                        style="transform: rotate(-90deg); transform-origin: 50px 50px;"></circle>
-                <text x="50" y="56" text-anchor="middle">100%</text>
-            </svg>
-            <div class="circle-label">Planning</div>
+        <div class="overview-circles">
+            <div class="overview-circle">
+                <svg width="100" height="100" class="circle-chart">
+                    <circle cx="50" cy="50" r="42" fill="none" stroke="#E2E8F0" stroke-width="6"></circle>
+                    @if (Model.CurrentProject.ProgressPercentage >= 25)
+                    {
+                        <circle cx="50" cy="50" r="42" fill="none" stroke="#344EAD" stroke-width="6"
+                                stroke-dasharray="264" stroke-dashoffset="0"
+                                style="transform: rotate(-90deg); transform-origin: 50px 50px;"></circle>
+                    }
+                </svg>
+                <div class="circle-label">Planning @(Model.CurrentProject.ProgressPercentage >= 25 ? "✓" : "")</div>
+            </div>
+            <div class="overview-circle">
+                <svg width="100" height="100" class="circle-chart">
+                    <circle cx="50" cy="50" r="42" fill="none" stroke="#E2E8F0" stroke-width="6"></circle>
+                    @if (Model.CurrentProject.ProgressPercentage >= 50)
+                    {
+                        <circle cx="50" cy="50" r="42" fill="none" stroke="#344EAD" stroke-width="6"
+                                stroke-dasharray="264" stroke-dashoffset="0"
+                                style="transform: rotate(-90deg); transform-origin: 50px 50px;"></circle>
+                    }
+                </svg>
+                <div class="circle-label">Designing @(Model.CurrentProject.ProgressPercentage >= 50 ? "✓" : "")</div>
+            </div>
+            <div class="overview-circle">
+                <svg width="100" height="100" class="circle-chart">
+                    <circle cx="50" cy="50" r="42" fill="none" stroke="#E2E8F0" stroke-width="6"></circle>
+                    <circle cx="50" cy="50" r="42" fill="none" stroke="#344EAD" stroke-width="6"
+                            stroke-dasharray="264" stroke-dashoffset="@(264 - (Model.CurrentProject.ProgressPercentage * 264 / 100))"
+                            style="transform: rotate(-90deg); transform-origin: 50px 50px;"></circle>
+                </svg>
+                <div class="circle-label">Development (@Model.CurrentProject.ProgressPercentage%)</div>
+            </div>
+            <div class="overview-circle">
+                <svg width="100" height="100" class="circle-chart">
+                    <circle cx="50" cy="50" r="42" fill="none" stroke="#E2E8F0" stroke-width="6"></circle>
+                    @if (Model.CurrentProject.ProgressPercentage >= 90)
+                    {
+                        <circle cx="50" cy="50" r="42" fill="none" stroke="#344EAD" stroke-width="6"
+                                stroke-dasharray="264" stroke-dashoffset="0"
+                                style="transform: rotate(-90deg); transform-origin: 50px 50px;"></circle>
+                    }
+                </svg>
+                <div class="circle-label">Testing @(Model.CurrentProject.ProgressPercentage >= 90 ? "✓" : "🕒")</div>
+            </div>
         </div>
-        <div class="overview-circle">
-            <svg width="100" height="100" class="circle-chart">
-                <circle cx="50" cy="50" r="42" fill="none" stroke="#E2E8F0" stroke-width="6"></circle>
-                <circle cx="50" cy="50" r="42" fill="none" stroke="#344EAD" stroke-width="6"
-                        stroke-dasharray="264" stroke-dashoffset="0"
-                        style="transform: rotate(-90deg); transform-origin: 50px 50px;"></circle>
-                <text x="50" y="56" text-anchor="middle">100%</text>
-            </svg>
-            <div class="circle-label">Designing</div>
+    }
+    else
+    {
+        <div class="text-center text-muted py-4">
+            <p>No active projects yet</p>
+            <a href="/ClientInterface/Matches" class="btn btn-primary btn-sm">Find an Architect</a>
         </div>
-        <div class="overview-circle">
-            <svg width="100" height="100" class="circle-chart">
-                <circle cx="50" cy="50" r="42" fill="none" stroke="#E2E8F0" stroke-width="6"></circle>
-                <circle cx="50" cy="50" r="42" fill="none" stroke="#344EAD" stroke-width="6"
-                        stroke-dasharray="264" stroke-dashoffset="87"
-                        style="transform: rotate(-90deg); transform-origin: 50px 50px;"></circle>
-                <text x="50" y="56" text-anchor="middle">67%</text>
-            </svg>
-            <div class="circle-label">Development</div>
-        </div>
-        <div class="overview-circle">
-            <svg width="100" height="100" class="circle-chart">
-                <circle cx="50" cy="50" r="42" fill="none" stroke="#E2E8F0" stroke-width="6"></circle>
-                <text x="50" y="58" text-anchor="middle" fill="#A0AEC0" font-size="1.5rem">🕒</text>
-            </svg>
-            <div class="circle-label">Testing</div>
-        </div>
-    </div>
+    }
 </div>
