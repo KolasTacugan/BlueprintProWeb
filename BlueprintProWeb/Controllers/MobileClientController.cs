@@ -289,101 +289,62 @@ namespace BlueprintProWeb.Controllers
         }
 
         // -------------------- MATCHING --------------------
-        // NOTE: allow anonymous so mobile can call without cookie-based login.
-        // If you prefer authorization, change [AllowAnonymous] to [Authorize] and
-        // implement token/JWT authentication in mobile client.
+        
         [HttpGet("Matches")]
-        [AllowAnonymous]
+        [AllowAnonymous] // or require auth if you prefer
         public async Task<IActionResult> GetMatches([FromQuery] string? query)
         {
             try
             {
-                // If you prefer to require a user, uncomment this block and return Unauthorized if null.
-                // var currentUser = await userManager.GetUserAsync(User);
-                // if (currentUser == null) return Unauthorized(new { success = false, message = "User not authorized." });
+                string searchQuery = string.IsNullOrWhiteSpace(query) ? "General search" : query;
 
-                // For anonymous use: build a generic searchQuery from query or use a safe default
-                string searchQuery = string.IsNullOrWhiteSpace(query)
-                    ? "General search"
-                    : query;
+                // Expand query with GPT
+                var chatClient = _openAi.GetChatClient("gpt-5-mini");
+                var messages = new List<ChatMessage>
+        {
+            new SystemChatMessage("You are an assistant that rewrites client needs into a natural request for an architect."),
+            new UserChatMessage($"User request: {searchQuery}. Expand into 2–3 descriptive sentences.")
+        };
+                var gptResponse = await chatClient.CompleteChatAsync(messages);
+                var expansion = gptResponse.Value.Content[0].Text;
+                var finalQuery = $"{searchQuery}. Expanded: {expansion}";
 
-                // Expand query using GPT (fail-safe: don't block if OpenAI fails)
-                string expansion = "";
-                try
-                {
-                    var chatClient = _openAi.GetChatClient("gpt-5-mini");
-                    var messages = new List<ChatMessage>
-                    {
-                        new SystemChatMessage("You are an assistant that rewrites client needs into a natural request for an architect."),
-                        new UserChatMessage($"User request: {searchQuery}. Expand into 2–3 descriptive sentences.")
-                    };
-                    var response = await chatClient.CompleteChatAsync(messages);
-                    expansion = response.Value.Content[0].Text;
-                }
-                catch
-                {
-                    // ignore embedding expansion failure — fallback to searchQuery
-                    expansion = "";
-                }
+                // Generate embeddings
+                var embeddingResponse = await _embeddingClient.GenerateEmbeddingAsync(finalQuery);
+                var queryVector = embeddingResponse.Value.ToFloats().ToArray();
 
-                // Generate embeddings (wrap in try/catch; if it fails, fallback to simple matching)
-                float[] queryVector = Array.Empty<float>();
-                try
-                {
-                    var embeddingResponse = await _embeddingClient.GenerateEmbeddingAsync($"{searchQuery}. Expanded: {expansion}");
-                    queryVector = embeddingResponse.Value.ToFloats().ToArray();
-                }
-                catch
-                {
-                    queryVector = Array.Empty<float>();
-                }
-
-                // Get architects (ensure PortfolioEmbedding is non-null)
+                // Filter to architects with embeddings
                 var architects = await context.Users
-                    .Where(u => u.user_role == "Architect")
+                    .Where(u => u.user_role == "Architect" && !string.IsNullOrEmpty(u.PortfolioEmbedding))
                     .ToListAsync();
 
-                // If embeddings exist, do similarity ranking, else return newest/available architects
-                var ranked = new List<(User Architect, double Score)>();
-                if (queryVector.Length > 0)
-                {
-                    ranked = architects
-                        .Where(a => !string.IsNullOrEmpty(a.PortfolioEmbedding))
-                        .Select(a =>
-                        {
-                            var vecA = ParseEmbedding(a.PortfolioEmbedding);
-                            if (vecA == null || vecA.Length != queryVector.Length)
-                                return (Architect: a, Score: double.MinValue);
-                            var score = CosineSimilarity(queryVector, vecA);
-                            if (a.IsPro) score += 0.05;
-                            return (Architect: a, Score: score);
-                        })
-                        .Where(x => x.Score != double.MinValue)
-                        .OrderByDescending(x => x.Score)
-                        .Take(10)
-                        .ToList();
-                }
-                else
-                {
-                    // fallback: take latest 10 architects
-                    ranked = architects
-                        .OrderByDescending(a => a.Id) // or other ordering
-                        .Take(10)
-                        .Select(a => (Architect: a, Score: 0.0))
-                        .ToList();
-                }
+                // Rank by cosine similarity
+                var ranked = architects
+                    .Select(a =>
+                    {
+                        var vecA = ParseEmbedding(a.PortfolioEmbedding);
+                        if (vecA == null || vecA.Length != queryVector.Length)
+                            return (Architect: a, Score: double.MinValue);
 
+                        var score = CosineSimilarity(queryVector, vecA);
+                        if (a.IsPro) score += 0.05;
+                        return (Architect: a, Score: score);
+                    })
+                    .Where(x => x.Score != double.MinValue)
+                    .OrderByDescending(x => x.Score)
+                    .Take(10)
+                    .ToList();
+
+                // Map to DTO
                 var matchDtos = ranked.Select(x => new MatchDto
                 {
                     MatchId = Guid.NewGuid().ToString(),
-                    ClientId = null,
-                    ClientName = null,
                     ArchitectId = x.Architect.Id,
                     ArchitectName = $"{x.Architect.user_fname} {x.Architect.user_lname}",
                     ArchitectStyle = x.Architect.user_Style,
                     ArchitectLocation = x.Architect.user_Location,
                     ArchitectBudget = x.Architect.user_Budget,
-                    MatchStatus = "AI Match",
+                    MatchStatus = x.Architect.IsPro ? "AI + Portfolio Match (Pro)" : "AI + Portfolio Match",
                     MatchDate = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss")
                 }).ToList();
 
@@ -395,55 +356,43 @@ namespace BlueprintProWeb.Controllers
             }
         }
 
+
         // -------------------- SEND MATCH REQUEST --------------------
         public class MatchRequest
         {
-            public string ArchitectId { get; set; } = string.Empty;
+            public string ArchitectId { get; set; }
+            public string ClientId { get; set; }
         }
 
+        [AllowAnonymous]
         [HttpPost("RequestMatch")]
-        [AllowAnonymous] // You can change to [Authorize] if you set up token auth for mobile
         public async Task<IActionResult> RequestMatch([FromBody] MatchRequest request)
         {
-            try
+            if (string.IsNullOrWhiteSpace(request.ClientId))
+                return BadRequest(new { success = false, message = "ClientId is required." });
+
+            if (string.IsNullOrWhiteSpace(request.ArchitectId))
+                return BadRequest(new { success = false, message = "ArchitectId is required." });
+
+            var existing = await context.Matches
+                .FirstOrDefaultAsync(m => m.ClientId == request.ClientId && m.ArchitectId == request.ArchitectId);
+
+            if (existing != null)
+                return BadRequest(new { success = false, message = "Match request already sent." });
+
+            var match = new Match
             {
-                // If you require authentication, get currentUser via userManager.GetUserAsync(User)
-                // and return Unauthorized if null. For now we allow anonymous so that mobile can test.
-                // If you allow anonymous, you must validate request.ArchitectId, etc.
+                ClientId = request.ClientId,
+                ArchitectId = request.ArchitectId
+            };
 
-                if (string.IsNullOrWhiteSpace(request?.ArchitectId))
-                    return BadRequest(new { success = false, message = "ArchitectId is required." });
+            context.Matches.Add(match);
+            await context.SaveChangesAsync();
 
-                // If using anonymous flow: try to resolve a test client or return an informative message.
-                // Here we simply create a Match with a placeholder ClientId if no authenticated user exists.
-                var currentUser = await userManager.GetUserAsync(User);
-                var clientId = currentUser?.Id ?? "anonymous-client";
-
-                var existing = await context.Matches
-                    .FirstOrDefaultAsync(m => m.ClientId == clientId && m.ArchitectId == request.ArchitectId);
-
-                if (existing != null)
-                    return BadRequest(new { success = false, message = "Match request already sent." });
-
-                var match = new Match
-                {
-                    MatchId = Guid.NewGuid().ToString(),
-                    ClientId = clientId,
-                    ArchitectId = request.ArchitectId,
-                    MatchStatus = "Pending",
-                    MatchDate = DateTime.UtcNow
-                };
-
-                context.Matches.Add(match);
-                await context.SaveChangesAsync();
-
-                return Ok(new { success = true, message = "Match request sent successfully." });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { success = false, message = ex.Message });
-            }
+            return Ok(new { success = true, message = "Match request sent successfully." });
         }
+
+
 
         // -------------------- MESSAGING --------------------
         [HttpGet("Messages/{architectId}")]
