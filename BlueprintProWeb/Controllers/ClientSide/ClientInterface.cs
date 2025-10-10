@@ -16,7 +16,6 @@ using OpenAI.Embeddings;
 using Stripe;
 using Stripe.Checkout;
 using System.Globalization;
-using System.Globalization;
 using System.Text.Json;
 
 namespace BlueprintProWeb.Controllers.ClientSide
@@ -51,8 +50,101 @@ namespace BlueprintProWeb.Controllers.ClientSide
         public async Task<IActionResult> ClientDashboard()
         {
             var currentUser = await userManager.GetUserAsync(User);
-            ViewData["UserFirstName"] = currentUser?.user_fname ?? "User";
-            return View();
+            if (currentUser == null)
+                return RedirectToAction("Login", "Account");
+
+            ViewData["UserFirstName"] = currentUser.user_fname ?? "User";
+
+            // Get statistics for the current client
+            var userId = currentUser.Id;
+
+            // Total Matches - count all matches where this user is the client
+            var totalMatches = await context.Matches
+                .CountAsync(m => m.ClientId == userId);
+
+            // Total Purchases - count blueprints purchased by this client
+            var totalPurchases = await context.Blueprints
+                .CountAsync(bp => bp.clentId == userId && !bp.blueprintIsForSale);
+
+            // Total Projects - count projects where this user is the client
+            var totalProjects = await context.Projects
+                .CountAsync(p => p.user_clientId == userId);
+
+            // Recent matches (last 5)
+            var recentMatches = await context.Matches
+                .Where(m => m.ClientId == userId)
+                .Include(m => m.Architect)
+                .OrderByDescending(m => m.MatchDate)
+                .Take(5)
+                .Select(m => new MatchSummary
+                {
+                    ArchitectName = $"{m.Architect.user_fname} {m.Architect.user_lname}",
+                    ArchitectSpecialty = m.Architect.user_Style ?? "General Architecture",
+                    Status = m.MatchStatus,
+                    MatchDate = m.MatchDate
+                })
+                .ToListAsync();
+
+            // Recent purchases (last 5)
+            var recentPurchases = await context.Blueprints
+                .Where(bp => bp.clentId == userId && !bp.blueprintIsForSale)
+                .OrderByDescending(bp => bp.blueprintId) // Using blueprintId as proxy for purchase order
+                .Take(5)
+                .Select(bp => new BlueprintPurchase
+                {
+                    BlueprintName = bp.blueprintName,
+                    PurchaseDate = DateTime.UtcNow, // You might want to add a PurchaseDate field to Blueprint model
+                    Price = bp.blueprintPrice
+                })
+                .ToListAsync();
+
+            // Current/most recent project - get the raw data first
+            var currentProjectRaw = await context.Projects
+                .Where(p => p.user_clientId == userId)
+                .Include(p => p.Architect)
+                .OrderByDescending(p => p.project_startDate)
+                .FirstOrDefaultAsync();
+
+            // Calculate project overview after data is retrieved
+            ProjectOverview? currentProject = null;
+            if (currentProjectRaw != null)
+            {
+                currentProject = new ProjectOverview
+                {
+                    ProjectTitle = currentProjectRaw.project_Title,
+                    Status = currentProjectRaw.project_Status,
+                    ProgressPercentage = CalculateProjectProgress(currentProjectRaw.project_Status), // Now safe to call
+                    StartDate = currentProjectRaw.project_startDate,
+                    ArchitectName = $"{currentProjectRaw.Architect.user_fname} {currentProjectRaw.Architect.user_lname}"
+                };
+            }
+
+            var dashboardViewModel = new ClientDashboardViewModel
+            {
+                TotalMatches = totalMatches,
+                TotalPurchases = totalPurchases,
+                TotalProjects = totalProjects,
+                RecentMatches = recentMatches,
+                RecentPurchases = recentPurchases,
+                CurrentProject = currentProject
+            };
+
+            return View(dashboardViewModel);
+        }
+
+        private int CalculateProjectProgress(string status)
+        {
+            return status?.ToLower() switch
+            {
+                "pending" => 0,
+                "planning" => 25,
+                "designing" => 50,
+                "development" => 75,
+                "ongoing" => 60,
+                "completed" => 100,
+                "testing" => 90,
+                _ => 0
+            };
         }
 
         public IActionResult BlueprintMarketplace()
@@ -571,9 +663,30 @@ namespace BlueprintProWeb.Controllers.ClientSide
             return View(vm);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetArchitectProfile(string id)
+        {
+            var architect = await userManager.FindByIdAsync(id);
+            if (architect == null) return NotFound();
+
+            var credentialsPath = string.IsNullOrEmpty(architect.user_CredentialsFile)
+                ? null
+                : Url.Content($"~/credentials/{architect.user_CredentialsFile}");
+
+            return Json(new
+            {
+                fullName = $"{architect.user_fname} {architect.user_lname}",
+                email = architect.Email,
+                phone = architect.PhoneNumber,
+                photo = string.IsNullOrEmpty(architect.user_profilePhoto)
+                    ? Url.Content("~/images/profile.jpg")
+                    : Url.Content(architect.user_profilePhoto),
+                license = architect.user_licenseNo,
+                style = architect.user_Style,
+                specialization = architect.user_Specialization,
+                location = architect.user_Location,
+                credentialsFile = credentialsPath
+            });
+        }
     }
-
 }
-
-
-
