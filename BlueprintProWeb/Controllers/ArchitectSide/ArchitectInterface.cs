@@ -155,11 +155,13 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
 
-            var blueprints = context.Blueprints
-                .Where(bp => !bp.blueprintIsForSale && bp.architectId == user.Id)
-                .ToList();
+            var projects = await context.Projects
+                .Where(p => p.user_architectId == user.Id)
+                .Include(p => p.Blueprint)
+                .Include(p => p.Client)
+                .ToListAsync();
 
-            return View(blueprints);
+            return View(projects);
         }
 
         [HttpGet]

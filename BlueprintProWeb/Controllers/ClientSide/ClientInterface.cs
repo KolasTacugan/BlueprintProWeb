@@ -662,15 +662,31 @@ namespace BlueprintProWeb.Controllers.ClientSide
 
             return View(vm);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetArchitectProfile(string id)
+        {
+            var architect = await userManager.FindByIdAsync(id);
+            if (architect == null) return NotFound();
+
+            var credentialsPath = string.IsNullOrEmpty(architect.user_CredentialsFile)
+                ? null
+                : Url.Content($"~/credentials/{architect.user_CredentialsFile}");
+
+            return Json(new
+            {
+                fullName = $"{architect.user_fname} {architect.user_lname}",
+                email = architect.Email,
+                phone = architect.PhoneNumber,
+                photo = string.IsNullOrEmpty(architect.user_profilePhoto)
+                    ? Url.Content("~/images/profile.jpg")
+                    : Url.Content(architect.user_profilePhoto),
+                license = architect.user_licenseNo,
+                style = architect.user_Style,
+                specialization = architect.user_Specialization,
+                location = architect.user_Location,
+                credentialsFile = credentialsPath
+            });
+        }
     }
-
 }
-
-
-
-
-
-
-
-
-

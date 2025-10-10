@@ -1,4 +1,4 @@
-﻿@model IEnumerable<BlueprintProWeb.Models.Project>
+@model IEnumerable<BlueprintProWeb.Models.Project>
 
 @{
     ViewData["Title"] = "ClientDashboard";
@@ -7,38 +7,35 @@
 
 @section Styles {
     <style>
-        /* Override shared layout background for projects page */
         body::before {
             background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
             opacity: 0.1 !important;
         }
 
-        /* Ensure scrollable page */
         body {
             overflow-y: auto !important;
             height: auto !important;
         }
 
-        /* Main content positioning that responds to sidebar state */
         main.container {
-            margin-left: 300px; /* Default for expanded sidebar */
-            margin-top: 90px; /* Account for navbar */
+            margin-left: 300px;
+            margin-top: 90px;
             padding: 2rem;
-            padding-top: 3rem; /* Add extra top padding to avoid header overlap */
+            padding-top: 3rem;
             max-width: calc(100% - 320px);
-            transition: margin-left 0.4s ease, max-width 0.4s ease; /* Smooth transition */
+            transition: margin-left 0.4s ease, max-width 0.4s ease;
         }
 
-        /* When sidebar is collapsed, adjust main content */
         .sidebar.collapsed ~ * main.container,
         body:has(.sidebar.collapsed) main.container {
-            margin-left: 110px; /* Account for collapsed sidebar (85px + margins) */
+            margin-left: 110px;
             max-width: calc(100% - 130px);
         }
 
         .blueprint-title {
             font-weight: 700;
             color: #091635;
+            padding-top: 50px;
             margin-bottom: 2rem;
         }
 
@@ -73,6 +70,19 @@
         .bp-name {
             margin-left: 40px;
             font-weight: 600;
+            color: #091635;
+        }
+
+        .architect-link, .archi-cred {
+            color: #091635;
+            cursor: pointer;
+            transition: 0.1s ease;
+        }
+
+        .architect-link:hover, .archi-cred:hover {
+            color: #091635;
+            font-weight: 600;
+            text-decoration: none;
         }
 
         .track-btn {
@@ -90,7 +100,10 @@
             border-color: #071744;
         }
 
-        /* Responsive adjustments */
+        .place-holder{
+            margin-left: 40px;
+        }
+
         @@media (max-width: 767.98px) {
             main.container {
                 margin-left: 0 !important;
@@ -131,8 +144,17 @@
                                 <div>
                                     <span class="bp-name">@project.project_Title</span>
                                     <div class="mt-2">
-                                        <small><strong>Budget: </strong>₱@project.project_Budget</small><br />
-                                        <small><strong>Architect: </strong>@project.Architect.user_fname @project.Architect.user_lname</small>
+                                        <small>
+                                            <strong class="place-holder">Budget:</strong> ₱@project.project_Budget
+                                        </small><br />
+                                        <small>
+                                            <strong class="place-holder">Architect:</strong>
+                                            <a href="#"
+                                               class="architect-link text-decoration-none"
+                                               data-client-id="@project.Architect.Id">
+                                                @project.Architect.user_fname @project.Architect.user_lname
+                                            </a>
+                                        </small>
                                     </div>
                                 </div>
                             </div>
@@ -152,14 +174,52 @@
     </div>
 </div>
 
+<!-- Architect Profile Modal -->
+<div class="modal fade" id="architectProfileModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Architect Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="profile-container">
+                    <div class="profile-main-card p-3">
+                        <div class="profile-info d-flex align-items-center gap-3 mb-3">
+                            <div class="avatar">
+                                <img id="architectProfilePhoto" src="~/images/profile.jpg" alt="Avatar" style="width:64px;height:64px;border-radius:50%;">
+                            </div>
+                            <div class="user-details">
+                                <h3 id="architectProfileName" class="architect-name mb-1 fw-bold"></h3>
+                                <div id="architectProfileEmail" class="text-muted"></div>
+                                <div id="architectProfilePhone" class="text-muted"></div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <p><strong>License No:</strong> <span id="architectProfileLicense"></span></p>
+                            <p><strong>Style:</strong> <span id="architectProfileStyle"></span></p>
+                            <p><strong>Specialization:</strong> <span id="architectProfileSpecialization"></span></p>
+                            <p><strong>Location:</strong> <span id="architectProfileLocation"></span></p>
+                            <p>
+                                <strong>Credentials File:</strong>
+                                <a id="architectProfileCredentials" href="#" target="_blank" class="text-decoration-underline archi-cred">Architect's Credentials</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
-        // Listen for sidebar toggle and adjust main content accordingly
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const sidebar = document.querySelector('.sidebar');
             const sidebarToggler = document.querySelector('.sidebar-toggler');
             const mainContent = document.querySelector('main.container');
-            
+
             function adjustMainContent() {
                 if (sidebar && mainContent) {
                     if (sidebar.classList.contains('collapsed')) {
@@ -171,17 +231,57 @@
                     }
                 }
             }
-            
-            // Adjust on page load
+
             adjustMainContent();
-            
-            // Listen for sidebar toggle
+
             if (sidebarToggler) {
-                sidebarToggler.addEventListener('click', function() {
-                    // Wait for the sidebar transition to start
+                sidebarToggler.addEventListener('click', function () {
                     setTimeout(adjustMainContent, 50);
                 });
             }
+
+            // ✅ Architect modal trigger
+            const architectLinks = document.querySelectorAll('.architect-link');
+
+            architectLinks.forEach(link => {
+                link.addEventListener('click', async function (e) {
+                    e.preventDefault();
+                    const architectId = this.getAttribute('data-client-id');
+
+                    try {
+                        const res = await fetch(`/ClientInterface/GetArchitectProfile?id=${architectId}`);
+                        if (!res.ok) throw new Error('Failed to fetch architect profile');
+
+                        const data = await res.json();
+
+                        document.getElementById('architectProfileName').textContent = data.fullName;
+                        document.getElementById('architectProfileEmail').textContent = data.email || '';
+                        document.getElementById('architectProfilePhone').textContent = data.phone || '';
+                        document.getElementById('architectProfilePhoto').src = data.photo;
+                        document.getElementById('architectProfileLicense').textContent = data.license || '';
+                        document.getElementById('architectProfileStyle').textContent = data.style || '';
+                        document.getElementById('architectProfileSpecialization').textContent = data.specialization || '';
+                        document.getElementById('architectProfileLocation').textContent = data.location || '';
+
+                        const credentialsLink = document.getElementById('architectProfileCredentials');
+                        if (data.credentialsFile) {
+                            credentialsLink.href = data.credentialsFile;
+                            credentialsLink.textContent = 'Architect Credentials';
+                            credentialsLink.style.display = 'inline';
+                        } else {
+                            credentialsLink.textContent = 'No file uploaded';
+                            credentialsLink.removeAttribute('href');
+                            credentialsLink.style.display = 'inline';
+                        }
+
+                        const modal = new bootstrap.Modal(document.getElementById('architectProfileModal'));
+                        modal.show();
+                    } catch (err) {
+                        console.error(err);
+                        alert('Failed to load architect information.');
+                    }
+                });
+            });
         });
     </script>
 }
