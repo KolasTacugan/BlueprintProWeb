@@ -40,8 +40,103 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
         public async Task<IActionResult> ArchitectDashboard()
         {
             var currentUser = await _userManager.GetUserAsync(User);
-            ViewData["UserFirstName"] = currentUser?.user_fname ?? "User";
-            return View();
+            if (currentUser == null)
+                return RedirectToAction("Login", "Account");
+
+            ViewData["UserFirstName"] = currentUser.user_fname ?? "User";
+
+            // Get statistics for the current architect
+            var userId = currentUser.Id;
+
+            // Total Matches - count all matches where this user is the architect
+            var totalMatches = await context.Matches
+                .CountAsync(m => m.ArchitectId == userId);
+
+            // Total Uploads - count blueprints uploaded by this architect
+            var totalUploads = await context.Blueprints
+                .CountAsync(bp => bp.architectId == userId);
+
+            // Total Projects - count projects where this user is the architect
+            var totalProjects = await context.Projects
+                .CountAsync(p => p.user_architectId == userId);
+
+            // Recent matches (last 5)
+            var recentMatches = await context.Matches
+                .Where(m => m.ArchitectId == userId)
+                .Include(m => m.Client)
+                .OrderByDescending(m => m.MatchDate)
+                .Take(5)
+                .Select(m => new ClientMatchSummary
+                {
+                    ClientName = $"{m.Client.user_fname} {m.Client.user_lname}",
+                    ClientNeeds = m.Client.user_Style ?? "General Architecture",
+                    Status = m.MatchStatus,
+                    MatchDate = m.MatchDate
+                })
+                .ToListAsync();
+
+            // Recent uploads (last 5)
+            var recentUploads = await context.Blueprints
+                .Where(bp => bp.architectId == userId)
+                .OrderByDescending(bp => bp.blueprintId) // Using blueprintId as proxy for upload order
+                .Take(5)
+                .Select(bp => new BlueprintUpload
+                {
+                    BlueprintName = bp.blueprintName,
+                    UploadDate = DateTime.UtcNow, // You might want to add an UploadDate field to Blueprint model
+                    Price = bp.blueprintPrice,
+                    IsForSale = bp.blueprintIsForSale
+                })
+                .ToListAsync();
+
+            // Current/most recent project - get the raw data first
+            var currentProjectRaw = await context.Projects
+                .Where(p => p.user_architectId == userId)
+                .Include(p => p.Client)
+                .OrderByDescending(p => p.project_startDate)
+                .FirstOrDefaultAsync();
+
+            // Calculate project overview after data is retrieved
+            ProjectOverview? currentProject = null;
+            if (currentProjectRaw != null)
+            {
+                currentProject = new ProjectOverview
+                {
+                    ProjectTitle = currentProjectRaw.project_Title,
+                    Status = currentProjectRaw.project_Status,
+                    ProgressPercentage = CalculateProjectProgress(currentProjectRaw.project_Status),
+                    StartDate = currentProjectRaw.project_startDate,
+                    ArchitectName = $"{currentProjectRaw.Client.user_fname} {currentProjectRaw.Client.user_lname}" // Client name for architect view
+                };
+            }
+
+            var dashboardViewModel = new ArchitectDashboardViewModel
+            {
+                TotalMatches = totalMatches,
+                TotalUploads = totalUploads,
+                TotalProjects = totalProjects,
+                RecentMatches = recentMatches,
+                RecentUploads = recentUploads,
+                CurrentProject = currentProject
+            };
+
+            return View(dashboardViewModel);
+        }
+
+        private int CalculateProjectProgress(string status)
+        {
+            return status?.ToLower() switch
+            {
+                "pending" => 0,
+                "planning" => 25,
+                "designing" => 50,
+                "development" => 75,
+                "ongoing" => 60,
+                "completed" => 100,
+                "testing" => 90,
+                "finished" => 100,
+                _ => 0
+            };
         }
 
         public async Task<IActionResult> Blueprints()
