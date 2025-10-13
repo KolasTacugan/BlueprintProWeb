@@ -408,6 +408,9 @@ namespace BlueprintProWeb.Controllers.ClientSide
                  ArchitectStyle = x.Architect.user_Style,
                  ArchitectLocation = x.Architect.user_Location,
                  ArchitectBudget = x.Architect.user_Budget,
+                 ProfilePhoto = string.IsNullOrEmpty(x.Architect.user_profilePhoto)
+                    ? Url.Content("~/images/profile.jpg")
+                    : Url.Content(x.Architect.user_profilePhoto),
                  MatchStatus = x.Architect.IsPro ? "AI + Portfolio Match (Pro)" : "AI + Portfolio Match",
                  MatchDate = DateTime.UtcNow
              })

@@ -16,6 +16,7 @@
 
         public string MatchStatus { get; set; }
         public DateTime MatchDate { get; set; }
+        public string? ProfilePhoto { get; set; }
         public string ArchitectStyle { get; set; }
         public string ArchitectLocation { get; set; }
         public string ArchitectBudget { get; set; }

@@ -11,6 +11,35 @@
 
 @section Styles{
     <style>
+        /* Override shared layout background for matches page */
+        body::before {
+            background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
+            opacity: 0.1 !important;
+        }
+
+        /* Ensure scrollable page */
+        body {
+            overflow-y: auto !important;
+            height: auto !important;
+        }
+
+        /* Main content positioning that responds to sidebar state */
+        main.container {
+            margin-left: 300px; /* Default for expanded sidebar */
+            margin-top: 90px; /* Account for navbar */
+            padding: 2rem;
+            padding-top: 3rem; /* Add extra top padding to avoid header overlap */
+            max-width: calc(100% - 320px);
+            transition: margin-left 0.4s ease, max-width 0.4s ease; /* Smooth transition */
+        }
+
+        /* When sidebar is collapsed, adjust main content */
+        .sidebar.collapsed ~ * main.container,
+        body:has(.sidebar.collapsed) main.container {
+            margin-left: 110px; /* Account for collapsed sidebar (85px + margins) */
+            max-width: calc(100% - 130px);
+        }
+
         .match-btn, .send-btn{
             position: relative;
             color: #fff;
@@ -23,79 +52,135 @@
             color: #071744;
             border-color: #071744;
         }
+
+        /* Responsive adjustments */
+        @@media (max-width: 767.98px) {
+            main.container {
+                margin-left: 0 !important;
+                margin-top: 75px;
+                max-width: 100% !important;
+                padding: 1rem;
+                padding-top: 2rem;
+            }
+        }
+
+        .architect-link{
+            color: #091635;
+            cursor: pointer;
+            transition: 0.1s ease;
+            text-decoration: none;
+        }
+
+        .architect-link:hover{
+            color: #091635;
+            font-weight: 600;
+            text-decoration: none;
+        }
     </style>
 }
 
-<div class="container-fluid px-4 py-3">
-    <div class="row" style="height: 85vh;">
+<div class="row" style="height: 85vh;">
 
-        <!-- LEFT SIDE: Architect Matches -->
-        <div class="col-md-8 border-end overflow-auto" id="architectResults">
-            <h4 class="fw-bold mb-3">Architect Matches</h4>
-            <div id="resultsContainer" class="row">
-                @if (Model != null && Model.Any())
+    <!-- LEFT SIDE: Architect Matches -->
+    <div class="col-md-8 border-end overflow-auto" id="architectResults">
+        <h4 class="fw-bold mb-3">Architect Matches</h4>
+        <div id="resultsContainer" class="row">
+            @if (Model != null && Model.Any())
+            {
+                foreach (var match in Model)
                 {
-                    foreach (var match in Model)
-                    {
-                        <div class="col-md-6 mb-4">
-                            <div class="card shadow-sm h-100">
-                                <div class="card-body d-flex flex-column">
-                                    <div class="d-flex align-items-center mb-3">
-                                        <img src="~/images/default-profile.png"
-                                             class="rounded-circle me-3 border"
-                                             width="50" height="50"
-                                             alt="@match.ArchitectName" />
-                                        <div>
-                                            <h6 class="fw-bold mb-0">@match.ArchitectName</h6>
-                                            <small class="text-muted">@match.ArchitectStyle ?? "General Architect"</small>
-                                        </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-body d-flex flex-column">
+                                <div class="d-flex align-items-center mb-3">
+                                    <img src="@match.ProfilePhoto"
+                                         class="rounded-circle me-3 border"
+                                         width="50" height="50"
+                                         alt="@match.ArchitectName" />
+                                    <div>
+                                        <h6 class="fw-bold mb-0">
+                                            <a href="#"
+                                               class="architect-link"
+                                               data-architect-id="@match.ArchitectId">
+                                                @match.ArchitectName
+                                            </a>
+                                        </h6>
                                     </div>
-                                    <p class="text-muted small flex-grow-1">
-                                        Style: @match.ArchitectStyle ?? "Various" <br />
-                                        Location: @match.ArchitectLocation ?? "Flexible" <br />
-                                        Budget: @match.ArchitectBudget ?? "Flexible"
-                                    </p>
-                                    <div class="mb-2">
-                                        <small>Status: <span class="badge bg-info">@match.MatchStatus</span></small><br />
-                                        <small>Date: @match.MatchDate.ToString("yyyy-MM-dd")</small>
-                                    </div>
-                                    <button class="btn btn-outline-primary w-100 mt-auto match-btn"
-                                            data-architect-id="@match.ArchitectId">
-                                        Match
-                                    </button>
                                 </div>
+                                <button class="btn btn-outline-primary w-100 mt-auto match-btn"
+                                        data-architect-id="@match.ArchitectId">
+                                    Match
+                                </button>
                             </div>
                         </div>
-                    }
-                }
-                else
-                {
-                    <div class="col-12">
-                        <div class="alert alert-warning">No matches found yet.</div>
                     </div>
                 }
+            }
+            else
+            {
+                <div class="col-12">
+                    <div class="alert alert-warning">No matches found yet.</div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- RIGHT SIDE: Chat -->
+    <div class="col-md-4 d-flex flex-column">
+        <h4 class="fw-bold mb-3">Chat</h4>
+
+        <!-- Chat history -->
+        <div id="chatWindow" class="flex-grow-1 border rounded p-3 bg-light overflow-auto mb-2">
+            <div class="d-flex mb-3">
+                <div class="p-3 bg-secondary text-white rounded-3 shadow-sm">
+                    👋 Hi! Tell me what kind of architect you are looking for.
+                </div>
             </div>
         </div>
 
-        <!-- RIGHT SIDE: Chat -->
-        <div class="col-md-4 d-flex flex-column">
-            <h4 class="fw-bold mb-3">Chat</h4>
-
-            <!-- Chat history -->
-            <div id="chatWindow" class="flex-grow-1 border rounded p-3 bg-light overflow-auto mb-2">
-                <div class="d-flex mb-3">
-                    <div class="p-3 bg-secondary text-white rounded-3 shadow-sm">
-                        👋 Hi! Tell me what kind of architect you are looking for.
-                    </div>
-                </div>
+        <!-- Chat input -->
+        <div>
+            <div class="input-group">
+                <textarea id="clientPrompt" class="form-control" rows="1"
+                          placeholder="Describe what you're looking for..."></textarea>
+                <button class="send-btn btn btn-primary" id="searchArchitects">Send</button>
             </div>
+        </div>
+    </div>
+</div>
 
-            <!-- Chat input -->
-            <div>
-                <div class="input-group">
-                    <textarea id="clientPrompt" class="form-control" rows="1"
-                              placeholder="Describe what you’re looking for..."></textarea>
-                    <button class="send-btn btn btn-primary" id="searchArchitects">Send</button>
+<!-- Architect Profile Modal -->
+<div class="modal fade" id="architectProfileModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Architect Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="profile-container">
+                    <div class="profile-main-card p-3">
+                        <div class="profile-info d-flex align-items-center gap-3 mb-3">
+                            <div class="avatar">
+                                <img id="architectProfilePhoto" src="~/images/profile.jpg" alt="Avatar" style="width:64px;height:64px;border-radius:50%;">
+                            </div>
+                            <div class="user-details">
+                                <h3 id="architectProfileName" class="architect-name mb-1 fw-bold"></h3>
+                                <div id="architectProfileEmail" class="text-muted"></div>
+                                <div id="architectProfilePhone" class="text-muted"></div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <p><strong>License No:</strong> <span id="architectProfileLicense"></span></p>
+                            <p><strong>Style:</strong> <span id="architectProfileStyle"></span></p>
+                            <p><strong>Specialization:</strong> <span id="architectProfileSpecialization"></span></p>
+                            <p><strong>Location:</strong> <span id="architectProfileLocation"></span></p>
+                            <p>
+                                <strong>Credentials File:</strong>
+                                <a id="architectProfileCredentials" href="#" target="_blank" class="text-decoration-underline archi-cred">Architect's Credentials</a>
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -122,6 +207,67 @@
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+        // Listen for sidebar toggle and adjust main content accordingly
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarToggler = document.querySelector('.sidebar-toggler');
+            const mainContent = document.querySelector('main.container');
+            
+            function adjustMainContent() {
+                if (sidebar && mainContent) {
+                    if (sidebar.classList.contains('collapsed')) {
+                        mainContent.style.marginLeft = '110px';
+                        mainContent.style.maxWidth = 'calc(100% - 130px)';
+                    } else {
+                        mainContent.style.marginLeft = '300px';
+                        mainContent.style.maxWidth = 'calc(100% - 320px)';
+                    }
+                }
+            }
+            
+            // Adjust on page load
+            adjustMainContent();
+            
+            // Listen for sidebar toggle
+            if (sidebarToggler) {
+                sidebarToggler.addEventListener('click', function() {
+                    // Wait for the sidebar transition to start
+                    setTimeout(adjustMainContent, 50);
+                });
+            }
+
+            // Architect info modal
+            const architectModal = new bootstrap.Modal(document.getElementById('architectProfileModal'));
+            document.querySelectorAll('.architect-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const id = this.dataset.architectId;
+
+                    fetch(`/ClientInterface/GetArchitectProfile?id=${id}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data) {
+                                document.getElementById("architectProfileName").innerText = data.fullName;
+                                document.getElementById("architectProfileEmail").innerText = data.email || "No email provided";
+                                document.getElementById("architectProfilePhone").innerText = data.phone || "No phone provided";
+                                document.getElementById("architectProfileLicense").innerText = data.license || "N/A";
+                                document.getElementById("architectProfileStyle").innerText = data.style || "N/A";
+                                document.getElementById("architectProfileSpecialization").innerText = data.specialization || "N/A";
+                                document.getElementById("architectProfileLocation").innerText = data.location || "N/A";
+                                document.getElementById("architectProfileCredentials").href = data.credentialsFile || "#";
+                                document.getElementById("architectProfilePhoto").src = data.photo || "/images/profile.jpg";
+
+                                architectModal.show();
+                            } else {
+                                alert("❌ Architect profile not found.");
+                            }
+                        })
+                        .catch(() => alert("❌ Failed to load architect profile."));
+
+                });
+            });
+        });
+
         const chatWindow = document.getElementById('chatWindow');
         const inputBox = document.getElementById('clientPrompt');
         const searchBtn = document.getElementById('searchArchitects');
@@ -146,7 +292,7 @@
         }
 
         // Render architect cards dynamically
-        function renderArchitects(matches) {
+                function renderArchitects(matches) {
             resultsContainer.innerHTML = "";
 
             if (!matches || matches.length === 0) {
@@ -159,34 +305,63 @@
             }
 
             matches.forEach(m => {
-                const date = m.matchDate ? new Date(m.matchDate).toLocaleDateString() : "";
                 let card = document.createElement('div');
                 card.className = "col-md-6 mb-4";
                 card.innerHTML = `
                     <div class="card shadow-sm h-100">
                         <div class="card-body d-flex flex-column">
                             <div class="d-flex align-items-center mb-3">
-                                <img src="/images/default-profile.png" class="rounded-circle me-3 border" width="50" height="50" alt="${m.architectName || "Architect"}" />
+                                <img src="${m.profilePhoto || '/images/profile.jpg'}"
+                                     class="rounded-circle me-3 border"
+                                     width="50" height="50"
+                                     alt="${m.architectName || 'Architect'}" />
                                 <div>
-                                    <h6 class="fw-bold mb-0">${m.architectName || "Unnamed Architect"}</h6>
-                                    <small class="text-muted">${m.architectStyle || "General Architect"}</small>
+                                    <h6 class="fw-bold mb-0">
+                                        <a href="#"
+                                           class="architect-link"
+                                           data-architect-id="${m.architectId}">
+                                            ${m.architectName || "Unnamed Architect"}
+                                        </a>
+                                    </h6>
                                 </div>
                             </div>
-                            <p class="text-muted small flex-grow-1">
-                                Style: ${m.architectStyle || "Various"} <br>
-                                Location: ${m.architectLocation || "Flexible"} <br>
-                                Budget: ${m.architectBudget || "Flexible"}
-                            </p>
-                            <div class="mb-2">
-                                <small>Status: <span class="badge bg-info">${m.matchStatus || "Pending"}</span></small><br />
-                                <small>Date: ${date}</small>
-                            </div>
-                            <button class="btn btn-outline-primary w-100 mt-auto match-btn" data-architect-id="${m.architectId}">
+                            <button class="btn btn-outline-primary w-100 mt-auto match-btn"
+                                    data-architect-id="${m.architectId}">
                                 Match
                             </button>
                         </div>
-                    </div>`;
+                    </div>
+                `;
                 resultsContainer.appendChild(card);
+            });
+
+            // 🧩 Re-attach modal event listeners for dynamically added architect links
+            document.querySelectorAll('.architect-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const id = this.dataset.architectId;
+
+                    fetch(`/ClientInterface/GetArchitectProfile?id=${id}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data) {
+                                document.getElementById("architectProfileName").innerText = data.fullName;
+                                document.getElementById("architectProfileEmail").innerText = data.email || "No email provided";
+                                document.getElementById("architectProfilePhone").innerText = data.phone || "No phone provided";
+                                document.getElementById("architectProfileLicense").innerText = data.license || "N/A";
+                                document.getElementById("architectProfileStyle").innerText = data.style || "N/A";
+                                document.getElementById("architectProfileSpecialization").innerText = data.specialization || "N/A";
+                                document.getElementById("architectProfileLocation").innerText = data.location || "N/A";
+                                document.getElementById("architectProfileCredentials").href = data.credentialsFile || "#";
+                                document.getElementById("architectProfilePhoto").src = data.photo || "/images/profile.jpg";
+                                const modal = new bootstrap.Modal(document.getElementById('architectProfileModal'));
+                                modal.show();
+                            } else {
+                                alert("❌ Architect profile not found.");
+                            }
+                        })
+                        .catch(() => alert("❌ Failed to load architect profile."));
+                });
             });
         }
 
@@ -236,5 +411,12 @@
                 renderArchitects([]);
             });
         });
+
+        function showNotification(title, message) {
+            document.getElementById('notificationTitle').textContent = title;
+            document.getElementById('notificationMessage').textContent = message;
+            const modal = new bootstrap.Modal(document.getElementById('notificationModal'));
+            modal.show();
+        }
     </script>
 }
