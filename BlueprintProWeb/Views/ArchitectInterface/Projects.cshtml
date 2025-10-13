@@ -187,7 +187,7 @@
                     <div class="profile-main-card p-3">
                         <div class="profile-info d-flex align-items-center gap-3 mb-3">
                             <div class="avatar">
-                                <img src="~/images/profile.jpg" alt="Avatar" style="width:64px;height:64px;border-radius:50%;">
+                                <img id="clientProfilePhoto" src="~/images/profile.jpg" alt="Avatar" style="width:64px;height:64px;border-radius:50%;">
                             </div>
                             <div class="user-details">
                                 <h3 id="clientProfileName" class="client-name mb-1 fw-bold"></h3>
@@ -245,6 +245,8 @@
                                 document.getElementById("clientProfileName").innerText = data.name;
                                 document.getElementById("clientProfileEmail").innerText = data.email || "No email provided";
                                 document.getElementById("clientProfilePhone").innerText = data.phone || "No phone provided";
+                                const profilePhoto = data.profilePhoto || "/images/profile.jpg";
+                                document.getElementById("clientProfilePhoto").src = profilePhoto;
 
                                 clientProfileModal.show();
                             } else {

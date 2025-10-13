@@ -381,14 +381,18 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             if (client == null)
                 return NotFound(new { success = false, message = "Client not found" });
 
-            var fullName = $"{client.user_fname} {client.user_lname}";
+            // Build full profile photo URL
+            string profilePhoto = string.IsNullOrEmpty(client.user_profilePhoto)
+                ? "/images/profile.jpg"
+                : Url.Content(client.user_profilePhoto);
 
             return Json(new
             {
                 success = true,
-                name = fullName,
+                name = $"{client.user_fname} {client.user_lname}",
                 email = client.Email,
-                phone = client.PhoneNumber
+                phone = client.PhoneNumber,
+                profilePhoto = profilePhoto
             });
         }
 
