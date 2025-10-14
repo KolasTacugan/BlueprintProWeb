@@ -21,7 +21,7 @@
             font-family: 'Raleway', sans-serif !important;
         }
 
-        /* Main content positioning that responds to sidebar state */
+        /* Main content positioning that responds to sidebar state - FIXED */
         main.container {
             margin-left: 300px; /* Default for expanded sidebar */
             margin-top: 90px; /* Account for navbar */
@@ -31,7 +31,7 @@
             transition: margin-left 0.4s ease, max-width 0.4s ease;
         }
 
-        /* When sidebar is collapsed, adjust main content */
+        /* When sidebar is collapsed, adjust main content - FIXED */
         .sidebar.collapsed ~ * main.container,
         body:has(.sidebar.collapsed) main.container {
             margin-left: 110px;
@@ -45,8 +45,8 @@
             min-height: 600px;
         }
 
-        /* Left Panel Styling */
-        .messages-sidebar {
+        /* Left Panel Styling - Renamed to avoid confusion with main sidebar */
+        .conversations-sidebar {
             background: #FFFFFF;
             border-radius: 12px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -59,28 +59,28 @@
             flex-direction: column;
         }
 
-        .sidebar-header {
+        .conversations-header {
             display: flex;
-            flex-direction: column; /* Ensures vertical stacking */
+            flex-direction: column;
             margin-bottom: 1.5rem;
             padding-bottom: 1rem;
         }
 
-        .sidebar-title {
+        .conversations-title {
             font-size: 1.25rem;
             font-weight: 700;
             color: #1a202c;
             margin-bottom: 0.25rem;
             font-family: 'Raleway', sans-serif;
-            display: block; /* Ensure block behavior */
+            display: block;
         }
 
-        .sidebar-subtitle {
+        .conversations-subtitle {
             font-size: 0.875rem;
             color: #64748B;
             font-weight: 500;
             margin-bottom: 0;
-            display: block; /* Ensure block behavior */
+            display: block;
         }
 
         .search-container {
@@ -99,12 +99,12 @@
             transition: all 0.2s ease;
         }
 
-        .search-input:focus {
-            outline: none;
-            border-color: #344EAD;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(52, 78, 173, 0.1);
-        }
+            .search-input:focus {
+                outline: none;
+                border-color: #344EAD;
+                background: white;
+                box-shadow: 0 0 0 3px rgba(52, 78, 173, 0.1);
+            }
 
         .search-icon {
             position: absolute;
@@ -145,14 +145,14 @@
             border: 1px solid #E2E8F0;
         }
 
-        .match-item:hover {
-            background: #F0F4FF;
-            border-color: #344EAD;
-            color: #344EAD;
-            text-decoration: none;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(52, 78, 173, 0.15);
-        }
+            .match-item:hover {
+                background: #F0F4FF;
+                border-color: #344EAD;
+                color: #344EAD;
+                text-decoration: none;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(52, 78, 173, 0.15);
+            }
 
         .match-avatar {
             width: 56px;
@@ -192,16 +192,16 @@
             border: 1px solid transparent;
         }
 
-        .conversation-item:hover {
-            background: #F8FAFC;
-            border-color: #E2E8F0;
-            text-decoration: none;
-        }
+            .conversation-item:hover {
+                background: #F8FAFC;
+                border-color: #E2E8F0;
+                text-decoration: none;
+            }
 
-        .conversation-item.active {
-            background: #F0F4FF;
-            border-color: #344EAD;
-        }
+            .conversation-item.active {
+                background: #F0F4FF;
+                border-color: #344EAD;
+            }
 
         .conversation-avatar {
             width: 45px;
@@ -264,7 +264,7 @@
             padding: 2rem 1rem;
             color: #64748B;
             font-style: italic;
-            margin-top: 3rem; 
+            margin-top: 3rem;
         }
 
         /* Right Panel Styling */
@@ -336,11 +336,11 @@
             cursor: pointer;
         }
 
-        .chat-action-btn:hover {
-            background: #F8FAFC;
-            border-color: #344EAD;
-            color: #344EAD;
-        }
+            .chat-action-btn:hover {
+                background: #F8FAFC;
+                border-color: #344EAD;
+                color: #344EAD;
+            }
 
         .chat-messages {
             flex: 1;
@@ -355,16 +355,16 @@
             position: relative;
         }
 
-        .message-day-divider::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: #E2E8F0;
-            z-index: 1;
-        }
+            .message-day-divider::before {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 0;
+                right: 0;
+                height: 1px;
+                background: #E2E8F0;
+                z-index: 1;
+            }
 
         .message-day-label {
             background: #F8FAFC;
@@ -390,9 +390,9 @@
             gap: 0.75rem;
         }
 
-        .message-container.own {
-            flex-direction: row-reverse;
-        }
+            .message-container.own {
+                flex-direction: row-reverse;
+            }
 
         .message-avatar {
             width: 32px;
@@ -413,18 +413,18 @@
             font-family: 'Raleway', sans-serif;
         }
 
-        .message-bubble.own {
-            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
-            color: white;
-            border-bottom-right-radius: 6px;
-        }
+            .message-bubble.own {
+                background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+                color: white;
+                border-bottom-right-radius: 6px;
+            }
 
-        .message-bubble.other {
-            background: #FFFFFF;
-            color: #374151;
-            border: 1px solid #E2E8F0;
-            border-bottom-left-radius: 6px;
-        }
+            .message-bubble.other {
+                background: #FFFFFF;
+                color: #374151;
+                border: 1px solid #E2E8F0;
+                border-bottom-left-radius: 6px;
+            }
 
         .message-time {
             font-size: 0.75rem;
@@ -434,9 +434,9 @@
             font-weight: 500;
         }
 
-        .message-time.own {
-            text-align: right;
-        }
+            .message-time.own {
+                text-align: right;
+            }
 
         .chat-input-area {
             padding: 1.25rem 1.5rem;
@@ -456,11 +456,11 @@
             transition: all 0.2s ease;
         }
 
-        .chat-input-container:focus-within {
-            border-color: #344EAD;
-            background: #FFFFFF;
-            box-shadow: 0 0 0 3px rgba(52, 78, 173, 0.1);
-        }
+            .chat-input-container:focus-within {
+                border-color: #344EAD;
+                background: #FFFFFF;
+                box-shadow: 0 0 0 3px rgba(52, 78, 173, 0.1);
+            }
 
         .message-input {
             flex: 1;
@@ -474,13 +474,13 @@
             line-height: 1.4;
         }
 
-        .message-input:focus {
-            outline: none;
-        }
+            .message-input:focus {
+                outline: none;
+            }
 
-        .message-input::placeholder {
-            color: #94A3B8;
-        }
+            .message-input::placeholder {
+                color: #94A3B8;
+            }
 
         .input-actions {
             display: flex;
@@ -504,10 +504,10 @@
             box-shadow: 0 4px 12px rgba(52, 78, 173, 0.3);
         }
 
-        .send-button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(52, 78, 173, 0.4);
-        }
+            .send-button:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 6px 16px rgba(52, 78, 173, 0.4);
+            }
 
         .no-chat-selected {
             display: flex;
@@ -545,81 +545,90 @@
 
         /* Responsive Design */
         @@media (max-width: 1200px) {
-            .messages-sidebar {
-                width: 300px;
-                min-width: 250px;
-            }
+            .conversations-sidebar
+
+        {
+            width: 300px;
+            min-width: 250px;
+        }
+
         }
 
         @@media (max-width: 992px) {
-            .messages-layout {
-                flex-direction: column;
-                height: auto;
-            }
-            
-            .messages-sidebar {
-                width: 100%;
-                max-height: 300px;
-            }
-            
-            .chat-panel {
-                min-height: 500px;
-            }
+            .messages-layout
+
+        {
+            flex-direction: column;
+            height: auto;
+        }
+
+        .conversations-sidebar {
+            width: 100%;
+            max-height: 300px;
+        }
+
+        .chat-panel {
+            min-height: 500px;
+        }
+
         }
 
         @@media (max-width: 767.98px) {
-            main.container {
-                margin-left: 0 !important;
-                margin-top: 75px;
-                max-width: 100% !important;
-                padding: 1rem;
-                padding-top: 2rem;
-            }
+            main .container
 
-            .matches-grid {
-                grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-                gap: 0.75rem;
-            }
+        {
+            margin-left: 0 !important;
+            margin-top: 75px;
+            max-width: 100% !important;
+            padding: 1rem;
+            padding-top: 2rem;
+        }
 
-            .match-avatar {
-                width: 50px;
-                height: 50px;
-            }
+        .matches-grid {
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 0.75rem;
+        }
 
-            .match-name {
-                font-size: 0.7rem;
-            }
+        .match-avatar {
+            width: 50px;
+            height: 50px;
+        }
 
-            .message-bubble {
-                max-width: 85%;
-            }
+        .match-name {
+            font-size: 0.7rem;
+        }
 
-            .chat-messages {
-                padding: 1rem;
-            }
+        .message-bubble {
+            max-width: 85%;
+        }
+
+        .chat-messages {
+            padding: 1rem;
+        }
+
         }
 
         /* Custom scrollbars */
-        .messages-sidebar::-webkit-scrollbar,
+        .conversations-sidebar::-webkit-scrollbar,
         .chat-messages::-webkit-scrollbar {
             width: 6px;
         }
 
-        .messages-sidebar::-webkit-scrollbar-track,
+        .conversations-sidebar::-webkit-scrollbar-track,
         .chat-messages::-webkit-scrollbar-track {
             background: transparent;
         }
 
-        .messages-sidebar::-webkit-scrollbar-thumb,
+        .conversations-sidebar::-webkit-scrollbar-thumb,
         .chat-messages::-webkit-scrollbar-thumb {
             background: #CBD5E1;
             border-radius: 3px;
         }
 
-        .messages-sidebar::-webkit-scrollbar-thumb:hover,
-        .chat-messages::-webkit-scrollbar-thumb:hover {
-            background: #94A3B8;
-        }
+            .conversations-sidebar::-webkit-scrollbar-thumb:hover,
+            .chat-messages::-webkit-scrollbar-thumb:hover {
+                background: #94A3B8;
+            }
     </style>
 }
 
@@ -629,7 +638,7 @@
             const sidebar = document.querySelector('.sidebar');
             const sidebarToggler = document.querySelector('.sidebar-toggler');
             const mainContent = document.querySelector('main.container');
-            
+
             function adjustMainContent() {
                 if (sidebar && mainContent) {
                     if (sidebar.classList.contains('collapsed')) {
@@ -641,10 +650,10 @@
                     }
                 }
             }
-            
+
             // Adjust on page load
             adjustMainContent();
-            
+
             // Listen for sidebar toggle
             if (sidebarToggler) {
                 sidebarToggler.addEventListener('click', function() {
@@ -666,12 +675,12 @@
                     this.style.height = 'auto';
                     this.style.height = Math.min(this.scrollHeight, 100) + 'px';
                 });
-                
+
                 // Handle Enter key to send message
                 messageInput.addEventListener('keydown', function(e) {
                     if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault(); // Prevent default line break behavior
-                        
+
                         // Check if there's text to send
                         const messageText = this.value.trim();
                         if (messageText) {
@@ -685,48 +694,16 @@
                     // Allow Shift+Enter for line breaks
                 });
             }
-
-            // Enter key functionality for sending messages
-            const messageForm = document.querySelector('form[asp-action="SendMessage"]');
-            if (messageForm) {
-                messageForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    const formData = new FormData(this);
-                    const actionUrl = this.action;
-                    
-                    // Send message via fetch API
-                    fetch(actionUrl, {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Clear message input
-                            messageInput.value = '';
-                            messageInput.style.height = 'auto';
-
-                            // Optionally, you can trigger a chat refresh here
-                            // location.reload();
-                        }
-                    })
-                    .catch(error => console.error('Error sending message:', error));
-                });
-            }
         });
     </script>
 }
 
 <div class="messages-layout">
     <!-- Left Panel - Conversations Sidebar -->
-    <div class="messages-sidebar">
-        <div class="sidebar-header">
-            <h1 class="sidebar-title">Messages</h1>
-            <p class="sidebar-subtitle">Connect with your clients</p>
+    <div class="conversations-sidebar">
+        <div class="conversations-header">
+            <h1 class="conversations-title">Messages</h1>
+            <p class="conversations-subtitle">Connect with your clients</p>
         </div>
 
         <div class="search-container">
@@ -742,8 +719,8 @@
                 @foreach (var match in Model.Matches)
                 {
                     var profilePhoto = string.IsNullOrEmpty(match.ClientProfileUrl)
-                        ? "/images/default-profile.png"
-                        : match.ClientProfileUrl.Replace("~", "").Replace("wwwroot", "");
+                    ? "/images/default-profile.png"
+                    : match.ClientProfileUrl.Replace("~", "").Replace("wwwroot", "");
 
                     <a asp-controller="ArchitectInterface"
                        asp-action="Messages"
@@ -764,8 +741,8 @@
                 @foreach (var convo in Model.Conversations)
                 {
                     var convoPhoto = string.IsNullOrEmpty(convo.ClientProfileUrl)
-                        ? "/images/default-profile.png"
-                        : convo.ClientProfileUrl.Replace("~", "").Replace("wwwroot", "");
+                    ? "/images/default-profile.png"
+                    : convo.ClientProfileUrl.Replace("~", "").Replace("wwwroot", "");
 
                     <a asp-controller="ArchitectInterface"
                        asp-action="Messages"
@@ -798,8 +775,8 @@
         @if (Model.ActiveChat != null)
         {
             var chatPhoto = string.IsNullOrEmpty(Model.ActiveChat.ClientProfileUrl)
-                ? "/images/default-profile.png"
-                : Model.ActiveChat.ClientProfileUrl.Replace("~", "").Replace("wwwroot", "");
+            ? "/images/default-profile.png"
+            : Model.ActiveChat.ClientProfileUrl.Replace("~", "").Replace("wwwroot", "");
 
             <!-- Chat Header -->
             <div class="chat-header">
@@ -832,8 +809,8 @@
                 @foreach (var msg in Model.ActiveChat.Messages)
                 {
                     var msgPhoto = string.IsNullOrEmpty(msg.SenderProfilePhoto)
-                        ? "/images/default-profile.png"
-                        : msg.SenderProfilePhoto.Replace("~", "").Replace("wwwroot", "");
+                    ? "/images/default-profile.png"
+                    : msg.SenderProfilePhoto.Replace("~", "").Replace("wwwroot", "");
 
                     <div class="message-group">
                         <div class="message-container @(msg.IsOwnMessage ? "own" : "")">
@@ -856,7 +833,7 @@
                       method="post">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="clientId" value="@Model.ActiveChat.ClientId" />
-                    
+
                     <div class="chat-input-container">
                         <textarea name="messageBody" class="message-input" placeholder="Type your message..." rows="1"></textarea>
                         <div class="input-actions">
