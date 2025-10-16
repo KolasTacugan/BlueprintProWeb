@@ -16,6 +16,7 @@ using Microsoft.Extensions.Options;
 using Stripe;
 using Stripe.Checkout;
 using BlueprintProWeb.Services;
+
 using System.Net;
 using static iText.StyledXmlParser.Jsoup.Select.Evaluator;
 
@@ -39,6 +40,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             _hubContext = hubContext;
             _stripeSettings = stripeSettings.Value;
             _imageService = imageService;
+
         }
 
         public async Task<IActionResult> ArchitectDashboard()

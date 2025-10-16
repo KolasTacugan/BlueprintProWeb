@@ -4,35 +4,807 @@
     Layout = "~/Views/Shared/_ClientSharedLayout.cshtml";
 }
 
+<style>
+    /* Override shared layout background for marketplace page */
+    body::before {
+        background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
+        opacity: 0.1 !important;
+    }
+
+    /* Ensure scrollable page */
+    body {
+        overflow-y: auto !important;
+        height: auto !important;
+    }
+
+    /* Main content positioning that responds to sidebar state */
+    main.container {
+        margin-left: 300px;
+        margin-top: 90px;
+        padding: 2rem;
+        padding-top: 4rem;
+        max-width: calc(100% - 320px);
+        transition: margin-left 0.4s ease, max-width 0.4s ease;
+    }
+
+    /* When sidebar is collapsed, adjust main content */
+    .sidebar.collapsed ~ * main.container,
+    body:has(.sidebar.collapsed) main.container {
+        margin-left: 110px; /* Account for collapsed sidebar (85px + margins) */
+        max-width: calc(100% - 130px);
+    }
+
+    /* Equal height cards */
+    .card {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+    .card-img-top {
+        height: 200px;
+        object-fit: cover;
+    }
+
+    .card-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+        .card-body .btn {
+            margin-top: auto;
+        }
+
+    /* Blueprint Details Modal */
+    .blueprint-details-modal {
+        display: none;
+        position: fixed;
+        z-index: 2100;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(5px);
+    }
+
+    .blueprint-details-modal-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(15px);
+        border-radius: 20px;
+        box-shadow: 0 25px 70px rgba(13, 60, 128, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        width: 90%;
+        max-width: 800px;
+        max-height: 85vh;
+        overflow: hidden;
+        animation: blueprintModalSlide 0.4s ease-out;
+    }
+
+    @@keyframes blueprintModalSlide {
+        from {
+            opacity: 0;
+            transform: translate(-50%, -60%);
+            scale: 0.9;
+        }
+
+        to {
+            opacity: 1;
+            transform: translate(-50%, -50%);
+            scale: 1;
+        }
+    }
+
+    .blueprint-details-header {
+        background: #fff;
+        color: #091635;
+        padding: 24px;
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid #f8f9fa;
+    }
+
+    .blueprint-details-title {
+        font-size: 1.6rem;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: #091635;
+    }
+
+        .blueprint-details-title i {
+            color: #0D3C80;
+        }
+
+    .blueprint-details-close {
+        background: none;
+        border: none;
+        color: #6c757d;
+        font-size: 1.8rem;
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .blueprint-details-close:hover {
+            background-color: #f8f9fa;
+            color: #091635;
+        }
+
+    .blueprint-details-body {
+        padding: 0;
+        max-height: calc(85vh - 160px);
+        overflow-y: auto;
+        background: #fff;
+    }
+
+    .blueprint-image-section {
+        position: relative;
+        height: 350px;
+        overflow: hidden;
+    }
+
+    .blueprint-main-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .blueprint-image-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+        color: white;
+        padding: 20px 24px;
+    }
+
+    .blueprint-price-tag {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #fff;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .blueprint-info-section {
+        padding: 32px 24px;
+    }
+
+    .blueprint-details-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-bottom: 24px;
+    }
+
+    .blueprint-detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .blueprint-detail-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .blueprint-detail-value {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #091635;
+    }
+
+    .blueprint-description-section {
+        margin-bottom: 24px;
+    }
+
+    .blueprint-description {
+        font-size: 1rem;
+        line-height: 1.6;
+        color: #495057;
+        background: rgba(13, 60, 128, 0.03);
+        border-left: 4px solid #0D3C80;
+        padding: 16px 20px;
+        border-radius: 0 8px 8px 0;
+        margin-top: 12px;
+    }
+
+    .blueprint-features-section {
+        margin-bottom: 24px;
+    }
+
+    .blueprint-features-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 12px;
+        margin-top: 16px;
+    }
+
+    .blueprint-feature-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        background: rgba(13, 60, 128, 0.05);
+        border-radius: 8px;
+        font-size: 0.95rem;
+        color: #091635;
+    }
+
+    .blueprint-feature-icon {
+        color: #0D3C80;
+        font-size: 1.1rem;
+    }
+
+    .blueprint-rating-section {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+        padding: 16px;
+        background: rgba(255, 193, 7, 0.1);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 193, 7, 0.2);
+    }
+
+    .blueprint-stars {
+        color: #ffc107;
+        font-size: 1.2rem;
+    }
+
+    .blueprint-rating-text {
+        color: #6c757d;
+        font-size: 0.95rem;
+    }
+
+    .blueprint-details-footer {
+        padding: 20px 24px;
+        background: rgba(248, 249, 250, 0.8);
+        border-top: 1px solid rgba(13, 60, 128, 0.1);
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        align-items: center;
+    }
+
+    .blueprint-btn-secondary {
+        background: rgba(255, 255, 255, 0.9);
+        color: #0D3C80;
+        border: 2px solid rgba(13, 60, 128, 0.2);
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .blueprint-btn-secondary:hover {
+            background: rgba(13, 60, 128, 0.05);
+            border-color: rgba(13, 60, 128, 0.3);
+            transform: translateY(-1px);
+        }
+
+    .blueprint-btn-primary {
+        background: linear-gradient(135deg, #0D3C80 0%, #071744 100%);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 15px rgba(13, 60, 128, 0.3);
+    }
+
+        .blueprint-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(13, 60, 128, 0.4);
+        }
+
+    .cart-modal {
+        display: none;
+        position: fixed;
+        z-index: 1050;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(3px);
+    }
+
+    .cart-modal-content {
+        position: absolute;
+        right: 20px;
+        top: 80px;
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        width: 550px;
+        max-height: 80vh;
+        overflow: hidden;
+        animation: slideInRight 0.3s ease-out;
+    }
+
+    /* Checkout Notification Modal */
+    .checkout-modal {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(5px);
+    }
+
+    .checkout-modal-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(15px);
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(13, 60, 128, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        width: 90%;
+        max-width: 480px;
+        padding: 0;
+        overflow: hidden;
+        animation: checkoutModalSlide 0.4s ease-out;
+    }
+
+    @@keyframes checkoutModalSlide {
+        from {
+            opacity: 0;
+            transform: translate(-50%, -60%);
+            scale: 0.9;
+        }
+
+        to {
+            opacity: 1;
+            transform: translate(-50%, -50%);
+            scale: 1;
+        }
+    }
+
+    .checkout-modal-header {
+        background: linear-gradient(135deg, #0D3C80 0%, #071744 100%);
+        color: white;
+        padding: 24px;
+        text-align: center;
+        position: relative;
+    }
+
+    .checkout-modal-icon {
+        font-size: 3.5rem;
+        color: #fff;
+        margin-bottom: 12px;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .checkout-modal-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin: 0;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .checkout-modal-body {
+        padding: 32px 24px;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.9);
+    }
+
+    .checkout-summary {
+        margin-bottom: 24px;
+    }
+
+        .checkout-summary h4 {
+            color: #091635;
+            font-weight: 600;
+            margin-bottom: 16px;
+            font-size: 1.1rem;
+        }
+
+    .checkout-details {
+        background: rgba(13, 60, 128, 0.05);
+        border: 1px solid rgba(13, 60, 128, 0.1);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 24px;
+    }
+
+    .checkout-detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        font-size: 0.95rem;
+    }
+
+        .checkout-detail-row:last-child {
+            margin-bottom: 0;
+            padding-top: 12px;
+            border-top: 2px solid rgba(13, 60, 128, 0.1);
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #0D3C80;
+        }
+
+    .checkout-detail-label {
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .checkout-detail-value {
+        color: #091635;
+        font-weight: 600;
+    }
+
+    .checkout-modal-footer {
+        padding: 20px 24px 24px;
+        background: rgba(255, 255, 255, 0.9);
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+    }
+
+    .checkout-btn-primary {
+        background: linear-gradient(135deg, #0D3C80 0%, #071744 100%);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 15px rgba(13, 60, 128, 0.3);
+    }
+
+        .checkout-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(13, 60, 128, 0.4);
+        }
+
+    .checkout-btn-secondary {
+        background: rgba(255, 255, 255, 0.9);
+        color: #0D3C80;
+        border: 2px solid rgba(13, 60, 128, 0.2);
+        padding: 10px 24px;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .checkout-btn-secondary:hover {
+            background: rgba(13, 60, 128, 0.05);
+            border-color: rgba(13, 60, 128, 0.3);
+            transform: translateY(-1px);
+        }
+
+    @@keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    .cart-modal-header {
+        padding: 20px 24px 16px;
+        border-bottom: 1px solid #DEE2E6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%);
+    }
+
+    .cart-modal-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #091635;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .cart-close-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: #091635;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+        transition: background-color 0.2s ease;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .cart-close-btn:hover {
+            background-color: #f8f9fa;
+        }
+
+    .cart-tabs {
+        display: flex;
+        border-bottom: 1px solid #DEE2E6;
+        background: #fff;
+    }
+
+    .cart-tab {
+        flex: 1;
+        padding: 12px 16px;
+        background: none;
+        border: none;
+        border-bottom: 2px solid transparent;
+        font-weight: 600;
+        color: #6c757d;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 0.9rem;
+    }
+
+        .cart-tab.active {
+            color: #0D3C80;
+            border-bottom-color: #0D3C80;
+            background: #f8f9fb;
+        }
+
+        .cart-tab:hover {
+            color: #0D3C80;
+            background: #f8f9fb;
+        }
+
+    .cart-modal-body {
+        padding: 20px 24px;
+        max-height: 350px;
+        overflow-y: auto;
+        background: #fff;
+    }
+
+    .cart-empty {
+        text-align: center;
+        padding: 40px 20px;
+        color: #6c757d;
+    }
+
+    .cart-empty-icon {
+        font-size: 3rem;
+        color: #DEE2E6;
+        margin-bottom: 16px;
+    }
+
+    .cart-modal-footer {
+        padding: 16px 24px 20px;
+        border-top: 1px solid #DEE2E6;
+        background: #f8f9fa;
+        border-radius: 0 0 14px 14px;
+    }
+
+    .cart-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        font-weight: 700;
+        color: #091635;
+        font-size: 1.1rem;
+    }
+
+    .cart-total-amount {
+        color: #0D3C80;
+        font-size: 1.2rem;
+    }
+
+    .cart-checkout-btn {
+        width: 100%;
+        padding: 12px;
+        background: #0D3C80;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        font-size: 1rem;
+    }
+
+        .cart-checkout-btn:hover:not(:disabled) {
+            background: #071744;
+        }
+
+        .cart-checkout-btn:disabled {
+            background: #DEE2E6;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+
+    .tab-content {
+        display: none;
+    }
+
+        .tab-content.active {
+            display: block;
+        }
+
+    /* Prevent dragging/selection of protected images (from his code) */
+    .protected-img {
+        -webkit-user-drag: none;
+        user-drag: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        cursor: default;
+    }
+
+    /* Responsive adjustments */
+    @@media (max-width: 768px) {
+        .blueprint-details-modal-content {
+            width: 95%;
+            max-width: none;
+            margin: 0 10px;
+        }
+
+        .blueprint-details-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .blueprint-features-list {
+            grid-template-columns: 1fr;
+        }
+
+        .blueprint-details-footer {
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .cart-modal-content {
+            right: 10px;
+            left: 10px;
+            top: 70px;
+            width: auto;
+        }
+
+        .checkout-modal-content {
+            width: 95%;
+            margin: 0 10px;
+        }
+
+        .checkout-modal-body {
+            padding: 24px 20px;
+        }
+
+        .checkout-modal-footer {
+            flex-direction: column;
+        }
+
+        main.container {
+            margin-left: 0 !important;
+            margin-top: 75px;
+            max-width: 100% !important;
+            padding: 1rem;
+            padding-top: 2rem;
+        }
+    }
+</style>
+
 <div>
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="fw-bold mt-5 pt-4">Blueprint Marketplace</h2>
-        <button class="btn btn-light border mt-5">
-            Cart
+        <h2 class="fw-bold">Blueprint Marketplace</h2>
+        <button id="cartBtn" class="btn btn-light border">
+            <i class="fas fa-shopping-cart me-2"></i>Cart
             <span id="cartCount" class="badge bg-primary ms-1">0</span>
         </button>
     </div>
 
-    <ul class="nav nav-tabs mb-4">
-        <li class="nav-item"><a class="nav-link active" href="#">Residential</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Commercial</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Industrial</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Interior</a></li>
+    <ul class="nav nav-tabs mb-4" id="categoryTabs">
+        <li class="nav-item">
+            <a class="nav-link active" href="#" data-category="All">All</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" data-category="Modern">Modern</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" data-category="Traditional">Traditional</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" data-category="Contemporary">Contemporary</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" data-category="Minimalist">Minimalist</a>
+        </li>
     </ul>
 
-    <div class="row">
+    <div class="row" id="blueprintContainer">
         @foreach (var item in Model)
         {
-            <div class="col-md-3 mb-4">
-                <div class="card shadow-sm">
-                    <img src="~/images/@item.blueprintImage"
-                         class="card-img-top protected-img"
-                         alt="@item.blueprintName"
-                         asp-append-version="true"
-                         draggable="false" />
+            <div class="col-md-3 mb-4 blueprint-item" data-category="@item.blueprintStyle">
+                <div class="card shadow-sm blueprint-card"
+                     data-id="@item.blueprintId"
+                     data-name="@item.blueprintName"
+                     data-price="@item.blueprintPrice"
+                     data-description="@item.blueprintDescription"
+                     data-style="@item.blueprintStyle"
+                     data-image="@(string.IsNullOrEmpty(item.blueprintImage) ? "placeholder-blueprint.png" : item.blueprintImage)">
+                    @if (!string.IsNullOrEmpty(item.blueprintImage))
+                    {
+                        <img src="~/images/@item.blueprintImage"
+                             class="card-img-top protected-img"
+                             alt="@item.blueprintName"
+                             asp-append-version="true" />
+                    }
+                    else
+                    {
+                        <img src="~/images/placeholder-blueprint.png"
+                             class="card-img-top protected-img"
+                             alt="@item.blueprintName"
+                             asp-append-version="true" />
+                    }
 
                     <div class="card-body">
-                        <h5 class="fw-bold">₱@item.blueprintPrice</h5>
+                        <h5 class="fw-bold">₱<span class="price-value">@item.blueprintPrice.ToString("N0")</span></h5>
                         <p class="mb-1">@item.blueprintName</p>
                         <small class="text-muted">@item.blueprintDescription</small>
 
@@ -41,7 +813,14 @@
                             <small class="ms-2">(0)</small>
                         </div>
 
-                        <button class="btn btn-primary w-100 add-to-cart">Add to Cart</button>
+                        <button class="btn btn-primary w-100 add-to-cart"
+                                data-id="@item.blueprintId"
+                                data-name="@item.blueprintName"
+                                data-price="@item.blueprintPrice"
+                                data-image="@(string.IsNullOrEmpty(item.blueprintImage) ? "placeholder-blueprint.png" : item.blueprintImage)"
+                                onclick="event.stopPropagation();">
+                            Add to Cart
+                        </button>
                     </div>
                 </div>
             </div>
@@ -49,70 +828,546 @@
     </div>
 </div>
 
-@section Styles {
-    <style>
-        /* Prevent dragging/selection of protected images */
-        .protected-img {
-            -webkit-user-drag: none;
-            user-drag: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-            cursor: default;
-        }
-    </style>
-}
+<!-- Blueprint Details Modal -->
+<div id="blueprintDetailsModal" class="blueprint-details-modal">
+    <div class="blueprint-details-modal-content">
+        <div class="blueprint-details-header">
+            <h3 class="blueprint-details-title">
+                <i class="fas fa-drafting-compass"></i>
+                <span id="modalBlueprintName">Blueprint Details</span>
+            </h3>
+            <button class="blueprint-details-close" id="blueprintDetailsCloseBtn">&times;</button>
+        </div>
+
+        <div class="blueprint-details-body">
+            <div class="blueprint-image-section">
+                <img id="modalBlueprintImage" src="" alt="" class="blueprint-main-image protected-img">
+                <div class="blueprint-image-overlay">
+                    <div class="blueprint-price-tag">₱<span id="modalBlueprintPrice">0</span></div>
+                </div>
+            </div>
+
+            <div class="blueprint-info-section">
+                <div class="blueprint-details-grid">
+                    <div class="blueprint-detail-item">
+                        <div class="blueprint-detail-label">
+                            <i class="fas fa-palette"></i>
+                            Style
+                        </div>
+                        <div class="blueprint-detail-value" id="modalBlueprintStyle">-</div>
+                    </div>
+                    <div class="blueprint-detail-item">
+                        <div class="blueprint-detail-label">
+                            <i class="fas fa-tag"></i>
+                            Product ID
+                        </div>
+                        <div class="blueprint-detail-value" id="modalBlueprintId">-</div>
+                    </div>
+                    <div class="blueprint-detail-item">
+                        <div class="blueprint-detail-label">
+                            <i class="fas fa-calendar-alt"></i>
+                            Availability
+                        </div>
+                        <div class="blueprint-detail-value">Available Now</div>
+                    </div>
+                    <div class="blueprint-detail-item">
+                        <div class="blueprint-detail-label">
+                            <i class="fas fa-download"></i>
+                            Format
+                        </div>
+                        <div class="blueprint-detail-value">Digital Download</div>
+                    </div>
+                </div>
+
+                <div class="blueprint-rating-section">
+                    <div class="blueprint-stars">★★★★★</div>
+                    <div class="blueprint-rating-text">
+                        <strong>5.0</strong> out of 5 stars (No reviews yet)
+                    </div>
+                </div>
+
+                <div class="blueprint-description-section">
+                    <div class="blueprint-detail-label">
+                        <i class="fas fa-info-circle"></i>
+                        Description
+                    </div>
+                    <div class="blueprint-description" id="modalBlueprintDescription">
+                        Blueprint description will appear here.
+                    </div>
+                </div>
+
+                <div class="blueprint-features-section">
+                    <div class="blueprint-detail-label">
+                        <i class="fas fa-check-circle"></i>
+                        Features & Specifications
+                    </div>
+                    <div class="blueprint-features-list">
+                        <div class="blueprint-feature-item">
+                            <i class="fas fa-ruler-combined blueprint-feature-icon"></i>
+                            Detailed Floor Plans
+                        </div>
+                        <div class="blueprint-feature-item">
+                            <i class="fas fa-cube blueprint-feature-icon"></i>
+                            3D Visualization Ready
+                        </div>
+                        <div class="blueprint-feature-item">
+                            <i class="fas fa-tools blueprint-feature-icon"></i>
+                            Construction Ready
+                        </div>
+                        <div class="blueprint-feature-item">
+                            <i class="fas fa-file-alt blueprint-feature-icon"></i>
+                            Technical Specifications
+                        </div>
+                        <div class="blueprint-feature-item">
+                            <i class="fas fa-home blueprint-feature-icon"></i>
+                            Professional Design
+                        </div>
+                        <div class="blueprint-feature-item">
+                            <i class="fas fa-shield-alt blueprint-feature-icon"></i>
+                            Quality Assured
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="blueprint-details-footer">
+            <button class="blueprint-btn-secondary" id="modalCloseBtn">
+                <i class="fas fa-times"></i>
+                Close
+            </button>
+            <button class="blueprint-btn-primary" id="modalAddToCartBtn">
+                <i class="fas fa-shopping-cart"></i>
+                Add to Cart
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Cart Modal -->
+<div id="cartModal" class="cart-modal">
+    <div class="cart-modal-content">
+        <div class="cart-modal-header">
+            <h3 class="cart-modal-title">
+                <i class="fas fa-shopping-cart"></i>
+                Shopping Cart
+            </h3>
+            <button class="cart-close-btn" id="cartCloseBtn">&times;</button>
+        </div>
+
+        <div class="cart-tabs">
+            <button class="cart-tab active" data-tab="cart">
+                Cart (<span id="cartTabCount">0</span>)
+            </button>
+            <button class="cart-tab" data-tab="saved">
+                Saved (<span id="savedTabCount">0</span>)
+            </button>
+        </div>
+
+        <div class="cart-modal-body">
+            <div id="cartTab" class="tab-content active">
+                <div id="cartItems"></div>
+                <div id="cartEmpty" class="cart-empty">
+                    <div class="cart-empty-icon"><i class="fas fa-shopping-cart"></i></div>
+                    <p><strong>Your cart is empty</strong></p>
+                    <small class="text-muted">Add some blueprints to get started!</small>
+                </div>
+            </div>
+
+            <div id="savedTab" class="tab-content">
+                <div id="savedItems"></div>
+                <div id="savedEmpty" class="cart-empty">
+                    <div class="cart-empty-icon"><i class="fas fa-bookmark"></i></div>
+                    <p><strong>No saved items</strong></p>
+                    <small class="text-muted">Save blueprints for later!</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="cart-modal-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span class="cart-total-amount">₱<span id="cartTotal">0.00</span></span>
+            </div>
+            <button id="checkoutBtn" class="cart-checkout-btn" disabled>
+                <i class="fas fa-credit-card me-2"></i>
+                Proceed to Checkout
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Checkout Notification Modal -->
+<div id="checkoutModal" class="checkout-modal">
+    <div class="checkout-modal-content">
+        <div class="checkout-modal-header">
+            <div class="checkout-modal-icon">
+                <i class="fas fa-credit-card"></i>
+            </div>
+            <h3 class="checkout-modal-title">Proceed to Checkout</h3>
+        </div>
+
+        <div class="checkout-modal-body">
+            <div class="checkout-summary">
+                <h4>Order Summary</h4>
+                <div class="checkout-details">
+                    <div class="checkout-detail-row">
+                        <span class="checkout-detail-label">
+                            <i class="fas fa-boxes"></i>
+                            Items in cart:
+                        </span>
+                        <span class="checkout-detail-value" id="checkoutItemCount">0</span>
+                    </div>
+                    <div class="checkout-detail-row">
+                        <span class="checkout-detail-label">
+                            <i class="fas fa-calculator"></i>
+                            Subtotal:
+                        </span>
+                        <span class="checkout-detail-value" id="checkoutSubtotal">₱0.00</span>
+                    </div>
+                    <div class="checkout-detail-row">
+                        <span class="checkout-detail-label">
+                            <i class="fas fa-tags"></i>
+                            Processing Fee:
+                        </span>
+                        <span class="checkout-detail-value">₱50.00</span>
+                    </div>
+                    <div class="checkout-detail-row">
+                        <span class="checkout-detail-label">
+                            <i class="fas fa-money-bill-wave"></i>
+                            Total Amount:
+                        </span>
+                        <span class="checkout-detail-value" id="checkoutTotalAmount">₱0.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="checkout-modal-footer">
+            <button class="checkout-btn-secondary" id="checkoutCancelBtn">
+                <i class="fas fa-arrow-left"></i>
+                Continue Shopping
+            </button>
+            <button class="checkout-btn-primary" id="checkoutConfirmBtn">
+                <i class="fas fa-credit-card"></i>
+                Confirm Order
+            </button>
+        </div>
+    </div>
+</div>
 
 @section Scripts {
+    <script src="https://js.stripe.com/v3/"></script>
     <script>
-        document.querySelectorAll('.add-to-cart').forEach(btn => {
-            btn.addEventListener('click', () => {
-                let cartCount = document.getElementById('cartCount');
-                cartCount.innerText = parseInt(cartCount.innerText) + 1;
+        // --- Utility functions ---
+        function formatNumber(num) {
+            return parseFloat(num).toLocaleString('en-US');
+        }
+        function formatCurrency(num) {
+            return "₱" + parseFloat(num).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        // --- Blueprint Details Modal ---
+        const blueprintDetailsModal = document.getElementById('blueprintDetailsModal');
+        const blueprintDetailsCloseBtn = document.getElementById('blueprintDetailsCloseBtn');
+        const modalCloseBtn = document.getElementById('modalCloseBtn');
+        const modalAddToCartBtn = document.getElementById('modalAddToCartBtn');
+
+        let currentModalBlueprint = null;
+
+        function showBlueprintDetails(blueprintData) {
+            currentModalBlueprint = blueprintData;
+
+            // Populate modal with blueprint data
+            document.getElementById('modalBlueprintName').textContent = blueprintData.name;
+            document.getElementById('modalBlueprintImage').src = `/images/${blueprintData.image}`;
+            document.getElementById('modalBlueprintImage').alt = blueprintData.name;
+            document.getElementById('modalBlueprintPrice').textContent = formatNumber(parseFloat(blueprintData.price).toFixed(0));
+            document.getElementById('modalBlueprintStyle').textContent = blueprintData.style;
+            document.getElementById('modalBlueprintId').textContent = `BP-${blueprintData.id.toString().padStart(4, '0')}`;
+            document.getElementById('modalBlueprintDescription').textContent = blueprintData.description;
+
+            // Show modal
+            blueprintDetailsModal.style.display = 'block';
+        }
+
+        function hideBlueprintDetails() {
+            blueprintDetailsModal.style.display = 'none';
+            currentModalBlueprint = null;
+        }
+
+        // Modal event listeners
+        blueprintDetailsCloseBtn.addEventListener('click', hideBlueprintDetails);
+        modalCloseBtn.addEventListener('click', hideBlueprintDetails);
+        blueprintDetailsModal.addEventListener('click', e => {
+            if (e.target === blueprintDetailsModal) hideBlueprintDetails();
+        });
+
+        modalAddToCartBtn.addEventListener('click', () => {
+            if (currentModalBlueprint) {
+                addToCart(
+                    currentModalBlueprint.id,
+                    currentModalBlueprint.name,
+                    currentModalBlueprint.price,
+                    currentModalBlueprint.image
+                );
+                hideBlueprintDetails();
+            }
+        });
+
+        // --- Page load setup (format prices, tabs, sidebar adjust) ---
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.price-value').forEach(function(element) {
+                const price = parseFloat(element.textContent.replace(/,/g, ''));
+                element.textContent = formatNumber(price);
+            });
+
+            // Add click listeners to blueprint cards
+            document.querySelectorAll('.blueprint-card').forEach(card => {
+                card.addEventListener('click', function(e) {
+                    // Don't open modal if clicking on the add to cart button
+                    if (e.target.classList.contains('add-to-cart') || e.target.closest('.add-to-cart')) {
+                        return;
+                    }
+
+                    const blueprintData = {
+                        id: this.dataset.id,
+                        name: this.dataset.name,
+                        price: this.dataset.price,
+                        description: this.dataset.description,
+                        style: this.dataset.style,
+                        image: this.dataset.image
+                    };
+                    showBlueprintDetails(blueprintData);
+                });
+            });
+
+            const categoryTabs = document.querySelectorAll('#categoryTabs .nav-link');
+            const blueprintItems = document.querySelectorAll('.blueprint-item');
+            categoryTabs.forEach(tab => {
+                tab.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    categoryTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    const selectedCategory = this.getAttribute('data-category');
+                    blueprintItems.forEach(item => {
+                        const itemCategory = item.getAttribute('data-category');
+                        if (selectedCategory === 'All' || itemCategory === selectedCategory) {
+                            item.style.display = 'block';
+                            item.classList.remove('d-none');
+                        } else {
+                            item.style.display = 'none';
+                            item.classList.add('d-none');
+                        }
+                    });
+                });
+            });
+
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarToggler = document.querySelector('.sidebar-toggler');
+            const mainContent = document.querySelector('main.container');
+            function adjustMainContent() {
+                if (sidebar && mainContent) {
+                    if (sidebar.classList.contains('collapsed')) {
+                        mainContent.style.marginLeft = '110px';
+                        mainContent.style.maxWidth = 'calc(100% - 130px)';
+                    } else {
+                        mainContent.style.marginLeft = '300px';
+                        mainContent.style.maxWidth = 'calc(100% - 320px)';
+                    }
+                }
+            }
+            adjustMainContent();
+            if (sidebarToggler) {
+                sidebarToggler.addEventListener('click', function() {
+                    setTimeout(adjustMainContent, 50);
+                });
+            }
+        });
+
+        // --- Cart + Saved Items ---
+        let cart = JSON.parse(localStorage.getItem('blueprintCart')) || [];
+        let savedItems = JSON.parse(localStorage.getItem('blueprintSaved')) || [];
+
+        const cartModal = document.getElementById('cartModal');
+        const cartBtn = document.getElementById('cartBtn');
+        const cartCloseBtn = document.getElementById('cartCloseBtn');
+        const cartCount = document.getElementById('cartCount');
+        const cartTabCount = document.getElementById('cartTabCount');
+        const savedTabCount = document.getElementById('savedTabCount');
+        const cartTotal = document.getElementById('cartTotal');
+        const checkoutBtn = document.getElementById('checkoutBtn');
+        const cartItems = document.getElementById('cartItems');
+        const savedItemsDiv = document.getElementById('savedItems');
+        const cartEmpty = document.getElementById('cartEmpty');
+        const savedEmpty = document.getElementById('savedEmpty');
+
+        const checkoutModal = document.getElementById('checkoutModal');
+        const checkoutCancelBtn = document.getElementById('checkoutCancelBtn');
+        const checkoutConfirmBtn = document.getElementById('checkoutConfirmBtn');
+        const checkoutItemCount = document.getElementById('checkoutItemCount');
+        const checkoutSubtotal = document.getElementById('checkoutSubtotal');
+        const checkoutTotalAmount = document.getElementById('checkoutTotalAmount');
+
+        document.querySelectorAll('.cart-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.cart-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab + 'Tab').classList.add('active');
             });
         });
 
-        // Protection script
+        function updateCartDisplay() {
+            cartCount.textContent = cart.length;
+            cartTabCount.textContent = cart.length;
+            savedTabCount.textContent = savedItems.length;
+            const total = cart.reduce((sum, item) => sum + parseFloat(item.price), 0);
+            cartTotal.textContent = formatNumber(total.toFixed(2));
+            checkoutBtn.disabled = cart.length === 0;
+            cartEmpty.style.display = cart.length === 0 ? 'block' : 'none';
+            savedEmpty.style.display = savedItems.length === 0 ? 'block' : 'none';
+            renderCartItems();
+            renderSavedItems();
+            localStorage.setItem('blueprintCart', JSON.stringify(cart));
+            localStorage.setItem('blueprintSaved', JSON.stringify(savedItems));
+        }
+
+        function renderCartItems() {
+            cartItems.innerHTML = '';
+            cart.forEach((item, index) => {
+                const cartItem = document.createElement('div');
+                cartItem.innerHTML = `
+                    <div style="display:flex;align-items:center;padding:15px 0;border-bottom:1px solid #f1f3f4;">
+                        <img src="/images/${item.image}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;margin-right:12px;">
+                        <div style="flex:1;">
+                            <div style="font-weight:600;">${item.name}</div>
+                            <div style="color:#0D3C80;font-weight:700;">₱${formatNumber(parseFloat(item.price).toFixed(2))}</div>
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:6px;">
+                            <button onclick="saveForLater(${index})">Save</button>
+                            <button onclick="removeFromCart(${index})">Remove</button>
+                        </div>
+                    </div>`;
+                cartItems.appendChild(cartItem);
+            });
+        }
+        function renderSavedItems() {
+            savedItemsDiv.innerHTML = '';
+            savedItems.forEach((item, index) => {
+                const savedItem = document.createElement('div');
+                savedItem.innerHTML = `
+                    <div style="display:flex;align-items:center;padding:15px 0;border-bottom:1px solid #f1f3f4;">
+                        <img src="/images/${item.image}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;margin-right:12px;">
+                        <div style="flex:1;">
+                            <div style="font-weight:600;">${item.name}</div>
+                            <div style="color:#0D3C80;font-weight:700;">₱${formatNumber(parseFloat(item.price).toFixed(2))}</div>
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:6px;">
+                            <button onclick="moveToCart(${index})">Move to Cart</button>
+                            <button onclick="removeFromSaved(${index})">Remove</button>
+                        </div>
+                    </div>`;
+                savedItemsDiv.appendChild(savedItem);
+            });
+        }
+
+        function addToCart(id, name, price, image) {
+            if (cart.find(item => item.id === id)) {
+                alert('This blueprint is already in your cart!');
+                return;
+            }
+            cart.push({ id, name, price, image });
+            updateCartDisplay();
+        }
+        function removeFromCart(index) { cart.splice(index, 1); updateCartDisplay(); }
+        function saveForLater(index) { savedItems.push(cart[index]); cart.splice(index, 1); updateCartDisplay(); }
+        function moveToCart(index) { cart.push(savedItems[index]); savedItems.splice(index, 1); updateCartDisplay(); }
+        function removeFromSaved(index) { savedItems.splice(index, 1); updateCartDisplay(); }
+
+        cartBtn.addEventListener('click', e => { e.preventDefault(); cartModal.style.display='block'; });
+        cartCloseBtn.addEventListener('click', () => { cartModal.style.display='none'; });
+        cartModal.addEventListener('click', e => { if (e.target===cartModal) cartModal.style.display='none'; });
+
+        checkoutBtn.addEventListener('click', () => {
+            if (cart.length > 0) {
+                cartModal.style.display = 'none';
+                showCheckoutModal();
+            }
+        });
+        checkoutCancelBtn.addEventListener('click', () => { hideCheckoutModal(); cartModal.style.display='block'; });
+
+        function showCheckoutModal() {
+            const subtotal = cart.reduce((sum, item) => sum + parseFloat(item.price), 0);
+            const processingFee = 50;
+            const total = subtotal + processingFee;
+            checkoutItemCount.textContent = cart.length;
+            checkoutSubtotal.textContent = `₱${formatNumber(subtotal.toFixed(2))}`;
+            checkoutTotalAmount.textContent = `₱${formatNumber(total.toFixed(2))}`;
+            checkoutModal.style.display = 'block';
+        }
+        function hideCheckoutModal() { checkoutModal.style.display='none'; }
+
+        document.querySelectorAll('.add-to-cart').forEach(btn => {
+            btn.addEventListener('click', e => {
+                e.preventDefault();
+                const id = btn.dataset.id, name = btn.dataset.name, price = btn.dataset.price, image = btn.dataset.image;
+                addToCart(id, name, price, image);
+            });
+        });
+
+        // --- Stripe Checkout Integration ---
+        const stripe = Stripe("@ViewBag.StripePublishableKey");
+        checkoutConfirmBtn.addEventListener('click', async () => {
+            hideCheckoutModal();
+            const response = await fetch("/ClientInterface/CreateCheckoutSession", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(cart)
+            });
+            const session = await response.json();
+            await stripe.redirectToCheckout({ sessionId: session.id });
+        });
+
+        // Detect Stripe success redirect
+        window.addEventListener("load", async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has("session_id")) {
+                const blueprintIds = cart.map(i => parseInt(i.id));
+                const response = await fetch("/ClientInterface/CompletePurchase", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(blueprintIds)
+                });
+                const data = await response.json();
+                if (data.success) {
+                    localStorage.removeItem("blueprintCart");
+                    localStorage.removeItem("blueprintSaved");
+                    cart = [];
+                    savedItems = [];
+                    updateCartDisplay();
+                    alert("✅ Purchase completed! Cart cleared.");
+                }
+            }
+        });
+
+        updateCartDisplay();
+    </script>
+
+    <script>
+        // --- Protection Script ---
         (function () {
-            'use strict';
-
-            const protectedSelector = '.card .protected-img';
-
-            // Disable context menu + drag for protected images
+            const protectedSelector = '.protected-img';
             document.querySelectorAll(protectedSelector).forEach(img => {
                 img.addEventListener('contextmenu', e => e.preventDefault());
                 img.addEventListener('dragstart', e => e.preventDefault());
                 img.setAttribute('draggable', 'false');
             });
-
-            // Disable copy
-            document.addEventListener('copy', function (e) {
-                if (e.clipboardData) {
-                    e.clipboardData.clearData();
-                }
-                e.preventDefault();
-            });
-
-            // Block Ctrl+S and Ctrl+Shift+S
-            document.addEventListener('keydown', function (e) {
+            document.addEventListener('copy', e => { if (e.clipboardData) e.clipboardData.clearData(); e.preventDefault(); });
+            document.addEventListener('keydown', e => {
                 const key = e.key || e.code;
-                if ((e.ctrlKey || e.metaKey) && (key === 's' || key === 'S')) {
-                    e.preventDefault();
-                }
-                if ((e.ctrlKey || e.metaKey) && e.shiftKey && (key === 's' || key === 'S')) {
-                    e.preventDefault();
-                }
+                if ((e.ctrlKey || e.metaKey) && (key==='s' || key==='S')) e.preventDefault();
             });
-
-            // Optional: block context menu for whole card (except buttons/inputs)
-            document.querySelectorAll('.card').forEach(card => {
-                card.addEventListener('contextmenu', function (e) {
-                    if (e.target.closest('button, a, input, textarea, select, label')) return;
-                    e.preventDefault();
-                }, true);
-            });
-
         })();
     </script>
 }
