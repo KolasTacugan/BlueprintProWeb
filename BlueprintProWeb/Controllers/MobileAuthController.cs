@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using OpenAI;
 using OpenAI.Embeddings;
 using System.Globalization;
+using System.ComponentModel.DataAnnotations;
 
 namespace BlueprintProWeb.Controllers
 {
@@ -168,6 +169,9 @@ namespace BlueprintProWeb.Controllers
 
         public string FirstName { get; set; }
         public string LastName { get; set; }
+
+        [Required(ErrorMessage = "Phone number is required.")]
+        [RegularExpression(@"^\d{11}$", ErrorMessage = "Phone number must be exactly 11 digits with no letters.")]
         public string PhoneNumber { get; set; }
 
         public string? Role { get; set; }
