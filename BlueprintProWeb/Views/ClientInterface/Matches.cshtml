@@ -63,6 +63,19 @@
                 padding-top: 2rem;
             }
         }
+      
+        .architect-link{
+            color: #091635;
+            cursor: pointer;
+            transition: 0.1s ease;
+            text-decoration: none;
+        }
+
+        .architect-link:hover{
+            color: #091635;
+            font-weight: 600;
+            text-decoration: none;
+        }
     </style>
 }
 
@@ -80,23 +93,19 @@
                         <div class="card shadow-sm h-100">
                             <div class="card-body d-flex flex-column">
                                 <div class="d-flex align-items-center mb-3">
-                                    <img src="~/images/default-profile.png"
+                                    <img src="@match.ProfilePhoto"
                                          class="rounded-circle me-3 border"
                                          width="50" height="50"
                                          alt="@match.ArchitectName" />
                                     <div>
-                                        <h6 class="fw-bold mb-0">@match.ArchitectName</h6>
-                                        <small class="text-muted">@match.ArchitectStyle ?? "General Architect"</small>
+                                        <h6 class="fw-bold mb-0">
+                                            <a href="#"
+                                               class="architect-link"
+                                               data-architect-id="@match.ArchitectId">
+                                                @match.ArchitectName
+                                            </a>
+                                        </h6>
                                     </div>
-                                </div>
-                                <p class="text-muted small flex-grow-1">
-                                    Style: @match.ArchitectStyle ?? "Various" <br />
-                                    Location: @match.ArchitectLocation ?? "Flexible" <br />
-                                    Budget: @match.ArchitectBudget ?? "Flexible"
-                                </p>
-                                <div class="mb-2">
-                                    <small>Status: <span class="badge bg-info">@match.MatchStatus</span></small><br />
-                                    <small>Date: @match.MatchDate.ToString("yyyy-MM-dd")</small>
                                 </div>
                                 <button class="btn btn-outline-primary w-100 mt-auto match-btn"
                                         data-architect-id="@match.ArchitectId">
@@ -135,6 +144,44 @@
                 <textarea id="clientPrompt" class="form-control" rows="1"
                           placeholder="Describe what you're looking for..."></textarea>
                 <button class="send-btn btn btn-primary" id="searchArchitects">Send</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Architect Profile Modal -->
+<div class="modal fade" id="architectProfileModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Architect Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="profile-container">
+                    <div class="profile-main-card p-3">
+                        <div class="profile-info d-flex align-items-center gap-3 mb-3">
+                            <div class="avatar">
+                                <img id="architectProfilePhoto" src="~/images/profile.jpg" alt="Avatar" style="width:64px;height:64px;border-radius:50%;">
+                            </div>
+                            <div class="user-details">
+                                <h3 id="architectProfileName" class="architect-name mb-1 fw-bold"></h3>
+                                <div id="architectProfileEmail" class="text-muted"></div>
+                                <div id="architectProfilePhone" class="text-muted"></div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <p><strong>License No:</strong> <span id="architectProfileLicense"></span></p>
+                            <p><strong>Style:</strong> <span id="architectProfileStyle"></span></p>
+                            <p><strong>Specialization:</strong> <span id="architectProfileSpecialization"></span></p>
+                            <p><strong>Location:</strong> <span id="architectProfileLocation"></span></p>
+                            <p>
+                                <strong>Credentials File:</strong>
+                                <a id="architectProfileCredentials" href="#" target="_blank" class="text-decoration-underline archi-cred">Architect's Credentials</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -188,6 +235,37 @@
                     setTimeout(adjustMainContent, 50);
                 });
             }
+
+            // Architect info modal
+            const architectModal = new bootstrap.Modal(document.getElementById('architectProfileModal'));
+            document.querySelectorAll('.architect-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const id = this.dataset.architectId;
+
+                    fetch(`/ClientInterface/GetArchitectProfile?id=${id}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data) {
+                                document.getElementById("architectProfileName").innerText = data.fullName;
+                                document.getElementById("architectProfileEmail").innerText = data.email || "No email provided";
+                                document.getElementById("architectProfilePhone").innerText = data.phone || "No phone provided";
+                                document.getElementById("architectProfileLicense").innerText = data.license || "N/A";
+                                document.getElementById("architectProfileStyle").innerText = data.style || "N/A";
+                                document.getElementById("architectProfileSpecialization").innerText = data.specialization || "N/A";
+                                document.getElementById("architectProfileLocation").innerText = data.location || "N/A";
+                                document.getElementById("architectProfileCredentials").href = data.credentialsFile || "#";
+                                document.getElementById("architectProfilePhoto").src = data.photo || "/images/profile.jpg";
+
+                                architectModal.show();
+                            } else {
+                                alert("❌ Architect profile not found.");
+                            }
+                        })
+                        .catch(() => alert("❌ Failed to load architect profile."));
+
+                });
+            });
         });
 
         const chatWindow = document.getElementById('chatWindow');
@@ -214,7 +292,7 @@
         }
 
         // Render architect cards dynamically
-        function renderArchitects(matches) {
+                function renderArchitects(matches) {
             resultsContainer.innerHTML = "";
 
             if (!matches || matches.length === 0) {
@@ -227,34 +305,63 @@
             }
 
             matches.forEach(m => {
-                const date = m.matchDate ? new Date(m.matchDate).toLocaleDateString() : "";
                 let card = document.createElement('div');
                 card.className = "col-md-6 mb-4";
                 card.innerHTML = `
                     <div class="card shadow-sm h-100">
                         <div class="card-body d-flex flex-column">
                             <div class="d-flex align-items-center mb-3">
-                                <img src="/images/default-profile.png" class="rounded-circle me-3 border" width="50" height="50" alt="${m.architectName || "Architect"}" />
+                                <img src="${m.profilePhoto || '/images/profile.jpg'}"
+                                     class="rounded-circle me-3 border"
+                                     width="50" height="50"
+                                     alt="${m.architectName || 'Architect'}" />
                                 <div>
-                                    <h6 class="fw-bold mb-0">${m.architectName || "Unnamed Architect"}</h6>
-                                    <small class="text-muted">${m.architectStyle || "General Architect"}</small>
+                                    <h6 class="fw-bold mb-0">
+                                        <a href="#"
+                                           class="architect-link"
+                                           data-architect-id="${m.architectId}">
+                                            ${m.architectName || "Unnamed Architect"}
+                                        </a>
+                                    </h6>
                                 </div>
                             </div>
-                            <p class="text-muted small flex-grow-1">
-                                Style: ${m.architectStyle || "Various"} <br>
-                                Location: ${m.architectLocation || "Flexible"} <br>
-                                Budget: ${m.architectBudget || "Flexible"}
-                            </p>
-                            <div class="mb-2">
-                                <small>Status: <span class="badge bg-info">${m.matchStatus || "Pending"}</span></small><br />
-                                <small>Date: ${date}</small>
-                            </div>
-                            <button class="btn btn-outline-primary w-100 mt-auto match-btn" data-architect-id="${m.architectId}">
+                            <button class="btn btn-outline-primary w-100 mt-auto match-btn"
+                                    data-architect-id="${m.architectId}">
                                 Match
                             </button>
                         </div>
-                    </div>`;
+                    </div>
+                `;
                 resultsContainer.appendChild(card);
+            });
+
+            // 🧩 Re-attach modal event listeners for dynamically added architect links
+            document.querySelectorAll('.architect-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const id = this.dataset.architectId;
+
+                    fetch(`/ClientInterface/GetArchitectProfile?id=${id}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data) {
+                                document.getElementById("architectProfileName").innerText = data.fullName;
+                                document.getElementById("architectProfileEmail").innerText = data.email || "No email provided";
+                                document.getElementById("architectProfilePhone").innerText = data.phone || "No phone provided";
+                                document.getElementById("architectProfileLicense").innerText = data.license || "N/A";
+                                document.getElementById("architectProfileStyle").innerText = data.style || "N/A";
+                                document.getElementById("architectProfileSpecialization").innerText = data.specialization || "N/A";
+                                document.getElementById("architectProfileLocation").innerText = data.location || "N/A";
+                                document.getElementById("architectProfileCredentials").href = data.credentialsFile || "#";
+                                document.getElementById("architectProfilePhoto").src = data.photo || "/images/profile.jpg";
+                                const modal = new bootstrap.Modal(document.getElementById('architectProfileModal'));
+                                modal.show();
+                            } else {
+                                alert("❌ Architect profile not found.");
+                            }
+                        })
+                        .catch(() => alert("❌ Failed to load architect profile."));
+                });
             });
         }
 
