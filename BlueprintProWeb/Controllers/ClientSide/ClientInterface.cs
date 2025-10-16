@@ -159,7 +159,6 @@ namespace BlueprintProWeb.Controllers.ClientSide
             return View("BlueprintMarketplace", availableBlueprints);
         }
 
-
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
@@ -216,6 +215,31 @@ namespace BlueprintProWeb.Controllers.ClientSide
             return Json(cart ?? new CartViewModel { CartId = 0, Items = new List<CartItemViewModel>() });
         }
 
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> RemoveFromCart([FromBody] int blueprintId)
+        {
+            var user = await userManager.GetUserAsync(User);
+            if (user == null)
+                return Unauthorized();
+
+            var cart = await context.Carts
+                .Include(c => c.Items)
+                .FirstOrDefaultAsync(c => c.UserId == user.Id);
+
+            if (cart == null)
+                return NotFound(new { success = false, message = "Cart not found" });
+
+            var item = cart.Items.FirstOrDefault(i => i.BlueprintId == blueprintId);
+            if (item == null)
+                return NotFound(new { success = false, message = "Item not found" });
+
+            cart.Items.Remove(item);
+            context.CartItems.Remove(item); // make sure this matches your actual table name
+            await context.SaveChangesAsync();
+
+            return Ok(new { success = true });
+        }
 
         public class CartRequest
         {
