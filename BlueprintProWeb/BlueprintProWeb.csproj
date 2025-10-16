@@ -18,6 +18,8 @@
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
     <PackageReference Include="OpenAI" Version="2.5.0" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.*" />
+    <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.*" />
     <PackageReference Include="Stripe.net" Version="48.5.0" />
     <PackageReference Include="ValueOf.Extensions.SwashbuckleSwagger" Version="1.0.5" />
   </ItemGroup>

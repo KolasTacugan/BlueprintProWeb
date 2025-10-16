@@ -15,6 +15,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Stripe;
 using Stripe.Checkout;
+using BlueprintProWeb.Services;
+
 using System.Net;
 using static iText.StyledXmlParser.Jsoup.Select.Evaluator;
 
@@ -28,13 +30,17 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
         public IWebHostEnvironment WebHostEnvironment;
         private readonly IHubContext<ChatHub> _hubContext;
         private readonly StripeSettings _stripeSettings;
-        public ArchitectInterface(AppDbContext context, IWebHostEnvironment webHostEnvironment, UserManager<User> userManager, IHubContext<ChatHub> hubContext, IOptions<StripeSettings> stripeSettings)
+        private readonly ImageService _imageService;
+
+        public ArchitectInterface(ImageService imageService, AppDbContext context, IWebHostEnvironment webHostEnvironment, UserManager<User> userManager, IHubContext<ChatHub> hubContext, IOptions<StripeSettings> stripeSettings)
         {
             this.context = context;
             WebHostEnvironment = webHostEnvironment;
             _userManager = userManager;
             _hubContext = hubContext;
             _stripeSettings = stripeSettings.Value;
+            _imageService = imageService;
+
         }
 
         public async Task<IActionResult> ArchitectDashboard()
@@ -277,6 +283,9 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 {
                     vm.BlueprintImage.CopyTo(fileStream);
                 }
+
+                string watermarkPath = Path.Combine(WebHostEnvironment.WebRootPath, "images", "BPP-watermark.png");
+                _imageService.ApplyWatermark(filePath);
             }
             return fileName;
         }

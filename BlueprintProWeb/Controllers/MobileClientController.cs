@@ -78,60 +78,98 @@ namespace BlueprintProWeb.Controllers
         {
             try
             {
+                // Fetch all blueprints marked as for sale
                 var availableBlueprints = context.Blueprints
                     .Where(bp => bp.blueprintIsForSale)
-                    .Select(bp => new
-                    {
-                        bp.blueprintId,
-                        bp.blueprintName,
-                        bp.blueprintImage,
-                        bp.blueprintPrice,
-                        bp.blueprintIsForSale
-                    })
-                    .ToList();
+                    .ToList(); // gets all properties
 
-                return Ok(availableBlueprints);
+                // Prepare response including Stripe key
+                var response = new
+                {
+                    StripePublishableKey = _stripeSettings.PublishableKey,
+                    Blueprints = availableBlueprints
+                };
+
+                return Ok(response); // returns JSON
             }
             catch (Exception ex)
             {
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }
+
 
         // -------------------- CART --------------------
         public class CartRequest
         {
             public int BlueprintId { get; set; }
             public int Quantity { get; set; }
+            public string ClientId { get; set; }
         }
 
+        [AllowAnonymous]
         [HttpPost("AddToCart")]
-        [Authorize]
         public async Task<IActionResult> AddToCart([FromBody] CartRequest model)
         {
             try
             {
-                var user = await userManager.GetUserAsync(User);
-                if (user == null) return Unauthorized(new { success = false, message = "User not authorized." });
+                if (string.IsNullOrWhiteSpace(model.ClientId))
+                    return BadRequest(new { success = false, message = "ClientId is required." });
 
-                var cart = context.Carts
+                // ✅ Load Items and their related Blueprints
+                var cart = await context.Carts
                     .Include(c => c.Items)
-                    .FirstOrDefault(c => c.UserId == user.Id);
+                        .ThenInclude(i => i.Blueprint)
+                    .FirstOrDefaultAsync(c => c.UserId == model.ClientId);
 
                 if (cart == null)
                 {
-                    cart = new Cart { UserId = user.Id, Items = new List<CartItem>() };
+                    cart = new Cart { UserId = model.ClientId, Items = new List<CartItem>() };
                     context.Carts.Add(cart);
                 }
 
+                // Check if item exists
                 var existingItem = cart.Items.FirstOrDefault(i => i.BlueprintId == model.BlueprintId);
                 if (existingItem != null)
+                {
                     existingItem.Quantity += model.Quantity;
+                }
                 else
-                    cart.Items.Add(new CartItem { BlueprintId = model.BlueprintId, Quantity = model.Quantity });
+                {
+                    var newItem = new CartItem
+                    {
+                        BlueprintId = model.BlueprintId,
+                        Quantity = model.Quantity
+                    };
+                    cart.Items.Add(newItem);
+                }
 
                 await context.SaveChangesAsync();
-                return Ok(new { success = true, message = "Item added to cart." });
+
+                // ✅ Reload the cart with Blueprint data after saving (important!)
+                cart = await context.Carts
+                    .Include(c => c.Items)
+                        .ThenInclude(i => i.Blueprint)
+                    .FirstOrDefaultAsync(c => c.CartId == cart.CartId);
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Item added to cart successfully.",
+                    cart = new
+                    {
+                        cart.CartId,
+                        Items = cart.Items.Select(i => new
+                        {
+                            i.CartItemId,
+                            i.BlueprintId,
+                            blueprintName = i.Blueprint?.blueprintName,   // Safe navigation
+                            blueprintImage = i.Blueprint?.blueprintImage,
+                            blueprintPrice = i.Blueprint?.blueprintPrice,
+                            i.Quantity
+                        })
+                    }
+                });
             }
             catch (Exception ex)
             {
@@ -139,17 +177,19 @@ namespace BlueprintProWeb.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpGet("GetCart")]
-        [Authorize]
-        public async Task<IActionResult> GetCart()
+        public async Task<IActionResult> GetCart([FromQuery] string clientId)
         {
             try
             {
-                var user = await userManager.GetUserAsync(User);
-                if (user == null) return Unauthorized(new { success = false, message = "User not authorized." });
+                if (string.IsNullOrWhiteSpace(clientId))
+                    return BadRequest(new { success = false, message = "ClientId is required." });
 
-                var cart = context.Carts
-                    .Where(c => c.UserId == user.Id)
+                var cart = await context.Carts
+                    .Include(c => c.Items)
+                        .ThenInclude(i => i.Blueprint) // ✅ Eager load the Blueprint
+                    .Where(c => c.UserId == clientId)
                     .Select(c => new
                     {
                         c.CartId,
@@ -157,23 +197,27 @@ namespace BlueprintProWeb.Controllers
                         {
                             i.CartItemId,
                             i.BlueprintId,
-                            i.Blueprint.blueprintName,
-                            i.Blueprint.blueprintImage,
-                            i.Blueprint.blueprintPrice,
+                            blueprintName = i.Blueprint.blueprintName,
+                            blueprintImage = i.Blueprint.blueprintImage,
+                            blueprintPrice = i.Blueprint.blueprintPrice,
                             i.Quantity
-                        })
+                        }).ToList()
                     })
-                    .FirstOrDefault();
+                    .FirstOrDefaultAsync();
 
-                return Ok(cart != null
-                     ? cart
-                     : new { CartId = 0, Items = new List<object>() });
+                if (cart == null)
+                    return Ok(new { CartId = 0, Items = new List<object>() });
+
+                return Ok(cart.Items);
             }
             catch (Exception ex)
             {
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }
+
+
+
 
         // -------------------- PAYMENT --------------------
         [HttpPost("CreateCheckoutSession")]
@@ -382,7 +426,7 @@ namespace BlueprintProWeb.Controllers
 
             var match = new Match
             {
-                ClientId = request.ClientId,
+                ClientId = request.ClientId, 
                 ArchitectId = request.ArchitectId
             };
 
@@ -536,6 +580,16 @@ namespace BlueprintProWeb.Controllers
             return embeddingString.Split(',', StringSplitOptions.RemoveEmptyEntries)
                 .Select(s => float.TryParse(s.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var v) ? v : 0f)
                 .ToArray();
+        }
+
+        [HttpGet("GetClientId")]
+        [Authorize]
+        public async Task<IActionResult> GetClientId()
+        {
+            var user = await userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            return Ok(new { clientId = user.Id });
         }
 
         public class MatchDto

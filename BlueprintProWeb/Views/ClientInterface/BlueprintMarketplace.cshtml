@@ -1186,8 +1186,10 @@
         });
 
         // --- Cart + Saved Items ---
-        let cart = JSON.parse(localStorage.getItem('blueprintCart')) || [];
-        let savedItems = JSON.parse(localStorage.getItem('blueprintSaved')) || [];
+        const userId = "@User.Identity.Name"; // unique per logged-in user
+        let cart = JSON.parse(localStorage.getItem(`blueprintCart_${userId}`)) || [];
+        let savedItems = JSON.parse(localStorage.getItem(`blueprintSaved_${userId}`)) || [];
+
 
         const cartModal = document.getElementById('cartModal');
         const cartBtn = document.getElementById('cartBtn');
@@ -1217,6 +1219,22 @@
                 document.getElementById(tab.dataset.tab + 'Tab').classList.add('active');
             });
         });
+        
+        document.addEventListener("DOMContentLoaded", async () => {
+            // Fetch latest cart from backend when user logs in
+            await loadCart();
+
+            // Merge backend cart with localStorage if needed
+            const localCart = JSON.parse(localStorage.getItem(`blueprintCart_${userId}`)) || [];
+            if (localCart.length > 0 && cart.length === 0) {
+                // Restore backend from local storage if backend is empty
+                for (const item of localCart) {
+                    await addToCart(item.id, 1);
+                }
+            }
+
+            updateCartDisplay();
+        });
 
         function updateCartDisplay() {
             cartCount.textContent = cart.length;
@@ -1229,8 +1247,10 @@
             savedEmpty.style.display = savedItems.length === 0 ? 'block' : 'none';
             renderCartItems();
             renderSavedItems();
-            localStorage.setItem('blueprintCart', JSON.stringify(cart));
-            localStorage.setItem('blueprintSaved', JSON.stringify(savedItems));
+            localStorage.setItem(`blueprintCart_${userId}`, JSON.stringify(cart));
+            localStorage.setItem(`blueprintSaved_${userId}`, JSON.stringify(savedItems));
+
+
         }
 
         function renderCartItems() {
@@ -1272,15 +1292,74 @@
             });
         }
 
-        function addToCart(id, name, price, image) {
-            if (cart.find(item => item.id === id)) {
-                alert('This blueprint is already in your cart!');
-                return;
+        async function addToCart(blueprintId, quantity = 1) {
+            try {
+                const response = await fetch('/ClientInterface/AddToCart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({ blueprintId, quantity })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert("✅ Added to cart!");
+                    await loadCart(); // reload cart from backend
+                } else {
+                    alert("❌ Failed to add to cart");
+                }
+            } catch (err) {
+                console.error("AddToCart error:", err);
             }
-            cart.push({ id, name, price, image });
+        }
+        async function loadCart() {
+            const res = await fetch('/ClientInterface/GetCart');
+            const cartData = await res.json();
+
+            cart = cartData.items.map(item => ({
+                id: item.blueprintId,
+                name: item.blueprintName,
+                price: item.price,
+                image: item.image
+            }));
+
             updateCartDisplay();
         }
-        function removeFromCart(index) { cart.splice(index, 1); updateCartDisplay(); }
+
+
+                async function removeFromCart(index) {
+            const item = cart[index];
+            if (!item) return;
+
+            if (!confirm(`Remove ${item.name} from cart?`)) return;
+
+            try {
+                const response = await fetch('/ClientInterface/RemoveFromCart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify(item.id)
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    // Remove locally
+                    cart.splice(index, 1);
+                    updateCartDisplay();
+                    alert("✅ Removed from cart!");
+                } else {
+                    alert("❌ Failed to remove from cart");
+                }
+            } catch (err) {
+                console.error("RemoveFromCart error:", err);
+                alert("⚠️ Error removing item");
+            }
+        }
+
         function saveForLater(index) { savedItems.push(cart[index]); cart.splice(index, 1); updateCartDisplay(); }
         function moveToCart(index) { cart.push(savedItems[index]); savedItems.splice(index, 1); updateCartDisplay(); }
         function removeFromSaved(index) { savedItems.splice(index, 1); updateCartDisplay(); }
@@ -1308,13 +1387,14 @@
         }
         function hideCheckoutModal() { checkoutModal.style.display='none'; }
 
-        document.querySelectorAll('.add-to-cart').forEach(btn => {
+                document.querySelectorAll('.add-to-cart').forEach(btn => {
             btn.addEventListener('click', e => {
                 e.preventDefault();
-                const id = btn.dataset.id, name = btn.dataset.name, price = btn.dataset.price, image = btn.dataset.image;
-                addToCart(id, name, price, image);
+                const id = parseInt(btn.dataset.id);
+                addToCart(id, 1);
             });
         });
+
 
         // --- Stripe Checkout Integration ---
         const stripe = Stripe("@ViewBag.StripePublishableKey");
@@ -1341,8 +1421,9 @@
                 });
                 const data = await response.json();
                 if (data.success) {
-                    localStorage.removeItem("blueprintCart");
-                    localStorage.removeItem("blueprintSaved");
+                    localStorage.removeItem(`blueprintCart_${userId}`);
+                    localStorage.removeItem(`blueprintSaved_${userId}`);
+
                     cart = [];
                     savedItems = [];
                     updateCartDisplay();
