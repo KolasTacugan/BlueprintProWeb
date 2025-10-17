@@ -215,8 +215,44 @@ namespace BlueprintProWeb.Controllers
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }
+        [AllowAnonymous]
+        [HttpPost("RemoveFromCart")]
+        public async Task<IActionResult> RemoveFromCart([FromBody] RemoveCartRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(request.ClientId))
+                    return BadRequest(new { success = false, message = "ClientId is required." });
 
+                var cart = await context.Carts
+                    .Include(c => c.Items)
+                    .FirstOrDefaultAsync(c => c.UserId == request.ClientId);
 
+                if (cart == null)
+                    return NotFound(new { success = false, message = "Cart not found." });
+
+                var item = cart.Items.FirstOrDefault(i => i.BlueprintId == request.BlueprintId);
+                if (item == null)
+                    return NotFound(new { success = false, message = "Item not found in cart." });
+
+                // Remove from both collections
+                cart.Items.Remove(item);
+                context.CartItems.Remove(item);
+                await context.SaveChangesAsync();
+
+                return Ok(new { success = true, message = "Item removed successfully." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        public class RemoveCartRequest
+        {
+            public string ClientId { get; set; }
+            public int BlueprintId { get; set; }
+        }
 
 
         // -------------------- PAYMENT --------------------
