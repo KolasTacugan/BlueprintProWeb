@@ -347,7 +347,13 @@
                     <div class="form-row">
                         <div class="mb-3">
                             <label asp-for="PhoneNumber" class="form-label"></label>
-                            <input asp-for="PhoneNumber" class="form-control" />
+                            <input asp-for="PhoneNumber" class="form-control" 
+                                   pattern="[0-9]{11}" 
+                                   maxlength="11" 
+                                   title="Please enter exactly 11 digits"
+                                   placeholder="Enter 11-digit phone number"
+                                   onkeypress="return isNumber(event)"
+                                   oninput="validatePhoneNumber(this)" />
                             <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                         </div>
 
@@ -453,6 +459,53 @@
         @{
             await Html.RenderPartialAsync("_ValidationScriptsPartial.cshtml");
         }
+        
+        <script>
+            // Function to allow only numbers (0-9) on keypress
+            function isNumber(event) {
+                const charCode = (event.which) ? event.which : event.keyCode;
+                // Allow backspace (8), delete (46), tab (9), escape (27), enter (13), and numbers (48-57)
+                if (charCode === 8 || charCode === 9 || charCode === 27 || charCode === 13 || 
+                    charCode === 46 || (charCode >= 48 && charCode <= 57)) {
+                    return true;
+                }
+                return false;
+            }
+
+            // Function to validate phone number format
+            function validatePhoneNumber(input) {
+                // Remove any non-numeric characters
+                input.value = input.value.replace(/[^0-9]/g, '');
+                
+                // Limit to 11 digits
+                if (input.value.length > 11) {
+                    input.value = input.value.substring(0, 11);
+                }
+                
+                // Update validation display
+                const isValid = input.value.length === 11;
+                if (input.value.length > 0 && input.value.length !== 11) {
+                    input.setCustomValidity("Phone number must be exactly 11 digits");
+                } else {
+                    input.setCustomValidity("");
+                }
+            }
+
+            // Add form submission validation
+            $(document).ready(function() {
+                $('form').on('submit', function(e) {
+                    const phoneInput = $('input[name="PhoneNumber"]');
+                    const phoneValue = phoneInput.val();
+                    
+                    if (phoneValue.length !== 11 || !/^\d{11}$/.test(phoneValue)) {
+                        e.preventDefault();
+                        alert('Please enter exactly 11 digits for the phone number.');
+                        phoneInput.focus();
+                        return false;
+                    }
+                });
+            });
+        </script>
     }
 </body>
 </html>

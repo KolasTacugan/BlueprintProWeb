@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 
 namespace BlueprintProWeb.ViewModels
 {
@@ -8,6 +9,9 @@ namespace BlueprintProWeb.ViewModels
         public string LastName { get; set; } = string.Empty;
         public string FullName => $"{FirstName} {LastName}";
         public string Email { get; set; } = string.Empty;
+        
+        [RegularExpression(@"^\d{11}$", ErrorMessage = "Phone number must be exactly 11 digits with no letters.")]
+        [Display(Name = "Phone Number")]
         public string? PhoneNumber { get; set; }
 
         public string Role { get; set; } = string.Empty;
