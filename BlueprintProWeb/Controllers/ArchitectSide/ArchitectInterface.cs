@@ -225,7 +225,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
         [HttpPost]
         public async Task<IActionResult> AddProjectBlueprints(BlueprintViewModel vm)
         {
-            string stringFileName = UploadFile(vm);
+            string stringFileName = UploadProjectFile(vm);
             var user = await _userManager.GetUserAsync(User);
             var userId = user.Id;
 
@@ -271,6 +271,23 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
 
             return RedirectToAction("Projects");
         }
+
+        private string UploadProjectFile(BlueprintViewModel vm)
+        {
+            string fileName = null;
+            if (vm.BlueprintImage != null)
+            {
+                string uploadDir = Path.Combine(WebHostEnvironment.WebRootPath, "images");
+                fileName = Guid.NewGuid().ToString() + "-" + vm.BlueprintImage.FileName;
+                string filePath = Path.Combine(uploadDir, fileName);
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    vm.BlueprintImage.CopyTo(fileStream);
+                }
+            }
+            return fileName;
+        }
+
 
         private string UploadFile(BlueprintViewModel vm, string? oldFileName = null)
         {
