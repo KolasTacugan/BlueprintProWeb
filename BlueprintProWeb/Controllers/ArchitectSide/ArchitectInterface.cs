@@ -1,6 +1,7 @@
 ﻿using BlueprintProWeb.Data;
 using BlueprintProWeb.Hubs;
 using BlueprintProWeb.Models;
+using BlueprintProWeb.Services;
 using BlueprintProWeb.Settings;
 using BlueprintProWeb.ViewModels;
 using iText.Commons.Actions.Contexts;
@@ -13,9 +14,10 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
 using Stripe;
 using Stripe.Checkout;
-using BlueprintProWeb.Services;
 using System.Net;
 using static iText.StyledXmlParser.Jsoup.Select.Evaluator;
 
@@ -39,6 +41,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             _hubContext = hubContext;
             _stripeSettings = stripeSettings.Value;
             _imageService = imageService;
+
         }
 
         public async Task<IActionResult> ArchitectDashboard()
@@ -269,24 +272,57 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             return RedirectToAction("Projects");
         }
 
-        private string UploadFile(BlueprintViewModel vm)
+        private string UploadFile(BlueprintViewModel vm, string? oldFileName = null)
         {
             string fileName = null;
             if (vm.BlueprintImage != null)
             {
                 string uploadDir = Path.Combine(WebHostEnvironment.WebRootPath, "images");
+                Directory.CreateDirectory(uploadDir);
+
+                // 🆕 Generate new filename
                 fileName = Guid.NewGuid().ToString() + "-" + vm.BlueprintImage.FileName;
                 string filePath = Path.Combine(uploadDir, fileName);
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
+
+                // 🧽 Delete old file if editing
+                if (!string.IsNullOrEmpty(oldFileName))
                 {
-                    vm.BlueprintImage.CopyTo(fileStream);
+                    var oldPath = Path.Combine(uploadDir, oldFileName);
+                    if (System.IO.File.Exists(oldPath))
+                    {
+                        try { System.IO.File.Delete(oldPath); } catch { /* ignore locks */ }
+                    }
                 }
 
-                string watermarkPath = Path.Combine(WebHostEnvironment.WebRootPath, "images", "BPP-watermark.png");
-                _imageService.ApplyWatermark(filePath);
+                // 🧠 Load image in memory and process watermark BEFORE writing to disk
+                using var memoryStream = new MemoryStream();
+                vm.BlueprintImage.CopyTo(memoryStream);
+                memoryStream.Position = 0;
+
+                using (var image = SixLabors.ImageSharp.Image.Load<SixLabors.ImageSharp.PixelFormats.Rgba32>(memoryStream))
+                {
+                    // Optional: load watermark image
+                    string watermarkPath = Path.Combine(WebHostEnvironment.WebRootPath, "images", "BPP-watermark.png");
+                    if (System.IO.File.Exists(watermarkPath))
+                    {
+                        using var watermarkImg = SixLabors.ImageSharp.Image.Load<SixLabors.ImageSharp.PixelFormats.Rgba32>(watermarkPath);
+                        watermarkImg.Mutate(w => w.Resize(image.Width, image.Height));
+                        float opacity = 0.28f;
+
+                        image.Mutate(ctx => ctx.DrawImage(
+                            watermarkImg,
+                            new Point(0, 0),
+                            opacity
+                        ));
+                    }
+
+                    // Save final watermarked image
+                    image.Save(filePath);
+                }
             }
             return fileName;
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -301,13 +337,8 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
 
             if (vm.BlueprintImage != null)
             {
-                if (!string.IsNullOrEmpty(blueprint.blueprintImage))
-                {
-                    var oldPath = Path.Combine(WebHostEnvironment.WebRootPath, "images", blueprint.blueprintImage);
-                    if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
-                }
-
-                string newFile = UploadFile(vm);
+                string oldFileName = blueprint.blueprintImage;
+                string newFile = UploadFile(vm, oldFileName);
                 blueprint.blueprintImage = newFile;
             }
 
