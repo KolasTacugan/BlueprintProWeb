@@ -134,5 +134,136 @@ namespace BlueprintProWeb.Controllers
             }
             return fileName;
         }
+
+        [HttpGet("getProjects/{architectId}")]
+        public async Task<IActionResult> GetProjects(string architectId)
+        {
+            var projects = await context.Projects
+                .Where(p => p.user_architectId == architectId)
+                .Include(p => p.Blueprint)
+                .Include(p => p.Client)
+                .Select(p => new
+                {
+                    p.project_Id,
+                    p.project_Title,
+                    p.project_Budget,
+                    p.project_Status,
+                    p.blueprint_Id,
+                    blueprintImage = p.Blueprint.blueprintImage != null
+                        ? $"{Request.Scheme}://{Request.Host}/images/{p.Blueprint.blueprintImage}"
+                        : null,
+                    clientName = p.Client.user_fname + " " + p.Client.user_lname
+                })
+                .ToListAsync();
+
+            return Ok(projects);
+        }
+
+        [HttpGet("clientsForProject/{architectId}")]
+        public async Task<IActionResult> GetClientsForProject(string architectId)
+        {
+            if (string.IsNullOrEmpty(architectId))
+                return BadRequest(new { message = "Architect ID is required" });
+
+            var approvedMatches = await context.Matches
+                .Where(m => m.ArchitectId == architectId && m.MatchStatus == "Approved")
+                .Include(m => m.Client)
+                .ToListAsync();
+
+            var clients = approvedMatches.Select(m => new
+            {
+                clientId = m.Client.Id,
+                clientName = $"{m.Client.user_fname} {m.Client.user_lname}"
+            });
+
+            return Ok(clients);
+        }
+
+        [HttpPost("addProjectBlueprint")]
+        public async Task<IActionResult> AddProjectBlueprint(
+            [FromForm] string architectId,                   // ✅ added architectId
+            [FromForm] string blueprintName,
+            [FromForm] string blueprintPrice,
+            [FromForm] string blueprintDescription,
+            [FromForm] string clientId,                      // ✅ fixed spelling
+            [FromForm] DateTime projectTrack_dueDate,
+            [FromForm] IFormFile BlueprintImage
+        )
+        {
+            if (string.IsNullOrEmpty(architectId))
+                return BadRequest(new { message = "Architect ID is required" });
+
+            if (BlueprintImage == null || BlueprintImage.Length == 0)
+                return BadRequest(new { message = "No blueprint image uploaded" });
+
+            string fileName = UploadProjectFile(BlueprintImage);
+
+            var blueprint = new Blueprint
+            {
+                blueprintName = blueprintName,
+                blueprintDescription = blueprintDescription,
+                blueprintPrice = int.Parse(blueprintPrice),
+                blueprintImage = fileName,
+                blueprintIsForSale = false,
+                architectId = architectId   // ✅ use architectId directly
+            };
+
+            context.Blueprints.Add(blueprint);
+            await context.SaveChangesAsync();
+
+            var project = new Project
+            {
+                blueprint_Id = blueprint.blueprintId,
+                project_Title = blueprintName,
+                user_architectId = architectId,   // ✅ use architectId directly
+                user_clientId = clientId,
+                project_Status = "Ongoing",
+                project_Budget = blueprintPrice
+            };
+
+            context.Projects.Add(project);
+            await context.SaveChangesAsync();
+
+            var tracker = new ProjectTracker
+            {
+                project_Id = project.project_Id,
+                project_Title = project.project_Title,
+                blueprint_Description = blueprintDescription,
+                projectTrack_dueDate = projectTrack_dueDate,
+                projectTrack_currentFileName = BlueprintImage.FileName,
+                projectTrack_currentFilePath = "/images/" + fileName,
+                projectTrack_currentRevision = 1
+            };
+
+            context.ProjectTrackers.Add(tracker);
+            await context.SaveChangesAsync();
+
+            return Ok(new { message = "Project blueprint uploaded successfully" });
+        }
+
+        private string UploadProjectFile(IFormFile file)
+        {
+            string fileName = null;
+            if (file != null)
+            {
+                string uploadDir = Path.Combine(env.WebRootPath, "images");
+                Directory.CreateDirectory(uploadDir);
+
+                string originalExt = Path.GetExtension(file.FileName);
+                if (string.IsNullOrEmpty(originalExt) || originalExt.Equals(".tmp", StringComparison.OrdinalIgnoreCase))
+                {
+                    originalExt = ".jpg";
+                }
+
+                fileName = Guid.NewGuid().ToString() + originalExt;
+                string filePath = Path.Combine(uploadDir, fileName);
+
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    file.CopyTo(fileStream);
+                }
+            }
+            return fileName;
+        }
     }
 }
