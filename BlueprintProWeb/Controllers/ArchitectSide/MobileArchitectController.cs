@@ -2,9 +2,12 @@
 using BlueprintProWeb.Models;
 using iText.Commons.Actions.Contexts;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
 
 namespace BlueprintProWeb.Controllers
 {
@@ -44,67 +47,92 @@ namespace BlueprintProWeb.Controllers
             return Ok(blueprints);
         }
 
-        [AllowAnonymous]
         [HttpPost("AddMarketplaceBlueprint")]
         public async Task<IActionResult> AddMarketplaceBlueprint(
-        [FromForm] string BlueprintName,
-        [FromForm] string BlueprintPrice, // 👈 changed from int to string
-        [FromForm] string BlueprintDescription,
-        [FromForm] string BlueprintStyle,
-        [FromForm] string IsForSale,
-        [FromForm] IFormFile BlueprintImage)
+            [FromForm] string BlueprintName,
+            [FromForm] string BlueprintPrice,
+            [FromForm] string BlueprintDescription,
+            [FromForm] string BlueprintStyle,
+            [FromForm] string IsForSale,
+            [FromForm] string ArchitectId,
+            [FromForm] IFormFile BlueprintImage)
         {
-            try
+            if (string.IsNullOrEmpty(ArchitectId))
+                return BadRequest(new { message = "ArchitectId is missing" });
+
+            if (BlueprintImage == null || BlueprintImage.Length == 0)
+                return BadRequest(new { message = "No image uploaded" });
+
+            if (!int.TryParse(BlueprintPrice, out int parsedPrice))
+                return BadRequest(new { message = "Invalid price format" });
+
+            // 🖼️ Upload and watermark image
+            string fileName = UploadMobileFile(BlueprintImage);
+
+            var blueprint = new Blueprint
             {
-                // ✅ Validate the uploaded image
-                if (BlueprintImage == null || BlueprintImage.Length == 0)
-                {
-                    return BadRequest(new { message = "No image uploaded" });
-                }
+                blueprintName = BlueprintName,
+                blueprintDescription = BlueprintDescription,
+                blueprintStyle = BlueprintStyle,
+                blueprintImage = fileName,
+                blueprintPrice = parsedPrice,
+                blueprintIsForSale = IsForSale == "true",
+                architectId = ArchitectId
+            };
 
-                // ✅ Parse price safely
-                if (!int.TryParse(BlueprintPrice, out int parsedPrice))
-                {
-                    return BadRequest(new { message = "Invalid price format" });
-                }
+            context.Blueprints.Add(blueprint);
+            await context.SaveChangesAsync();
 
-                // ✅ Make sure env is injected properly
-                var uploadDir = Path.Combine(env.WebRootPath, "uploads", "market");
-                if (!Directory.Exists(uploadDir))
-                    Directory.CreateDirectory(uploadDir);
-
-                // ✅ Generate unique file name to avoid overwrites
-                var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(BlueprintImage.FileName)}";
-                var filePath = Path.Combine(uploadDir, fileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await BlueprintImage.CopyToAsync(stream);
-                }
-
-                // ✅ Save record in the DB
-                var blueprint = new Blueprint
-                {
-                    blueprintName = BlueprintName,
-                    blueprintDescription = BlueprintDescription,
-                    blueprintStyle = BlueprintStyle,
-                    blueprintImage = $"/uploads/market/{fileName}",
-                    blueprintPrice = parsedPrice,
-                    blueprintIsForSale = IsForSale == "true",
-                    // ArchitectId if needed
-                };
-
-                context.Blueprints.Add(blueprint);
-                await context.SaveChangesAsync();
-
-                return Ok(new { message = "Blueprint uploaded successfully" });
-            }
-            catch (Exception ex)
-            {
-                // ❗ Return full error to help debug
-                return StatusCode(500, new { message = "Upload failed", error = ex.ToString() });
-            }
+            return Ok(new { message = "Blueprint uploaded successfully" });
         }
 
+        private string UploadMobileFile(IFormFile file, string? oldFileName = null)
+        {
+            string fileName = null;
+            if (file != null)
+            {
+                string uploadDir = Path.Combine(env.WebRootPath, "images");
+                Directory.CreateDirectory(uploadDir);
+
+                // 🧠 Extract extension properly
+                string originalExt = Path.GetExtension(file.FileName);
+                if (string.IsNullOrEmpty(originalExt) || originalExt.Equals(".tmp", StringComparison.OrdinalIgnoreCase))
+                {
+                    originalExt = ".jpg";
+                }
+
+                fileName = Guid.NewGuid().ToString() + originalExt;
+                string filePath = Path.Combine(uploadDir, fileName);
+
+                if (!string.IsNullOrEmpty(oldFileName))
+                {
+                    var oldPath = Path.Combine(uploadDir, oldFileName);
+                    if (System.IO.File.Exists(oldPath))
+                    {
+                        try { System.IO.File.Delete(oldPath); } catch { }
+                    }
+                }
+
+                using var memoryStream = new MemoryStream();
+                file.CopyTo(memoryStream);
+                memoryStream.Position = 0;
+
+                using (var image = SixLabors.ImageSharp.Image.Load<SixLabors.ImageSharp.PixelFormats.Rgba32>(memoryStream))
+                {
+                    // Optional watermark
+                    string watermarkPath = Path.Combine(env.WebRootPath, "images", "BPP-watermark.png");
+                    if (System.IO.File.Exists(watermarkPath))
+                    {
+                        using var watermarkImg = SixLabors.ImageSharp.Image.Load<SixLabors.ImageSharp.PixelFormats.Rgba32>(watermarkPath);
+                        watermarkImg.Mutate(w => w.Resize(image.Width, image.Height));
+                        float opacity = 0.28f;
+                        image.Mutate(ctx => ctx.DrawImage(watermarkImg, new Point(0, 0), opacity));
+                    }
+
+                    image.Save(filePath);  // ✅ now ImageSharp knows the extension
+                }
+            }
+            return fileName;
+        }
     }
 }
