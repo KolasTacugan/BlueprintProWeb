@@ -291,7 +291,14 @@ namespace BlueprintProWeb.Controllers
                 var service = new SessionService();
                 var session = service.Create(options);
 
-                return Ok(new { id = session.Id });
+                return Ok(new
+                {
+                    sessionId = session.Id,
+                    paymentUrl = session.Url,
+                    totalAmount = cart.Sum(i => i.Price * i.Quantity),
+                    currency = "PHP"
+                });
+
             }
             catch (Exception ex)
             {
@@ -299,36 +306,37 @@ namespace BlueprintProWeb.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpPost("CompletePurchase")]
-        [Authorize]
-        public async Task<IActionResult> CompletePurchase([FromBody] List<int> blueprintIds)
+        public async Task<IActionResult> CompletePurchase([FromBody] CompletePurchaseRequest request)
         {
             try
             {
-                var user = await userManager.GetUserAsync(User);
-                if (user == null) return Unauthorized(new { success = false, message = "User not authorized." });
+                if (string.IsNullOrWhiteSpace(request.ClientId))
+                    return BadRequest(new { success = false, message = "ClientId is required." });
 
-                if (blueprintIds == null || !blueprintIds.Any())
+                if (request.BlueprintIds == null || !request.BlueprintIds.Any())
                     return BadRequest(new { success = false, message = "No blueprints selected." });
 
                 var purchasedBlueprints = await context.Blueprints
-                    .Where(bp => blueprintIds.Contains(bp.blueprintId))
+                    .Where(bp => request.BlueprintIds.Contains(bp.blueprintId))
                     .ToListAsync();
 
                 foreach (var bp in purchasedBlueprints)
                 {
                     bp.blueprintIsForSale = false;
-                    bp.clentId = user.Id;
+                    bp.clentId = request.ClientId;
                 }
 
                 var cart = await context.Carts
                     .Include(c => c.Items)
-                    .FirstOrDefaultAsync(c => c.UserId == user.Id);
+                    .FirstOrDefaultAsync(c => c.UserId == request.ClientId);
 
                 if (cart != null && cart.Items.Any())
                     cart.Items.Clear();
 
                 await context.SaveChangesAsync();
+
                 return Ok(new { success = true, message = "Purchase completed successfully." });
             }
             catch (Exception ex)
@@ -336,6 +344,15 @@ namespace BlueprintProWeb.Controllers
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }
+    
+
+    public class CompletePurchaseRequest
+    {
+        public string ClientId { get; set; } = "";
+        public List<int> BlueprintIds { get; set; } = new();
+    }
+
+
 
         // -------------------- PROJECTS --------------------
         [HttpGet("Projects")]

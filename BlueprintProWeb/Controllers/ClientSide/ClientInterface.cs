@@ -294,13 +294,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
         public IActionResult Success() => View();
         public IActionResult Cancel() => View();
 
-        public class CartItemDto
-        {
-            public string id { get; set; }
-            public string name { get; set; }
-            public decimal price { get; set; }
-            public string image { get; set; }
-        }
+
 
         [HttpPost]
         [Authorize]
