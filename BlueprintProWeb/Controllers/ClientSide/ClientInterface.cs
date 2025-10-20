@@ -412,10 +412,20 @@ namespace BlueprintProWeb.Controllers.ClientSide
                     ? Url.Content("~/images/profile.jpg")
                     : Url.Content(x.Architect.user_profilePhoto),
                  MatchStatus = x.Architect.IsPro ? "AI + Portfolio Match (Pro)" : "AI + Portfolio Match",
-                 MatchDate = DateTime.UtcNow
+                 MatchDate = DateTime.UtcNow,
+                
+                 // 🟦 NEW: Add rating info (no DB structure changed)
+                 TotalRatings = x.Architect.user_Rating ?? 0.0,
+                 RatingCount = context.Projects.Count(p => p.user_architectId == x.Architect.Id && p.project_clientHasRated == true)
              })
              .ToList();
 
+            foreach (var archi in ranked)
+            {
+                archi.AverageRating = archi.RatingCount > 0
+                    ? Math.Round(archi.TotalRatings / archi.RatingCount, 1)
+                    : 0.0;
+            }
 
             // Step 5: Return JSON if AJAX, else View
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
@@ -660,7 +670,12 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 Status = tracker.projectTrack_Status,
                 RevisionHistory = history,
                 Compliance = tracker.Compliance,
-                FinalizationNotes = tracker.projectTrack_FinalizationNotes
+                FinalizationNotes = tracker.projectTrack_FinalizationNotes,
+                ProjectStatus = project.project_Status,
+                IsRated = project.project_clientHasRated,
+                ArchitectName = $"{context.Users.FirstOrDefault(u => u.Id == project.user_architectId)?.user_fname} " +
+                $"{context.Users.FirstOrDefault(u => u.Id == project.user_architectId)?.user_lname}"
+
             };
 
             return View(vm);
@@ -690,6 +705,28 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 location = architect.user_Location,
                 credentialsFile = credentialsPath
             });
+        }
+
+        [HttpPost]
+        public IActionResult SubmitRating(string projectId, int rating)
+        {
+            // Find the project
+            var project = context.Projects.FirstOrDefault(p => p.project_Id == projectId);
+            if (project == null) return NotFound();
+
+            // Find the architect user
+            var architect = context.Users.FirstOrDefault(u => u.Id == project.user_architectId);
+            if (architect == null) return NotFound();
+            
+            architect.user_Rating = (architect.user_Rating ?? 0) + rating;
+
+            // Mark the project as rated
+            project.project_clientHasRated = true;
+
+            // Save
+            context.SaveChanges();
+
+            return Json(new { success = true });
         }
     }
 }
