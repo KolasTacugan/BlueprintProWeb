@@ -386,6 +386,20 @@
         .results-content::-webkit-scrollbar-thumb:hover {
             background: #94A3B8;
         }
+
+        .rating-bar {
+            flex: 1;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .rating-fill {
+            height: 100%;
+            background: #071744;
+            transition: width 0.6s ease-in-out;
+        }
     </style>
 }
 
@@ -424,6 +438,17 @@
                                                         @match.ArchitectName
                                                     </a>
                                                 </h6>
+                                                <!-- ⭐ Rating bar below the name -->
+                                                <div class="rating-wrapper d-flex align-items-center mt-1" style="max-width: 120px;">
+                                                    <div class="rating-bar flex-grow-1 me-2" style="height: 6px; background: #e0e0e0; border-radius: 4px; overflow: hidden;">
+                                                        <div class="rating-fill" style="height: 100%; background: #071744; width: @(match.AverageRating * 20)%;">
+                                                        </div>
+                                                    </div>
+                                                    <span class="fw-semibold small">@match.AverageRating.ToString("0.0")</span>
+                                                </div>
+                                                <small class="text-muted">
+                                                    (@match.RatingCount @(match.RatingCount == 1 ? "rating" : "ratings"))
+                                                </small>
                                             </div>
                                         </div>
                                         <button class="btn btn-outline-primary w-100 mt-auto match-btn"

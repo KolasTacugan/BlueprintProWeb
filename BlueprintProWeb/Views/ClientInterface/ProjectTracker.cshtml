@@ -95,6 +95,35 @@
             color: #555;
             cursor: not-allowed;
         }
+
+        .star {
+            color: #ccc;
+            font-size: 40px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .star.selected {
+            color: gold;
+        }
+
+        .star:hover,
+        .star:hover ~ .star {
+            color: gold;
+        }
+
+        .confirm-btn{
+            position: relative;
+            color: #fff;
+            background: #071744;
+            transition: 0.2s ease;
+        }
+
+        .confirm-btn:hover {
+            background: #fff;
+            color: #071744;
+            border-color: #071744;
+        }
     </style>
 }
 
@@ -269,6 +298,57 @@
         <label for="finalizationNotes"><strong>Finalization Notes</strong></label>
         <textarea id="finalizationNotes" class="form-control" rows="10" readonly>@Model.FinalizationNotes</textarea>
     </div>
+
+    @if (Model.ProjectStatus == "Finished" && !Model.IsRated)
+    {
+        <div class="mt-4 text-center">
+            <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#ratingModal">
+                ⭐ Rate your Architect
+            </button>
+        </div>
+    }
+</div>
+
+<div class="modal fade" id="ratingModal" tabindex="-1" aria-labelledby="ratingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content p-3">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ratingModalLabel">
+                    How would you rate @Model.ArchitectName's service?
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div id="starRating" class="mb-3">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        <span class="star" data-value="@i" style="font-size: 40px; cursor:pointer;">☆</span>
+                    }
+                </div>
+                <button id="submitRatingBtn" class="btn confirm-btn" disabled>
+                    Submit Rating
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ✅ Success Modal -->
+<div class="modal fade" id="ratingSuccessModal" tabindex="-1" aria-labelledby="ratingSuccessModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content p-3 text-center">
+            <div class="modal-header border-0">
+                <h5 class="modal-title w-100" id="ratingSuccessModalLabel">
+                    ⭐ Thank You!
+                </h5>
+            </div>
+            <div class="modal-body">
+                <p>Your rating has been submitted successfully.</p>
+            </div>
+            <div class="modal-footer border-0">
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
@@ -390,6 +470,57 @@
 
             $(".step-content").removeClass("active");
             $(`#step${stepNumber}Content`).addClass("active");
+        });
+
+        $(document).ready(function () {
+            let selectedRating = 0;
+
+            $(".star").on("click", function () {
+                selectedRating = $(this).data("value");
+
+                // highlight stars
+                $(".star").each(function () {
+                    const value = $(this).data("value");
+                    if (value <= selectedRating) {
+                        $(this).text("★").addClass("selected");
+                    } else {
+                        $(this).text("☆").removeClass("selected");
+                    }
+                });
+
+
+                $("#submitRatingBtn").prop("disabled", false);
+            });
+
+            $("#submitRatingBtn").on("click", function () {
+                $.ajax({
+                    url: '@Url.Action("SubmitRating", "ClientInterface")',
+                    type: 'POST',
+                    data: {
+                        projectId: '@Model.project_Id',
+                        rating: selectedRating
+                    },
+                    success: function (res) {
+                        if (res.success) {
+                            // Close the rating modal first
+                            $('#ratingModal').modal('hide');
+
+                            // Show success modal
+                            $('#ratingSuccessModal').modal('show');
+
+                            // Reload page after closing success modal
+                            $('#ratingSuccessModal').on('hidden.bs.modal', function () {
+                                location.reload();
+                            });
+                        } else {
+                            alert("⚠️ Failed to submit rating.");
+                        }
+                    },
+                    error: function () {
+                        alert("❌ Something went wrong.");
+                    }
+                });
+            });
         });
     </script>
 }

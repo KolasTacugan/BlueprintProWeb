@@ -30,6 +30,7 @@ namespace BlueprintProWeb.Models
         public DateTime project_startDate { get; set; } = DateTime.UtcNow;
 
         public DateTime? project_endDate { get; set; }
+        public bool project_clientHasRated { get; set; } = false;
 
         // Navigation properties
         public User Client { get; set; }
