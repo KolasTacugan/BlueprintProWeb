@@ -264,8 +264,19 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 projectTrack_currentFilePath = "/images/" + stringFileName,
                 projectTrack_currentRevision = 1
             };
-
             context.ProjectTrackers.Add(projectTracker);
+            await context.SaveChangesAsync();
+
+            var notif = new Notification
+            {
+                user_Id = project.user_clientId,
+                notification_Title = "New Project Created",
+                notification_Message = $"A new project '{project.project_Title}' has been created for you by by architect {user.user_fname}..",
+                notification_Date = DateTime.Now,
+                notification_isRead = false
+            };
+
+            context.Notifications.Add(notif);
             await context.SaveChangesAsync();
 
 
@@ -397,6 +408,34 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             match.MatchStatus = dto.Approve ? "Approved" : "Declined";
             await context.SaveChangesAsync();
 
+            // ✅ Notify client when approved
+            if (dto.Approve)
+            {
+                var notif = new Notification
+                {
+                    user_Id = match.ClientId,
+                    notification_Title = "Match Approved",
+                    notification_Message = $"{currentUser.user_fname} {currentUser.user_lname} has approved your match request.",
+                    notification_Date = DateTime.Now,
+                    notification_isRead = false
+                };
+                context.Notifications.Add(notif);
+                await context.SaveChangesAsync();
+            }
+            else
+            {
+                // Rejected notification
+                var notif = new Notification
+                {
+                    user_Id = match.ClientId,
+                    notification_Title = "Match Declined",
+                    notification_Message = $"{currentUser.user_fname} {currentUser.user_lname} has declined your match request.",
+                    notification_Date = DateTime.Now,
+                    notification_isRead = false
+                };
+                context.Notifications.Add(notif);
+            }
+
             return Json(new { success = true, status = match.MatchStatus });
         }
 
@@ -462,7 +501,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
 
             // ✅ 1. Load all matches for this architect
             var matches = await context.Matches
-                .Where(m => m.ArchitectId == currentUser.Id)
+                .Where(m => m.ArchitectId == currentUser.Id && m.MatchStatus == "Approved")
                 .Include(m => m.Client)
                 .Select(m => new MatchViewModel
                 {
@@ -747,12 +786,29 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
         public async Task<IActionResult> UpdateProjectStatus(string projectId, string status)
         {
             var tracker = await context.ProjectTrackers
+                .Include(t => t.Project)
                 .FirstOrDefaultAsync(t => t.project_Id == projectId);
 
             if (tracker == null) return NotFound();
 
             tracker.projectTrack_Status = status;
             await context.SaveChangesAsync();
+
+            // ✅ Safely notify client if Project exists
+            if (tracker.Project != null)
+            {
+                var notif = new Notification
+                {
+                    user_Id = tracker.Project.user_clientId,
+                    notification_Title = "Project Phase Updated",
+                    notification_Message = $"Your project '{tracker.Project.project_Title}' is now in the {status} phase.",
+                    notification_Date = DateTime.Now,
+                    notification_isRead = false
+                };
+
+                context.Notifications.Add(notif);
+                await context.SaveChangesAsync();
+            }
 
             return Json(new { success = true });
         }
@@ -835,6 +891,19 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
 
             await context.SaveChangesAsync();
 
+            // ✅ Notify client
+            var notif = new Notification
+            {
+                user_Id = project.user_clientId,
+                notification_Title = "New Revision Uploaded",
+                notification_Message = $"A new revision has been uploaded for your project '{project.project_Title}'.",
+                notification_Date = DateTime.Now,
+                notification_isRead = false
+            };
+            context.Notifications.Add(notif);
+            await context.SaveChangesAsync();
+
+
             return RedirectToAction("ProjectTracker", new { id = project.blueprint_Id });
         }
 
@@ -850,6 +919,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
 
                 var tracker = await context.ProjectTrackers
                     .Include(pt => pt.Compliance)
+                    .Include(pt => pt.Project)
                     .FirstOrDefaultAsync(pt => pt.projectTrack_Id == projectTrackId);
 
                 if (tracker == null)
@@ -893,6 +963,21 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
 
                 await context.SaveChangesAsync();
 
+                if (tracker.Project != null)
+                {
+                    var notif = new Notification
+                    {
+                        user_Id = tracker.Project.user_clientId,
+                        notification_Title = "Compliance File Uploaded",
+                        notification_Message = $"A new {fileType} compliance file has been uploaded for your project '{tracker.Project.project_Title}'.",
+                        notification_Date = DateTime.Now,
+                        notification_isRead = false
+                    };
+
+                    context.Notifications.Add(notif);
+                    await context.SaveChangesAsync();
+                }
+
                 return Json(new
                 {
                     success = true,
@@ -934,6 +1019,22 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
 
             await context.SaveChangesAsync();
 
+            // ✅ Notify client
+            if (!string.IsNullOrEmpty(project.user_clientId))
+            {
+                var notif = new Notification
+                {
+                    user_Id = project.user_clientId,
+                    notification_Title = "Project Completed",
+                    notification_Message = $"Your project '{project.project_Title}' has been marked as finished by architect {project.Architect?.user_fname} {project.Architect?.user_lname}.", // 👈 Added architect name if available
+                    notification_Date = DateTime.Now,
+                    notification_isRead = false
+                };
+
+                context.Notifications.Add(notif);
+                await context.SaveChangesAsync();
+            }
+
             // ✅ Return redirect to ProjectTracker view for this project
             var redirectUrl = Url.Action("ProjectTracker", "ArchitectInterface", new { id = project.blueprint_Id });
 
@@ -943,6 +1044,46 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 message = "✅ Project finalized successfully!",
                 redirectUrl
             });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Notifications()
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+                return RedirectToAction("Login", "Account");
+
+            var notifications = await context.Notifications
+                .Where(n => n.user_Id == currentUser.Id)
+                .OrderByDescending(n => n.notification_Date)
+                .ToListAsync();
+
+            return View(notifications);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> MarkAsRead(int id)
+        {
+            var notif = await context.Notifications.FindAsync(id);
+            if (notif != null)
+            {
+                notif.notification_isRead = true;
+                await context.SaveChangesAsync();
+            }
+            return Ok();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetUnreadNotificationsCount()
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+                return Json(0);
+
+            var count = await context.Notifications
+                .CountAsync(n => n.user_Id == currentUser.Id && !n.notification_isRead);
+
+            return Json(count);
         }
     }
 }

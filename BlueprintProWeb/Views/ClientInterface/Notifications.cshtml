@@ -1,0 +1,149 @@
+﻿@model IEnumerable<BlueprintProWeb.Models.Notification>
+
+@{
+    ViewData["Title"] = "Notifications";
+    Layout = "~/Views/Shared/_ClientSharedLayout.cshtml";
+}
+
+@section Styles {
+    <style>
+        .notifications-container {
+            margin-left: 100px; /* adjusts for sidebar width */
+            padding-top: 80px;
+            padding-bottom: 80px;
+            padding-right: 40px;
+            padding-left: 40px;
+            background-color: #f8f9fc;
+            min-height: 100vh;
+        }
+
+        .notifications-header {
+            font-weight: 700;
+            color: #071744;
+            margin-bottom: 30px;
+            font-size: 1.8rem;
+            letter-spacing: 0.5px;
+        }
+
+        .list-group {
+            border: none;
+        }
+
+        .notification-card {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            padding: 20px 25px;
+            margin-bottom: 18px;
+            transition: all 0.25s ease-in-out;
+            border-left: 5px solid transparent;
+        }
+
+        .notification-card:hover {
+            transform: translateY(-3px);
+            border-left-color: #0d6efd;
+            box-shadow: 0 5px 14px rgba(0, 0, 0, 0.1);
+        }
+
+        .notification-title {
+            font-weight: 600;
+            color: #071744;
+            margin-bottom: 8px;
+            font-size: 1.05rem;
+        }
+
+        .notification-message {
+            color: #444;
+            margin-bottom: 6px;
+            font-size: 0.95rem;
+        }
+
+        .notification-date {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .notification-read {
+            opacity: 0.6;
+        }
+
+        .no-notifs {
+            text-align: center;
+            color: #888;
+            margin-top: 80px;
+            font-size: 1.1rem;
+        }
+    </style>
+}
+
+<div class="notifications-container">
+    <h2 class="notifications-header">Notifications</h2>
+
+    @if (!Model.Any())
+    {
+        <p class="no-notifs">You don’t have any notifications yet 📭</p>
+    }
+    else
+    {
+        <div class="list-group">
+            @foreach (var notif in Model)
+            {
+                <div class="notification-card @(notif.notification_isRead ? "notification-read" : "")"
+                     data-id="@notif.notification_Id"
+                     data-title="@notif.notification_Title"
+                     data-message="@notif.notification_Message"
+                     data-bs-toggle="modal"
+                     data-bs-target="#notificationModal"
+                     style="cursor: pointer;">
+
+                    <div class="notification-title">@notif.notification_Title</div>
+                    <div class="notification-date">@notif.notification_Date.ToString("MMM dd, yyyy • hh:mm tt")</div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="notificationModalLabel"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body"></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const modal = new bootstrap.Modal(document.getElementById('notificationModal'));
+            const modalTitle = document.getElementById('notificationModalLabel');
+            const modalBody = document.querySelector('#notificationModal .modal-body');
+
+            document.querySelectorAll(".notification-card").forEach(item => {
+                item.addEventListener("click", async function () {
+                    const id = this.dataset.id;
+                    modalTitle.textContent = this.dataset.title;
+                    modalBody.textContent = this.dataset.message;
+                    // Mark as read
+                    await fetch('@Url.Action("MarkAsRead")', {
+                        method: "POST",
+                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                        body: "id=" + id
+                    });
+
+                    // Fade out / mark visually as read
+                    this.classList.add("notification-read");
+                });
+            });
+
+            modalElement.addEventListener('hidden.bs.modal', function () {
+                location.reload();
+            });
+        });
+    </script>
+}
