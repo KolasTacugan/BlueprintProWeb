@@ -1,6 +1,7 @@
 ﻿using BlueprintProWeb.Data;
 using BlueprintProWeb.Hubs;
 using BlueprintProWeb.Models;
+using BlueprintProWeb.Services;
 using BlueprintProWeb.Settings;
 using BlueprintProWeb.ViewModels;
 using iText.Commons.Actions.Contexts;
@@ -430,10 +431,20 @@ namespace BlueprintProWeb.Controllers.ClientSide
                     ? Url.Content("~/images/profile.jpg")
                     : Url.Content(x.Architect.user_profilePhoto),
                  MatchStatus = x.Architect.IsPro ? "AI + Portfolio Match (Pro)" : "AI + Portfolio Match",
-                 MatchDate = DateTime.UtcNow
+                 MatchDate = DateTime.UtcNow,
+                
+                 // 🟦 NEW: Add rating info (no DB structure changed)
+                 TotalRatings = x.Architect.user_Rating ?? 0.0,
+                 RatingCount = context.Projects.Count(p => p.user_architectId == x.Architect.Id && p.project_clientHasRated == true)
              })
              .ToList();
 
+            foreach (var archi in ranked)
+            {
+                archi.AverageRating = archi.RatingCount > 0
+                    ? Math.Round(archi.TotalRatings / archi.RatingCount, 1)
+                    : 0.0;
+            }
 
             // Step 5: Return JSON if AJAX, else View
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
@@ -469,6 +480,23 @@ namespace BlueprintProWeb.Controllers.ClientSide
 
             context.Matches.Add(match);
             await context.SaveChangesAsync();
+
+            // 🔹 Create notification for the architect
+            var architect = await context.Users.FindAsync(architectId);
+            if (architect != null)
+            {
+                var notif = new Notification
+                {
+                    user_Id = architect.Id,
+                    notification_Title = "New Match Request",
+                    notification_Message = $"{currentUser.user_fname} {currentUser.user_lname} wants to match with you.",
+                    notification_Date = DateTime.Now,
+                    notification_isRead = false
+                };
+
+                context.Notifications.Add(notif);
+                await context.SaveChangesAsync();
+            }
 
             return Json(new { success = true, message = "✅ Match request sent successfully." });
         }
@@ -509,7 +537,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
 
             // ✅ 1. Load all matches for this client
             var matches = await context.Matches
-                .Where(m => m.ClientId == currentUser.Id)
+                .Where(m => m.ClientId == currentUser.Id && m.MatchStatus == "Approved")
                 .Include(m => m.Architect)
                 .Select(m => new MatchViewModel
                 {
@@ -678,7 +706,12 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 Status = tracker.projectTrack_Status,
                 RevisionHistory = history,
                 Compliance = tracker.Compliance,
-                FinalizationNotes = tracker.projectTrack_FinalizationNotes
+                FinalizationNotes = tracker.projectTrack_FinalizationNotes,
+                ProjectStatus = project.project_Status,
+                IsRated = project.project_clientHasRated,
+                ArchitectName = $"{context.Users.FirstOrDefault(u => u.Id == project.user_architectId)?.user_fname} " +
+                $"{context.Users.FirstOrDefault(u => u.Id == project.user_architectId)?.user_lname}"
+
             };
 
             return View(vm);
@@ -708,6 +741,68 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 location = architect.user_Location,
                 credentialsFile = credentialsPath
             });
+        }
+
+        [HttpPost]
+        public IActionResult SubmitRating(string projectId, int rating)
+        {
+            // Find the project
+            var project = context.Projects.FirstOrDefault(p => p.project_Id == projectId);
+            if (project == null) return NotFound();
+
+            // Find the architect user
+            var architect = context.Users.FirstOrDefault(u => u.Id == project.user_architectId);
+            if (architect == null) return NotFound();
+            
+            architect.user_Rating = (architect.user_Rating ?? 0) + rating;
+
+            // Mark the project as rated
+            project.project_clientHasRated = true;
+
+            // Save
+            context.SaveChanges();
+
+            return Json(new { success = true });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Notifications()
+        {
+            var currentUser = await userManager.GetUserAsync(User);
+            if (currentUser == null)
+                return RedirectToAction("Login", "Account");
+
+            var notifications = await context.Notifications
+                .Where(n => n.user_Id == currentUser.Id)
+                .OrderByDescending(n => n.notification_Date)
+                .ToListAsync();
+
+            return View(notifications);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> MarkAsRead(int id)
+        {
+            var notif = await context.Notifications.FindAsync(id);
+            if (notif != null)
+            {
+                notif.notification_isRead = true;
+                await context.SaveChangesAsync();
+            }
+            return Ok();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetUnreadNotificationsCount()
+        {
+            var currentUser = await userManager.GetUserAsync(User);
+            if (currentUser == null)
+                return Json(0);
+
+            var count = await context.Notifications
+                .CountAsync(n => n.user_Id == currentUser.Id && !n.notification_isRead);
+
+            return Json(count);
         }
     }
 }

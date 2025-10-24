@@ -34,18 +34,19 @@
             overflow: hidden; /* just in case */
         }
 
-            body::before {
-                content: "";
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat;
-                opacity: 0.4;
-                z-index: -1;
-                pointer-events: none;
-            }
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat;
+            opacity: 0.4;
+            z-index: -1;
+            pointer-events: none;
+        }
+
 
         .sidebar {
             width: 270px;
@@ -58,9 +59,9 @@
             z-index: 1000;
         }
 
-            .sidebar.collapsed {
-                width: 85px;
-            }
+        .sidebar.collapsed {
+            width: 85px;
+        }
 
         .sidebar-header {
             position: relative;
@@ -70,31 +71,31 @@
             justify-content: space-between;
         }
 
-            .sidebar-header .header-logo {
-                display: flex; /* so it hugs the img */
-                align-items: center;
-                justify-content: center;
-                padding: 0; /* remove extra padding */
-                margin: 0; /* remove extra margin */
-            }
+        .sidebar-header .header-logo {
+            display: flex; /* so it hugs the img */
+            align-items: center;
+            justify-content: center;
+            padding: 0; /* remove extra padding */
+            margin: 0; /* remove extra margin */
+        }
 
-                .sidebar-header .header-logo img {
-                    width: 46px;
-                    height: 46px;
-                    display: block;
-                    object-fit: contain;
-                    border-radius: 50%;
-                }
+        .sidebar-header .header-logo img {
+            width: 46px;
+            height: 46px;
+            display: block;
+            object-fit: contain;
+            border-radius: 50%;
+        }
 
-            .sidebar-header .system-name {
-                font-size: 1.2rem; /* bigger than nav-labels */
-                font-weight: 700; /* bold */
-                color: #fff;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                transition: opacity 0.4s ease, width 0.4s ease;
-            }
+        .sidebar-header .system-name {
+            font-size: 1.2rem; /* bigger than nav-labels */
+            font-weight: 700; /* bold */
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: opacity 0.4s ease, width 0.4s ease;
+        }
 
         .system-name {
             margin-right: 24px;
@@ -130,13 +131,13 @@
             transform: translate(5px, 0px);
         }
 
-            .sidebar.collapsed .sidebar-header .toggler span {
-                transform: rotate(180deg);
-                border-radius: 50%;
-                outline: 4px solid #071744;
-                outline-offset: 4px;
-                transition: transform ease-in-out.4s ease;
-            }
+        .sidebar.collapsed .sidebar-header .toggler span {
+            transform: rotate(180deg);
+            border-radius: 50%;
+            outline: 4px solid #071744;
+            outline-offset: 4px;
+            transition: transform ease-in-out.4s ease;
+        }
 
         .sidebar-header .system-name {
             transition: opacity 1.5s ease;
@@ -171,14 +172,14 @@
             transition: 0.4s ease;
         }
 
-            .sidebar-nav .nav-link:hover {
-                background: #fff;
-                color: #071744;
-            }
+        .sidebar-nav .nav-link:hover {
+            background: #fff;
+            color: #071744;
+        }
 
-            .sidebar-nav .nav-link .nav-label {
-                transition: opacity 0.4s ease;
-            }
+        .sidebar-nav .nav-link .nav-label {
+            transition: opacity 0.4s ease;
+        }
 
         .sidebar.collapsed .sidebar-nav .nav-link .nav-label {
             opacity: 0;
@@ -250,16 +251,16 @@
             list-style: none;
         }
 
-            .top-nav-item a {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: #071744;
-                margin-right: 25px;
-                text-decoration: none;
-                height: 100%;
-                gap: 6px;
-            }
+        .top-nav-item a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #071744;
+            margin-right: 25px;
+            text-decoration: none;
+            height: 100%;
+            gap: 6px;
+        }
 
         .logout-form {
             position: absolute;
@@ -300,9 +301,28 @@
             font-size: 0.9rem;
         }
 
-            .notification-item:last-child {
-                border-bottom: none;
-            }
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
+        .notif-badge {
+            position: absolute;
+            top: 0px;
+            right: 0px;
+            width: 10px;
+            height: 10px;
+            background-color: #e63946;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 0 2px #fff;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .notif-badge.d-none {
+            opacity: 0;
+            visibility: hidden;
+        }
+
     </style>
     @RenderSection("Styles", required: false)
 </head>
@@ -379,25 +399,16 @@
                     </a>
                 </li>
                 <li class="top-nav-item">
-                    <a href="#" class="top-nav-link">
+                    <a asp-controller="ArchitectInterface" asp-action="Notifications"
+                       class="top-nav-link position-relative d-inline-block">
                         <span class="material-symbols-rounded">notifications</span>
+                        <span id="notifBadge" class="notif-badge d-none"></span>
                     </a>
                 </li>
                 <li class="top-nav-item">
                     <a asp-controller="Account" asp-action="Profile" class="top-nav-link">
                         <span class="material-symbols-rounded">account_circle</span>
                     </a>
-
-                    <!-- Notification Panel -->
-                    <div id="notificationPanel"
-                         class="position-absolute end-0 mt-2 p-3 bg-white border rounded shadow"
-                         style="display:none; min-width: 280px; z-index:2000;">
-                        <div id="notificationList">
-                            <div id="emptyNotification" class="text-muted small text-center">
-                                Notification's empty at the moment...
-                            </div>
-                        </div>
-                    </div>
                 </li>
             </ul>
         </div>
@@ -446,6 +457,69 @@
             if (list) list.appendChild(item);
         }
 
+        document.addEventListener("DOMContentLoaded", async function () {
+            try {
+                // Fetch unread notifications count
+                const response = await fetch('/ArchitectInterface/GetUnreadNotificationsCount');
+                if (!response.ok) throw new Error("Failed to fetch notifications");
+
+                const count = await response.json();
+                const badge = document.getElementById("notifBadge");
+
+                // Show badge only if count > 0
+                if (count > 0) {
+                    badge.classList.remove("d-none");
+                } else {
+                    badge.classList.add("d-none");
+                }
+            } catch (err) {
+                console.error("Notification fetch error:", err);
+            }
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const modal = new bootstrap.Modal(document.getElementById('notificationModal'));
+            const modalTitle = document.getElementById('notificationModalLabel');
+            const modalBody = document.querySelector('#notificationModal .modal-body');
+            const notifBadge = document.getElementById('notifBadge');
+
+            function updateBadge() {
+                // Count unread notifications
+                const unreadCount = document.querySelectorAll(".list-group-item:not([style*='opacity: 0.6'])").length;
+                if (unreadCount > 0) {
+                    notifBadge.classList.remove("d-none");
+                } else {
+                    notifBadge.classList.add("d-none");
+                }
+            }
+
+            // Initialize badge visibility on load
+            updateBadge();
+
+            document.querySelectorAll(".list-group-item").forEach(item => {
+                item.addEventListener("click", async function () {
+                    const id = this.dataset.id;
+                    modalTitle.textContent = this.dataset.title;
+                    modalBody.textContent = this.dataset.message;
+
+                    // Mark as read in backend
+                    await fetch('@Url.Action("MarkAsRead")', {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded"
+                        },
+                        body: "id=" + id
+                    });
+
+                    // Visually mark as read
+                    this.style.opacity = "0.6";
+                    this.style.fontWeight = "normal";
+
+                    // 🔥 Update badge in real time
+                    updateBadge();
+                });
+            });
+        });
     </script>
 </body>
 </html>

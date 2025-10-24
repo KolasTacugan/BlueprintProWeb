@@ -257,6 +257,25 @@
             background: #fff;
             border-color: #d62828;
         }
+
+        .notif-badge {
+            position: absolute;
+            top: 0px;
+            right: 0px;
+            width: 10px;
+            height: 10px;
+            background-color: #e63946;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 0 2px #fff;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .notif-badge.d-none {
+            opacity: 0;
+            visibility: hidden;
+        }
+
     </style>
     @RenderSection("Styles", required: false)
 </head>
@@ -319,10 +338,13 @@
                 </li>
 
                 <li class="top-nav-item">
-                    <a href="#" class="top-nav-link">
+                    <a asp-controller="ClientInterface" asp-action="Notifications"
+                       class="top-nav-link position-relative d-inline-block">
                         <span class="material-symbols-rounded">notifications</span>
+                        <span id="notifBadge" class="notif-badge d-none"></span>
                     </a>
                 </li>
+
                 <li class="top-nav-item">
                     <a asp-controller="Account" asp-action="Profile" class="top-nav-link">
                         <span class="material-symbols-rounded">account_circle</span>
@@ -347,6 +369,70 @@
         @*Collapsed state*@
         sidebarToggler.addEventListener("click", ()=>{
             sidebar.classList.toggle("collapsed")
+        });
+
+         document.addEventListener("DOMContentLoaded", async function () {
+            try {
+                // Fetch unread notifications count
+                const response = await fetch('/ClientInterface/GetUnreadNotificationsCount');
+                if (!response.ok) throw new Error("Failed to fetch notifications");
+
+                const count = await response.json();
+                const badge = document.getElementById("notifBadge");
+
+                // Show badge only if count > 0
+                if (count > 0) {
+                    badge.classList.remove("d-none");
+                } else {
+                    badge.classList.add("d-none");
+                }
+            } catch (err) {
+                console.error("Notification fetch error:", err);
+            }
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const modal = new bootstrap.Modal(document.getElementById('notificationModal'));
+            const modalTitle = document.getElementById('notificationModalLabel');
+            const modalBody = document.querySelector('#notificationModal .modal-body');
+            const notifBadge = document.getElementById('notifBadge');
+
+            function updateBadge() {
+                // Count unread notifications
+                const unreadCount = document.querySelectorAll(".list-group-item:not([style*='opacity: 0.6'])").length;
+                if (unreadCount > 0) {
+                    notifBadge.classList.remove("d-none");
+                } else {
+                    notifBadge.classList.add("d-none");
+                }
+            }
+
+            // Initialize badge visibility on load
+            updateBadge();
+
+            document.querySelectorAll(".list-group-item").forEach(item => {
+                item.addEventListener("click", async function () {
+                    const id = this.dataset.id;
+                    modalTitle.textContent = this.dataset.title;
+                    modalBody.textContent = this.dataset.message;
+
+                    // Mark as read in backend
+                    await fetch('@Url.Action("MarkAsRead")', {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded"
+                        },
+                        body: "id=" + id
+                    });
+
+                    // Visually mark as read
+                    this.style.opacity = "0.6";
+                    this.style.fontWeight = "normal";
+
+                    // 🔥 Update badge in real time
+                    updateBadge();
+                });
+            });
         });
     </script>
 </body>

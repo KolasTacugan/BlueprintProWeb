@@ -11,7 +11,8 @@ namespace BlueprintProWeb.ViewModels
         public string CurrentFilePath { get; set; }
         public int CurrentRevision { get; set; }
         public string Status { get; set; }
-
+        public string ArchitectName { get; set; }
+        public bool IsRated { get; set; }
         public List<ProjectFile> RevisionHistory { get; set; } = new();
         public Compliance? Compliance { get; set; }
         public string FinalizationNotes { get; set; }

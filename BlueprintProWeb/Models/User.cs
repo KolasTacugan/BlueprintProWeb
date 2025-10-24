@@ -15,7 +15,7 @@ namespace BlueprintProWeb.Models
         public string? user_Location { get; set; }
         public string? user_Budget { get; set; }
         public string? user_Specialization { get; set; }
-        public double? user_Rating { get; set; }
+        public double? user_Rating { get; set; } = 0;
         public string? user_CredentialsFile { get; set; }
 
         public string? PortfolioText { get; set; }
