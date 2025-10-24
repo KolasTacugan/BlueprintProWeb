@@ -492,15 +492,55 @@ namespace BlueprintProWeb.Controllers
 
 
         // -------------------- MESSAGING --------------------
-        [HttpGet("Messages/{architectId}")]
-        [AllowAnonymous] // change to [Authorize] if you want to restrict
-        public async Task<IActionResult> GetMessages(string architectId)
+        [HttpGet("Messages/All")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetAllMessages([FromQuery] string clientId)
         {
             try
             {
-                var currentUser = await userManager.GetUserAsync(User);
-                // if currentUser == null and you require auth, return Unauthorized(...)
-                var clientId = currentUser?.Id ?? architectId; // fallback behavior
+                if (string.IsNullOrWhiteSpace(clientId))
+                    return BadRequest(new { success = false, message = "ClientId is required." });
+
+                var conversations = await context.Messages
+                    .Where(m => m.ClientId == clientId || m.ArchitectId == clientId)
+                    .GroupBy(m => m.ArchitectId)
+                    .Select(g => new
+                    {
+                        ArchitectId = g.Key,
+                        ArchitectName = context.Users
+                            .Where(u => u.Id == g.Key)
+                            .Select(u => u.user_fname + " " + u.user_lname)
+                            .FirstOrDefault(),
+                        LastMessage = g.OrderByDescending(m => m.MessageDate)
+                            .Select(m => m.MessageBody)
+                            .FirstOrDefault(),
+                        LastMessageTime = g.Max(m => m.MessageDate),
+                        ProfileUrl = context.Users
+                            .Where(u => u.Id == g.Key)
+                            .Select(u => u.user_profilePhoto)
+                            .FirstOrDefault(),
+                        UnreadCount = g.Count(x => x.ArchitectId == g.Key && !x.IsRead)
+                    })
+                    .OrderByDescending(x => x.LastMessageTime)
+                    .ToListAsync();
+
+                return Ok(new { success = true, messages = conversations });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+
+        [HttpGet("Messages")]
+        [AllowAnonymous] // or [Authorize] if you add token auth later
+        public async Task<IActionResult> GetMessages([FromQuery] string clientId, [FromQuery] string architectId)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(architectId))
+                    return BadRequest(new { success = false, message = "ClientId and ArchitectId are required." });
 
                 var messages = await context.Messages
                     .Where(m =>
@@ -510,14 +550,28 @@ namespace BlueprintProWeb.Controllers
                     .Select(m => new
                     {
                         m.MessageId,
+                        m.ClientId,
+                        m.ArchitectId,
+                        m.SenderId,
                         m.MessageBody,
                         m.MessageDate,
-                        m.SenderId,
-                        m.IsRead
+                        m.IsRead,
+                        m.AttachmentUrl
                     })
                     .ToListAsync();
 
-                return Ok(messages);
+                // Mark unread messages as read for this client
+                var unreadMessages = await context.Messages
+                    .Where(m => m.ArchitectId == clientId && m.ClientId == architectId && !m.IsRead)
+                    .ToListAsync();
+
+                if (unreadMessages.Any())
+                {
+                    unreadMessages.ForEach(m => m.IsRead = true);
+                    await context.SaveChangesAsync();
+                }
+
+                return Ok(new { success = true, messages });
             }
             catch (Exception ex)
             {
@@ -525,49 +579,94 @@ namespace BlueprintProWeb.Controllers
             }
         }
 
-        [HttpPost("SendMessage")]
+        [HttpGet("AllMatches")]
         [AllowAnonymous]
-        public async Task<IActionResult> SendMessage([FromBody] MessageViewModel model)
+        public async Task<IActionResult> GetAllMatches([FromQuery] string clientId)
         {
             try
             {
-                var currentUser = await userManager.GetUserAsync(User);
-                var clientId = currentUser?.Id;
+                if (string.IsNullOrWhiteSpace(clientId))
+                    return BadRequest(new { success = false, message = "ClientId is required." });
 
-                if (string.IsNullOrWhiteSpace(model?.MessageBody))
-                    return BadRequest(new { success = false, message = "Message cannot be empty." });
+                var matches = await context.Matches
+                    .Where(m => m.ClientId == clientId)
+                    .Include(m => m.Architect)
+                    .Select(m => new
+                    {
+                        MatchId = m.MatchId,
+                        ArchitectId = m.Architect.Id,
+                        ArchitectName = m.Architect.user_fname + " " + m.Architect.user_lname,
+                        ArchitectLocation = m.Architect.user_Location,
+                        ArchitectStyle = m.Architect.user_Style,
+                        ArchitectBudget = m.Architect.user_Budget,
+                        ArchitectPhoto = m.Architect.user_profilePhoto,
+                        MatchStatus = "Matched"
+                      
+                    })
+                    .ToListAsync();
+
+                return Ok(new { success = true, matches });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+
+        // ✅ SEND MESSAGE (Client → Architect)
+        [HttpPost("SendMessage")]
+        [AllowAnonymous]
+        public async Task<IActionResult> SendMessage([FromBody] SendMessageRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(request.ClientId) ||
+                    string.IsNullOrWhiteSpace(request.ArchitectId) ||
+                    string.IsNullOrWhiteSpace(request.MessageBody))
+                {
+                    return BadRequest(new { success = false, message = "ClientId, ArchitectId, and MessageBody are required." });
+                }
 
                 var message = new Message
                 {
                     MessageId = Guid.NewGuid(),
-                    ClientId = clientId ?? model.SenderId,
-                    ArchitectId = model.ArchitectId,
-                    SenderId = model.SenderId ?? clientId,
-                    MessageBody = model.MessageBody,
+                    ClientId = request.ClientId,
+                    ArchitectId = request.ArchitectId,
+                    SenderId = request.SenderId ?? request.ClientId, // default to client
+                    MessageBody = request.MessageBody,
                     MessageDate = DateTime.UtcNow,
                     IsRead = false
                 };
+
                 context.Messages.Add(message);
                 await context.SaveChangesAsync();
 
-                if (!string.IsNullOrEmpty(model.ArchitectId))
+                // Optional SignalR broadcast
+                await _hubContext.Clients.User(request.ArchitectId).SendAsync("ReceiveMessage", new
                 {
-                    await _hubContext.Clients.User(model.ArchitectId).SendAsync("ReceiveMessage", new
-                    {
-                        SenderId = message.SenderId,
-                        SenderName = $"{message.SenderId}",
-                        message.MessageBody,
-                        MessageDate = DateTime.UtcNow.ToString("g")
-                    });
-                }
+                    SenderId = message.SenderId,
+                    MessageBody = message.MessageBody,
+                    MessageDate = message.MessageDate.ToString("g")
+                });
 
-                return Ok(new { success = true });
+                return Ok(new { success = true, message = "Message sent successfully." });
             }
             catch (Exception ex)
             {
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }
+    
+
+    // ✅ Request model for sending messages
+    public class SendMessageRequest
+    {
+        public string ClientId { get; set; }
+        public string ArchitectId { get; set; }
+        public string? SenderId { get; set; } // optional
+        public string MessageBody { get; set; }
+}
 
         // -------------------- PROJECT TRACKER --------------------
         [HttpGet("ProjectTracker/{id}")]
@@ -644,6 +743,7 @@ namespace BlueprintProWeb.Controllers
 
             return Ok(new { clientId = user.Id });
         }
+
 
         public class MatchDto
         {
