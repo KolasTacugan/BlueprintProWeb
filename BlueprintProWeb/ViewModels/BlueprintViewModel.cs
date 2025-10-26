@@ -18,5 +18,6 @@ namespace BlueprintProWeb.ViewModels
         public string clentId { get; set; }
         public List<SelectListItem> Clients { get; set; } = new();
         public DateTime projectTrack_dueDate { get; set; }
+        
     }
 }
