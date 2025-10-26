@@ -271,6 +271,44 @@ namespace BlueprintProWeb.Controllers
             return fileName;
         }
 
+        // ✅ 1. Get all pending match requests for this architect
+        [HttpGet("matchRequests/{architectId}")]
+        public async Task<IActionResult> GetPendingMatches(string architectId)
+        {
+            var matches = await context.Matches
+                .Include(m => m.Client)
+                .Where(m => m.ArchitectId == architectId && m.MatchStatus == "Pending")
+                .Select(m => new
+                {
+                    matchId = m.MatchId,
+                    clientName = $"{m.Client.user_fname} {m.Client.user_lname}",
+                    matchDate = m.MatchDate,
+                    matchStatus = m.MatchStatus
+                })
+                .ToListAsync();
+
+            if (matches == null || !matches.Any())
+                return NotFound();
+
+            return Ok(matches);
+        }
+
+        // ✅ 2. Respond (Accept/Decline) a match request
+        [HttpPost("respondMatch")]
+        public async Task<IActionResult> RespondMatch([FromQuery] string matchId, [FromQuery] bool approve)
+        {
+            if (string.IsNullOrEmpty(matchId))
+                return BadRequest("MatchId is required.");
+
+            var match = await context.Matches.FirstOrDefaultAsync(m => m.MatchId == matchId);
+            if (match == null)
+                return NotFound("Match not found.");
+
+            match.MatchStatus = approve ? "Approved" : "Declined";
+            await context.SaveChangesAsync();
+
+            return Ok();
+        }
         [HttpGet("Architect/Messages/All")]
         [AllowAnonymous]
         public async Task<IActionResult> GetAllMessagesForArchitect([FromQuery] string architectId)

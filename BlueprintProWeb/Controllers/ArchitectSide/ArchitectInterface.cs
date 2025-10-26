@@ -780,8 +780,6 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             }
         }
 
-        //for push
-
         [HttpPost]
         public async Task<IActionResult> UpdateProjectStatus(string projectId, string status)
         {
