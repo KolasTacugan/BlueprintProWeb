@@ -477,6 +477,281 @@ namespace BlueprintProWeb.Controllers
             }
         }
 
+        [HttpGet("getProjectTracker/{blueprintId}")]
+        public async Task<IActionResult> GetProjectTracker(int blueprintId)
+        {
+            var tracker = await context.ProjectTrackers
+                .Include(pt => pt.Project)
+                    .ThenInclude(p => p.Architect)
+                .Include(pt => pt.Compliance)
+                .FirstOrDefaultAsync(pt => pt.Project.blueprint_Id == blueprintId);
+
+            if (tracker == null)
+                return NotFound();
+
+            // ✅ Manually fetch the files using project_Id
+            var projectFiles = await context.ProjectFiles
+                .Where(f => f.project_Id == tracker.project_Id)
+                .OrderByDescending(f => f.projectFile_Version)
+                .ToListAsync();
+
+            var response = new
+            {
+                projectTrack_Id = tracker.projectTrack_Id,
+                project_Id = tracker.project_Id,
+                currentFileName = tracker.projectTrack_currentFileName,
+                currentFilePath = tracker.projectTrack_currentFilePath,
+                currentRevision = tracker.projectTrack_currentRevision,
+                status = tracker.projectTrack_Status,
+
+                architectName = tracker.Project?.Architect == null
+                    ? null
+                    : $"{tracker.Project.Architect.user_fname} {tracker.Project.Architect.user_lname}",
+
+                isRated = tracker.Project?.project_clientHasRated ?? false,
+
+                // ✅ Revision history — manually loaded files
+                revisionHistory = projectFiles.Select(f => new
+                {
+                    projectFile_Id = f.projectFile_Id,
+                    project_Id = f.project_Id,
+                    projectFile_fileName = f.projectFile_fileName,
+                    projectFile_Path = f.projectFile_Path,
+                    projectFile_Version = f.projectFile_Version,
+                    projectFile_uploadedDate = f.projectFile_uploadedDate
+                }).ToList(),
+
+                compliance = tracker.Compliance == null ? null : new
+                {
+                    compliance_Id = tracker.Compliance.compliance_Id,
+                    compliance_Zoning = tracker.Compliance.compliance_Zoning,
+                    compliance_Others = tracker.Compliance.compliance_Others
+                },
+
+                finalizationNotes = tracker.projectTrack_FinalizationNotes,
+                projectTrackerStatus = tracker.projectTrack_Status
+            };
+
+            return Ok(response);
+        }
+
+        [HttpPost("UploadProjectFile")]
+        public async Task<IActionResult> UploadProjectFile(string projectId, IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest(new { success = false, message = "No file uploaded." });
+
+            var project = await context.Projects.FindAsync(projectId);
+            if (project == null)
+                return NotFound(new { success = false, message = "Project not found." });
+
+            var tracker = await context.ProjectTrackers.FirstOrDefaultAsync(t => t.project_Id == projectId);
+            if (tracker == null)
+                return NotFound(new { success = false, message = "Project tracker not found." });
+
+            // Save uploaded file
+            var uploadsFolder = Path.Combine(env.WebRootPath, "uploads");
+            if (!Directory.Exists(uploadsFolder))
+                Directory.CreateDirectory(uploadsFolder);
+
+            var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            // Archive current file
+            if (!string.IsNullOrEmpty(tracker.projectTrack_currentFilePath))
+            {
+                var oldFile = new ProjectFile
+                {
+                    project_Id = projectId,
+                    projectFile_fileName = tracker.projectTrack_currentFileName,
+                    projectFile_Path = tracker.projectTrack_currentFilePath,
+                    projectFile_Version = tracker.projectTrack_currentRevision,
+                    projectFile_uploadedDate = DateTime.UtcNow
+                };
+                context.ProjectFiles.Add(oldFile);
+            }
+
+            // Update tracker to new file
+            tracker.projectTrack_currentFileName = file.FileName;
+            tracker.projectTrack_currentFilePath = "/uploads/" + uniqueFileName;
+            tracker.projectTrack_currentRevision += 1;
+
+            await context.SaveChangesAsync();
+
+            // Send client notification
+            var notif = new Notification
+            {
+                user_Id = project.user_clientId,
+                notification_Title = "New Revision Uploaded",
+                notification_Message = $"A new revision has been uploaded for your project '{project.project_Title}'.",
+                notification_Date = DateTime.Now,
+                notification_isRead = false
+            };
+            context.Notifications.Add(notif);
+            await context.SaveChangesAsync();
+
+            return Ok(new { success = true, message = "New revision uploaded successfully." });
+        }
+
+        [HttpPost("UploadComplianceFile")]
+        public async Task<IActionResult> UploadComplianceFile(int projectTrackId, string fileType, IFormFile file)
+        {
+            try
+            {
+                if (file == null || file.Length == 0)
+                    return BadRequest(new { success = false, message = "File cannot be empty." });
+
+                var tracker = await context.ProjectTrackers
+                    .Include(pt => pt.Compliance)
+                    .Include(pt => pt.Project)
+                    .FirstOrDefaultAsync(pt => pt.projectTrack_Id == projectTrackId);
+
+                if (tracker == null)
+                    return NotFound(new { success = false, message = "ProjectTracker not found." });
+
+                if (tracker.Compliance == null)
+                {
+                    tracker.Compliance = new Compliance
+                    {
+                        projectTrack_Id = tracker.projectTrack_Id,
+                        compliance_Zoning = "",
+                        compliance_Others = ""
+                    };
+                    context.Compliances.Add(tracker.Compliance);
+                }
+
+                var uploadsFolder = Path.Combine(env.WebRootPath, "uploads", "compliance");
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                var fileName = $"{fileType}_{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                switch (fileType.ToLower())
+                {
+                    case "zoning": tracker.Compliance.compliance_Zoning = fileName; break;
+                    case "others": tracker.Compliance.compliance_Others = fileName; break;
+                    default: return BadRequest(new { success = false, message = "Invalid file type." });
+                }
+
+                await context.SaveChangesAsync();
+
+                if (tracker.Project != null)
+                {
+                    var notif = new Notification
+                    {
+                        user_Id = tracker.Project.user_clientId,
+                        notification_Title = "Compliance File Uploaded",
+                        notification_Message = $"A new {fileType} compliance file has been uploaded for your project '{tracker.Project.project_Title}'.",
+                        notification_Date = DateTime.Now,
+                        notification_isRead = false
+                    };
+
+                    context.Notifications.Add(notif);
+                    await context.SaveChangesAsync();
+                }
+
+                return Ok(new
+                {
+                    success = true,
+                    message = $"{fileType} file uploaded successfully.",
+                    fileName
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = $"Server error: {ex.Message}" });
+            }
+        }
+
+        [HttpPost("SaveFinalizationNotes")]
+        public async Task<IActionResult> SaveFinalizationNotes(int projectTrackId, string notes)
+        {
+            var tracker = await context.ProjectTrackers.FirstOrDefaultAsync(pt => pt.projectTrack_Id == projectTrackId);
+            if (tracker == null)
+                return Ok(new { success = false, message = "ProjectTracker not found." });
+
+            tracker.projectTrack_FinalizationNotes = notes;
+            await context.SaveChangesAsync();
+
+            return Ok(new { success = true, message = "Finalization notes saved successfully." });
+        }
+
+        [HttpPost("FinalizeProject")]
+        public async Task<IActionResult> FinalizeProject(string projectId)
+        {
+            var project = await context.Projects.FirstOrDefaultAsync(p => p.project_Id == projectId);
+            if (project == null)
+                return Ok(new { success = false, message = "Project not found." });
+
+            project.project_Status = "Finished";
+            project.project_endDate = DateTime.Now;
+            await context.SaveChangesAsync();
+
+            if (!string.IsNullOrEmpty(project.user_clientId))
+            {
+                var notif = new Notification
+                {
+                    user_Id = project.user_clientId,
+                    notification_Title = "Project Completed",
+                    notification_Message = $"Your project '{project.project_Title}' has been marked as finished by architect {project.Architect?.user_fname} {project.Architect?.user_lname}.",
+                    notification_Date = DateTime.Now,
+                    notification_isRead = false
+                };
+                context.Notifications.Add(notif);
+                await context.SaveChangesAsync();
+            }
+
+            var redirectUrl = Url.Action("ProjectTracker", "ArchitectInterface", new { id = project.blueprint_Id });
+
+            return Ok(new
+            {
+                success = true,
+                message = "✅ Project finalized successfully!",
+                redirectUrl
+            });
+        }
+
+        [HttpPost("updateProjectStatus")]
+        public async Task<IActionResult> UpdateProjectStatus(string projectId, string status)
+        {
+            var tracker = await context.ProjectTrackers
+                .Include(t => t.Project)
+                .FirstOrDefaultAsync(t => t.project_Id == projectId);
+
+            if (tracker == null)
+                return Ok(new { success = false, message = "Tracker not found." });
+
+            tracker.projectTrack_Status = status;
+            await context.SaveChangesAsync();
+
+            if (tracker.Project != null)
+            {
+                var notif = new Notification
+                {
+                    user_Id = tracker.Project.user_clientId,
+                    notification_Title = "Project Phase Updated",
+                    notification_Message = $"Your project '{tracker.Project.project_Title}' is now in the {status} phase.",
+                    notification_Date = DateTime.Now,
+                    notification_isRead = false
+                };
+
+                context.Notifications.Add(notif);
+                await context.SaveChangesAsync();
+            }
+
+            return Ok(new { success = true });
+        }
+
 
     }
 }

@@ -582,18 +582,6 @@
             <label class="form-label fw-bold">Choose file type to upload:</label>
             <div class="d-flex flex-wrap gap-3">
                 <div class="form-check">
-                    <input class="form-check-input" type="radio" name="complianceCategory" id="structuralRadio" value="Structural" checked>
-                    <label class="form-check-label" for="structuralRadio">Structural</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="complianceCategory" id="electricalRadio" value="Electrical">
-                    <label class="form-check-label" for="electricalRadio">Electrical</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="complianceCategory" id="sanitaryRadio" value="Sanitary">
-                    <label class="form-check-label" for="sanitaryRadio">Sanitary/Plumbing</label>
-                </div>
-                <div class="form-check">
                     <input class="form-check-input" type="radio" name="complianceCategory" id="zoningRadio" value="Zoning">
                     <label class="form-check-label" for="zoningRadio">Zoning</label>
                 </div>
@@ -614,52 +602,6 @@
                     <i class="fas fa-upload"></i>
                     Upload
                 </button>
-            }
-        </div>
-
-        <!-- Uploaded files display -->
-        <!-- STRUCTURAL -->
-        <div class="section-header">
-            <strong>STRUCTURAL PLAN:</strong>
-            <p>Must be prepared by a licensed structural engineer.</p>
-        </div>
-        <div class="file-display-area" id="structuralFileArea">
-            @if (!string.IsNullOrEmpty(Model.Compliance?.compliance_Structural))
-            {
-                var ext = System.IO.Path.GetExtension(Model.Compliance.compliance_Structural);
-                <a href="@Url.Content("~/uploads/compliance/" + Model.Compliance.compliance_Structural)" target="_blank">
-                    Structural_File
-                </a>
-            }
-        </div>
-
-        <!-- ELECTRICAL -->
-        <div class="section-header">
-            <strong>ELECTRICAL PLAN:</strong>
-            <p>Must be prepared by a licensed electrical engineer.</p>
-        </div>
-        <div class="file-display-area" id="electricalFileArea">
-            @if (!string.IsNullOrEmpty(Model.Compliance?.compliance_Electrical))
-            {
-                var ext = System.IO.Path.GetExtension(Model.Compliance.compliance_Electrical);
-                <a href="@Url.Content("~/uploads/compliance/" + Model.Compliance.compliance_Electrical)" target="_blank">
-                    Electrical_File
-                </a>
-            }
-        </div>
-
-        <!-- SANITARY -->
-        <div class="section-header">
-            <strong>SANITARY/PLUMBING PLAN:</strong>
-            <p>Must be prepared by a licensed sanitary/plumbing engineer.</p>
-        </div>
-        <div class="file-display-area" id="sanitaryFileArea">
-            @if (!string.IsNullOrEmpty(Model.Compliance?.compliance_Sanitary))
-            {
-                var ext = System.IO.Path.GetExtension(Model.Compliance.compliance_Sanitary);
-                <a href="@Url.Content("~/uploads/compliance/" + Model.Compliance.compliance_Sanitary)" target="_blank">
-                    Sanitary_File
-                </a>
             }
         </div>
 
