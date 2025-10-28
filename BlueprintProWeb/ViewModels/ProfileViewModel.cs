@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 
 namespace BlueprintProWeb.ViewModels
 {
@@ -8,10 +9,13 @@ namespace BlueprintProWeb.ViewModels
         public string LastName { get; set; } = string.Empty;
         public string FullName => $"{FirstName} {LastName}";
         public string Email { get; set; } = string.Empty;
+        
+        [RegularExpression(@"^\d{11}$", ErrorMessage = "Phone number must be exactly 11 digits with no letters.")]
+        [Display(Name = "Phone Number")]
         public string? PhoneNumber { get; set; }
 
         public string Role { get; set; } = string.Empty;
-        public string? ProfilePhoto { get; set; } = "~/images/avatar-placeholder.png";
+        public string? ProfilePhoto { get; set; } = null; // Changed: No default profile picture
 
         // Architect-specific
         public string? LicenseNo { get; set; }
@@ -21,5 +25,12 @@ namespace BlueprintProWeb.ViewModels
         public string? Budget { get; set; }
         public IFormFile? CredentialsFile { get; set; }
         public string? CredentialsFilePath { get; set; }
+
+        public string? PortfolioText { get; set; }      // extracted PDF text
+        public string? PortfolioEmbedding { get; set; } // stored as comma-separated floats
+
+        // Subscription status
+        public bool IsPro { get; set; } = false;
+        public string SubscriptionPlan => IsPro ? "Pro" : "Free";
     }
 }
