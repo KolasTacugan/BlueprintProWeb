@@ -1,116 +1,468 @@
 ﻿@model BlueprintProWeb.ViewModels.ProjectTrackerViewModel
 
 @{
-    ViewData["Title"] = "Project Stepper";
+    ViewData["Title"] = "Project Tracker";
     Layout = "~/Views/Shared/_ArchitectSharedLayout.cshtml";
 }
 
 @section Styles {
     <style>
+        /* Override shared layout background for project tracker page */
+        body::before {
+            background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
+            opacity: 0.1 !important;
+        }
+
+        /* Ensure scrollable page with consistent background */
+        body {
+            background: #F1F7F9 !important;
+            overflow-y: auto !important;
+            height: auto !important;
+            font-family: 'Raleway', sans-serif !important;
+        }
+
+        /* Main content positioning that responds to sidebar state */
+        main.container {
+            margin-left: 300px;
+            margin-top: 90px;
+            padding: 1.5rem;
+            padding-top: 4rem;
+            max-width: calc(100% - 320px);
+            transition: margin-left 0.4s ease, max-width 0.4s ease;
+        }
+
+        /* When sidebar is collapsed, adjust main content */
+        .sidebar.collapsed ~ * main.container,
+        body:has(.sidebar.collapsed) main.container {
+            margin-left: 110px;
+            max-width: calc(100% - 130px);
+        }
+
+        /* Page Header Styling */
+        .project-tracker-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(52, 78, 173, 0.1);
+        }
+
+        .project-tracker-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #1a202c;
+            margin: 0;
+            font-family: 'Raleway', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .project-tracker-title i {
+            color: #344EAD;
+            font-size: 1.5rem;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Enhanced Stepper Container */
+        .stepper-container {
+            background: #FFFFFF;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(52, 78, 173, 0.05);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
         .stepper {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: relative;
         }
 
         .step {
             text-align: center;
             flex: 1;
             position: relative;
+            z-index: 2;
         }
 
         .step .icon {
-            font-size: 32px;
+            font-size: 2rem;
             cursor: pointer;
             border-radius: 50%;
-            padding: 8px;
-            transition: 0.3s ease;
+            padding: 1rem;
+            transition: all 0.3s ease;
+            background: #E2E8F0;
+            color: #64748B;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.75rem;
+            border: 3px solid transparent;
         }
 
         .step .label {
             display: block;
-            margin-top: 6px;
-            font-size: 14px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #64748B;
+            font-family: 'Raleway', sans-serif;
         }
 
         .step.active .icon {
-            background: #071744;
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
             color: #fff;
+            border-color: rgba(52, 78, 173, 0.2);
+            box-shadow: 0 4px 12px rgba(52, 78, 173, 0.3);
+        }
+
+        .step.active .label {
+            color: #344EAD;
+            font-weight: 700;
         }
 
         .step.completed .icon {
-            background: #fff;
-            color: #071744;
-            border: 2px solid #071744;
+            background: #10B981;
+            color: #fff;
+            border-color: rgba(16, 185, 129, 0.2);
         }
 
-        /* connecting line */
+        .step.completed .label {
+            color: #10B981;
+            font-weight: 600;
+        }
+
+        /* Connecting lines */
         .step::after {
-            content: none; /* no line by default */
+            content: "";
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            width: calc(100% - 60px);
+            height: 4px;
+            background: #E2E8F0;
+            z-index: 1;
+            transform: translateX(-50%);
         }
 
         .step:last-child::after {
             display: none;
         }
 
-        .step.completed::after {
-            background: #071744;
+        .step.line-crossed::after {
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
         }
 
-        .content-wrapper {
-            padding: 100px 0;
-        }
-
+        /* Step Content Cards */
         .step-content {
-            margin-top: 30px;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background: #f9f9f9;
-            display: none; /* hide all by default */
+            background: #FFFFFF;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(52, 78, 173, 0.05);
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            display: none;
         }
 
         .step-content.active {
-            display: block; /* show only current */
+            display: block;
         }
 
-        .step.line-crossed::after {
+        .step-content h3 {
+            color: #1a202c;
+            font-weight: 700;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            font-family: 'Raleway', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .step-content h3::before {
             content: "";
-            position: absolute;
-            top: 20px;
-            right: -50%;
-            width: 100%;
-            height: 4px;
-            background: #071744; /* visible only when we decide */
-            z-index: -1;
+            width: 4px;
+            height: 1.5rem;
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            border-radius: 2px;
         }
 
+        /* Form Styling */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label,
+        .form-group label {
+            font-weight: 600;
+            color: #1a202c;
+            font-family: 'Raleway', sans-serif;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .form-control,
+        .form-select {
+            border: 2px solid #E2E8F0;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-family: 'Raleway', sans-serif;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            background: #FFFFFF;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #344EAD;
+            box-shadow: 0 0 0 3px rgba(52, 78, 173, 0.1);
+            outline: none;
+        }
+
+        .form-control:hover,
+        .form-select:hover {
+            border-color: #CBD5E0;
+        }
+
+        /* Enhanced Button Styling */
         .next-btn, .replace-btn, .confirm-btn, .confirm-finish-btn {
-            position: relative;
-            color: #fff;
-            background: #071744;
-            transition: 0.2s ease;
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 0.875rem 1.5rem;
+            font-weight: 600;
+            font-family: 'Raleway', sans-serif;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 2px 8px rgba(52, 78, 173, 0.2);
         }
 
         .next-btn:hover, .replace-btn:hover, .confirm-btn:hover, .confirm-finish-btn:hover {
-        background: #fff;
-        color: #071744;
-        border-color: #071744;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(52, 78, 173, 0.3);
+            background: linear-gradient(135deg, #2563EB 0%, #344EAD 100%);
+            color: white;
         }
 
-        /* navy connector when completed → active */
-        .step.line-crossed::after {
-            background: #071744;
+        .next-btn:active, .replace-btn:active, .confirm-btn:active, .confirm-finish-btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 0.875rem 1.5rem;
+            font-weight: 600;
+            font-family: 'Raleway', sans-serif;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+        }
+
+        /* File Display Areas */
+        .file-display-area {
+            background: #F8FAFC;
+            border: 2px dashed #E2E8F0;
+            border-radius: 8px;
+            padding: 1rem;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .file-display-area:not(:empty) {
+            background: rgba(52, 78, 173, 0.02);
+            border-color: rgba(52, 78, 173, 0.1);
+            border-style: solid;
+        }
+
+        .file-display-area a {
+            color: #344EAD;
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .file-display-area a:hover {
+            color: #2563EB;
+            text-decoration: underline;
+        }
+
+        .file-display-area a::before {
+            content: "📄";
+            font-size: 1.2rem;
+        }
+
+        /* Section Headers */
+        .section-header {
+            background: linear-gradient(135deg, rgba(52, 78, 173, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%);
+            border: 1px solid rgba(52, 78, 173, 0.1);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-header strong {
+            color: #344EAD;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .section-header p {
+            margin: 0.25rem 0 0 0;
+            font-style: italic;
+            color: #64748B;
+            font-size: 0.85rem;
+        }
+
+        /* Radio Button Styling */
+        .form-check-input {
+            border: 2px solid #E2E8F0;
+            border-radius: 4px;
+            width: 1.25rem;
+            height: 1.25rem;
         }
 
         .form-check-input:checked {
-            background-color: #071744;
-            border-color: #071744;
+            background-color: #344EAD;
+            border-color: #344EAD;
+        }
+
+        .form-check-input:focus {
+            box-shadow: 0 0 0 3px rgba(52, 78, 173, 0.1);
+        }
+
+        .form-check-label {
+            font-weight: 500;
+            color: #1a202c;
+            font-family: 'Raleway', sans-serif;
+            margin-left: 0.5rem;
+        }
+
+        /* Modal Enhancements */
+        .modal-content {
+            border-radius: 16px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            color: white;
+            border-radius: 16px 16px 0 0;
+            border-bottom: none;
+            padding: 1.5rem;
+        }
+
+        .modal-title {
+            font-weight: 600;
+            font-family: 'Raleway', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-close {
+            filter: invert(1);
+        }
+
+        .modal-body {
+            padding: 2rem;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .modal-footer {
+            border-top: 1px solid rgba(52, 78, 173, 0.1);
+            padding: 1.5rem 2rem;
+        }
+
+        /* Text alignment for finish section */
+        .text-end {
+            text-align: right;
+        }
+
+        /* Responsive adjustments */
+        @@media (max-width: 768px) {
+            main.container {
+                margin-left: 0 !important;
+                margin-top: 75px;
+                max-width: 100% !important;
+                padding: 1rem;
+                padding-top: 2rem;
+            }
+
+            .project-tracker-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .stepper-container,
+            .step-content {
+                padding: 1.5rem;
+            }
+
+            .stepper {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .step::after {
+                display: none;
+            }
+
+            .step .icon {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .stepper-container,
+            .step-content {
+                padding: 1rem;
+            }
+
+            .project-tracker-title {
+                font-size: 1.4rem;
+            }
         }
     </style>
 }
 
-<div class="content-wrapper">
+<div>
+    <div class="project-tracker-header">
+        <h2 class="project-tracker-title">
+            <i class="fas fa-tasks"></i>
+            Project Tracker
+        </h2>
+    </div>
+
     <div class="stepper-container">
         <!-- Stepper -->
         <div class="stepper">
@@ -147,7 +499,7 @@
     <form asp-action="UploadProjectFile" method="post" enctype="multipart/form-data">
         <input type="hidden" name="projectId" value="@Model.project_Id" />
 
-        <div class="form-group mb-3">
+        <div class="form-group">
             <label for="fileUpload"><strong>Upload Blueprint File</strong></label>
             <input type="file" name="file" class="form-control"
                    @(Model.Status != "Review" ? "disabled" : "") />
@@ -155,60 +507,68 @@
 
         @if (Model.Status == "Review")
         {
-            <button type="submit" class="btn replace-btn">Upload / Replace</button>
+            <button type="submit" class="replace-btn">
+                <i class="fas fa-upload"></i>
+                Upload / Replace
+            </button>
         }
     </form>
 
-    <hr />
+    <hr style="border-color: rgba(52, 78, 173, 0.1); margin: 2rem 0;" />
 
     <!-- Current File -->
-    <h6><strong>Current Version:</strong></h6>
-    <div class="form-control mb-3" style="height: 60px; overflow-y: auto;">
-        @if (!string.IsNullOrEmpty(Model.CurrentFilePath))
-        {
-            <a href="@Url.Content(Model.CurrentFilePath)" target="_blank">
-                Current_Version
-            </a>
-        }
-        else
-        {
-            <span class="text-muted">No file uploaded yet.</span>
-        }
+    <div class="form-group">
+        <label><strong>Current Version:</strong></label>
+        <div class="file-display-area">
+            @if (!string.IsNullOrEmpty(Model.CurrentFilePath))
+            {
+                <a href="@Url.Content(Model.CurrentFilePath)" target="_blank">
+                    Current_Version
+                </a>
+            }
+            else
+            {
+                <span class="text-muted">No file uploaded yet.</span>
+            }
+        </div>
     </div>
 
     <!-- Revision History -->
-    <h6><strong>Revision History:</strong></h6>
-    <div class="form-control mb-3" style="height: 150px; overflow-y: auto;">
-        @if (Model.RevisionHistory.Any())
-        {
-            <ul class="mb-0" style="list-style: none; padding-left: 0;">
-                @foreach (var revision in Model.RevisionHistory)
-                {
-                    <li>
-                        <a href="@Url.Content(revision.projectFile_Path)" target="_blank">
-                            Revision_ver.@revision.projectFile_Version
-                        </a>
-                        <span class="text-muted">— @revision.projectFile_uploadedDate.ToShortDateString()</span>
-                    </li>
-                }
-            </ul>
-        }
-        else
-        {
-            <span class="text-muted">No revisions yet.</span>
-        }
+    <div class="form-group">
+        <label><strong>Revision History:</strong></label>
+        <div class="file-display-area" style="min-height: 150px; flex-direction: column; align-items: flex-start;">
+            @if (Model.RevisionHistory.Any())
+            {
+                <ul class="mb-0" style="list-style: none; padding-left: 0; width: 100%;">
+                    @foreach (var revision in Model.RevisionHistory)
+                    {
+                        <li style="margin-bottom: 0.5rem;">
+                            <a href="@Url.Content(revision.projectFile_Path)" target="_blank">
+                                Revision_ver.@revision.projectFile_Version
+                            </a>
+                            <span class="text-muted" style="margin-left: 1rem;">— @revision.projectFile_uploadedDate.ToShortDateString()</span>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <span class="text-muted">No revisions yet.</span>
+            }
+        </div>
     </div>
+
     @if (Model.Status == "Review")
     {
-        <button class="btn next-btn next-step"
+        <button class="next-btn next-step"
                 data-next="2"
                 data-status="Compliance"
                 data-project="@Model.project_Id">
+            <i class="fas fa-arrow-right"></i>
             Next
         </button>
     }
 </div>
-
 
 <!-- Step 2: Compliance -->
 <div id="step2Content" class="step-content">
@@ -218,21 +578,9 @@
         <input type="hidden" name="projectId" value="@Model.project_Id" />
 
         <!-- Choose category -->
-        <div class="mb-3">
+        <div class="form-group">
             <label class="form-label fw-bold">Choose file type to upload:</label>
             <div class="d-flex flex-wrap gap-3">
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="complianceCategory" id="structuralRadio" value="Structural" checked>
-                    <label class="form-check-label" for="structuralRadio">Structural</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="complianceCategory" id="electricalRadio" value="Electrical">
-                    <label class="form-check-label" for="electricalRadio">Electrical</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="complianceCategory" id="sanitaryRadio" value="Sanitary">
-                    <label class="form-check-label" for="sanitaryRadio">Sanitary/Plumbing</label>
-                </div>
                 <div class="form-check">
                     <input class="form-check-input" type="radio" name="complianceCategory" id="zoningRadio" value="Zoning">
                     <label class="form-check-label" for="zoningRadio">Zoning</label>
@@ -250,95 +598,55 @@
                    @(Model.Status != "Compliance" ? "disabled" : "") />
             @if (Model.Status == "Compliance")
             {
-                <button type="button" id="uploadComplianceBtn" class="btn replace-btn">Upload</button>
+                <button type="button" id="uploadComplianceBtn" class="replace-btn">
+                    <i class="fas fa-upload"></i>
+                    Upload
+                </button>
             }
         </div>
 
-        <!-- Uploaded files display -->
-        <!-- STRUCTURAL -->
-        <div class="mb-3">
-            <strong>STRUCTURAL PLAN:</strong>
-            <p><i>Must be prepared by a licensed structural engineer.</i></p>
-            <div id="structuralFileArea" class="border p-2">
-                @if (!string.IsNullOrEmpty(Model.Compliance?.compliance_Structural))
-                {
-                    var ext = System.IO.Path.GetExtension(Model.Compliance.compliance_Structural);
-                    <a href="@Url.Content("~/uploads/compliance/" + Model.Compliance.compliance_Structural)" target="_blank">
-                        Structural_File
-                    </a>
-                }
-            </div>
-        </div>
-
-        <!-- ELECTRICAL -->
-        <div class="mb-3">
-            <strong>ELECTRICAL PLAN:</strong>
-            <p><i>Must be prepared by a licensed electrical engineer.</i></p>
-            <div id="electricalFileArea" class="border p-2">
-                @if (!string.IsNullOrEmpty(Model.Compliance?.compliance_Electrical))
-                {
-                    var ext = System.IO.Path.GetExtension(Model.Compliance.compliance_Electrical);
-                    <a href="@Url.Content("~/uploads/compliance/" + Model.Compliance.compliance_Electrical)" target="_blank">
-                        Electrical_File
-                    </a>
-                }
-            </div>
-        </div>
-
-        <!-- SANITARY -->
-        <div class="mb-3">
-            <strong>SANITARY/PLUMBING PLAN:</strong>
-            <p><i>Must be prepared by a licensed sanitary/plumbing engineer.</i></p>
-            <div id="sanitaryFileArea" class="border p-2">
-                @if (!string.IsNullOrEmpty(Model.Compliance?.compliance_Sanitary))
-                {
-                    var ext = System.IO.Path.GetExtension(Model.Compliance.compliance_Sanitary);
-                    <a href="@Url.Content("~/uploads/compliance/" + Model.Compliance.compliance_Sanitary)" target="_blank">
-                        Sanitary_File
-                    </a>
-                }
-            </div>
-        </div>
-
         <!-- ZONING -->
-        <div class="mb-3">
+        <div class="section-header">
             <strong>ZONING COMPLIANCE:</strong>
-            <p><i>Must comply with local zoning laws and regulations.</i></p>
-            <div id="zoningFileArea" class="border p-2">
-                @if (!string.IsNullOrEmpty(Model.Compliance?.compliance_Zoning))
-                {
-                    var ext = System.IO.Path.GetExtension(Model.Compliance.compliance_Zoning);
-                    <a href="@Url.Content("~/uploads/compliance/" + Model.Compliance.compliance_Zoning)" target="_blank">
-                        Zoning_File
-                    </a>
-                }
-            </div>
+            <p>Must comply with local zoning laws and regulations.</p>
+        </div>
+        <div class="file-display-area" id="zoningFileArea">
+            @if (!string.IsNullOrEmpty(Model.Compliance?.compliance_Zoning))
+            {
+                var ext = System.IO.Path.GetExtension(Model.Compliance.compliance_Zoning);
+                <a href="@Url.Content("~/uploads/compliance/" + Model.Compliance.compliance_Zoning)" target="_blank">
+                    Zoning_File
+                </a>
+            }
         </div>
 
         <!-- OTHERS -->
-        <div class="mb-3">
+        <div class="section-header">
             <strong>OTHERS:</strong>
-            <p><i>If multiple, combine into one file before uploading.</i></p>
-            <div id="othersFileArea" class="border p-2">
-                @if (!string.IsNullOrEmpty(Model.Compliance?.compliance_Others))
-                {
-                    var ext = System.IO.Path.GetExtension(Model.Compliance.compliance_Others);
-                    <a href="@Url.Content("~/uploads/compliance/" + Model.Compliance.compliance_Others)" target="_blank">
-                        Others_File
-                    </a>
-                }
-            </div>
+            <p>If multiple, combine into one file before uploading.</p>
+        </div>
+        <div class="file-display-area" id="othersFileArea">
+            @if (!string.IsNullOrEmpty(Model.Compliance?.compliance_Others))
+            {
+                var ext = System.IO.Path.GetExtension(Model.Compliance.compliance_Others);
+                <a href="@Url.Content("~/uploads/compliance/" + Model.Compliance.compliance_Others)" target="_blank">
+                    Others_File
+                </a>
+            }
         </div>
 
         <!-- Next button (only active in Compliance) -->
         @if (Model.Status == "Compliance")
         {
-            <button class="btn next-btn next-step"
-                    data-next="3"
-                    data-status="Finalization"
-                    data-project="@Model.project_Id">
-                Next
-            </button>
+            <div style="margin-top: 2rem;">
+                <button class="next-btn next-step"
+                        data-next="3"
+                        data-status="Finalization"
+                        data-project="@Model.project_Id">
+                    <i class="fas fa-arrow-right"></i>
+                    Next
+                </button>
+            </div>
         }
     </form>
 </div>
@@ -348,18 +656,20 @@
     <h3>Finalization</h3>
 
     <!-- Show current file -->
-    <h6><strong>Final File:</strong></h6>
-    <div class="form-control mb-3" style="height: 40px; overflow-y: auto;">
-        @if (!string.IsNullOrEmpty(Model.CurrentFilePath))
-        {
-            <a href="@Url.Content(Model.CurrentFilePath)" target="_blank">
-                Final_Blueprint
-            </a>
-        }
-        else
-        {
-            <span class="text-muted">No final file uploaded yet.</span>
-        }
+    <div class="form-group">
+        <label><strong>Final File:</strong></label>
+        <div class="file-display-area">
+            @if (!string.IsNullOrEmpty(Model.CurrentFilePath))
+            {
+                <a href="@Url.Content(Model.CurrentFilePath)" target="_blank">
+                    Final_Blueprint
+                </a>
+            }
+            else
+            {
+                <span class="text-muted">No final file uploaded yet.</span>
+            }
+        </div>
     </div>
 
     <!-- Finalization notes -->
@@ -369,18 +679,18 @@
         <div class="form-group">
             <label for="finalizationNotes"><strong>Finalization Notes</strong></label>
             <p><i>You are required to edit this field.</i></p>
-            <textarea id="finalizationNotes" name="notes" class="form-control" rows="10">
-                @Model.FinalizationNotes
-            </textarea>
+            <textarea id="finalizationNotes" name="notes" class="form-control" rows="10" style="min-height: 200px;">@Model.FinalizationNotes</textarea>
         </div>
 
-        <button type="button" id="saveFinalizationBtn" class="btn replace-btn mt-2 mb-2">
+        <button type="button" id="saveFinalizationBtn" class="replace-btn">
+            <i class="fas fa-save"></i>
             Save Notes
         </button>
     </form>
 
-    <div class="text-end">
-        <button type="button" id="finishBtn" class="btn btn-success mb-2">
+    <div class="text-end" style="margin-top: 2rem;">
+        <button type="button" id="finishBtn" class="btn-success">
+            <i class="fas fa-check-circle"></i>
             Finish
         </button>
     </div>
@@ -391,7 +701,10 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Confirm Step</h5>
+                <h5 class="modal-title">
+                    <i class="fas fa-question-circle"></i>
+                    Confirm Step
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -399,7 +712,10 @@
                 Please confirm that the information in this step is correct.
             </div>
             <div class="modal-footer">
-                <button type="button" id="confirmStepBtn" class="btn confirm-btn">Yes, proceed</button>
+                <button type="button" id="confirmStepBtn" class="confirm-btn">
+                    <i class="fas fa-check"></i>
+                    Yes, proceed
+                </button>
             </div>
         </div>
     </div>
@@ -409,9 +725,16 @@
 <div class="modal fade" id="emptyFileModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header"><h5 class="modal-title">Upload Error</h5></div>
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Upload Error
+                </h5>
+            </div>
             <div class="modal-body">You cannot upload an empty file. Please select a valid file.</div>
-            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button>
+            </div>
         </div>
     </div>
 </div>
@@ -420,11 +743,18 @@
 <div class="modal fade" id="missingFilesModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header"><h5 class="modal-title">Incomplete Compliance</h5></div>
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Incomplete Compliance
+                </h5>
+            </div>
             <div class="modal-body" id="missingFilesList">
                 <!-- JS will fill this -->
             </div>
-            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button>
+            </div>
         </div>
     </div>
 </div>
@@ -434,7 +764,10 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-3 shadow">
             <div class="modal-header">
-                <h5 class="modal-title">Upload Result</h5>
+                <h5 class="modal-title">
+                    <i class="fas fa-info-circle"></i>
+                    Upload Result
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" id="uploadResultMessage">
@@ -449,7 +782,10 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-3 shadow">
             <div class="modal-header">
-                <h5 class="modal-title" id="finalConfirmModalLabel">Final Confirmation</h5>
+                <h5 class="modal-title" id="finalConfirmModalLabel">
+                    <i class="fas fa-flag-checkered"></i>
+                    Final Confirmation
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -458,7 +794,10 @@
                 <strong>Are you sure you want to mark this project as finished?</strong>
             </div>
             <div class="modal-footer">
-                <button type="button" id="confirmFinishBtn" class="btn confirm-finish-btn">Yes, finish project</button>
+                <button type="button" id="confirmFinishBtn" class="confirm-finish-btn">
+                    <i class="fas fa-check-circle"></i>
+                    Yes, finish project
+                </button>
             </div>
         </div>
     </div>
@@ -491,6 +830,33 @@
 
             // Initial lock
             lockSteps(status);
+
+            // Listen for sidebar toggle and adjust main content accordingly
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarToggler = document.querySelector('.sidebar-toggler');
+            const mainContent = document.querySelector('main.container');
+            
+            function adjustMainContent() {
+                if (sidebar && mainContent) {
+                    if (sidebar.classList.contains('collapsed')) {
+                        mainContent.style.marginLeft = '110px';
+                        mainContent.style.maxWidth = 'calc(100% - 130px)';
+                    } else {
+                        mainContent.style.marginLeft = '300px';
+                        mainContent.style.maxWidth = 'calc(100% - 320px)';
+                    }
+                }
+            }
+            
+            // Adjust on page load
+            adjustMainContent();
+            
+            // Listen for sidebar toggle
+            if (sidebarToggler) {
+                sidebarToggler.addEventListener('click', function() {
+                    setTimeout(adjustMainContent, 50);
+                });
+            }
 
             // Confirm before proceeding
             let pendingStepData = null;
@@ -685,8 +1051,6 @@
                 });
         });
 
-
-
         $(document).ready(function () {
             const projectStatus = "@Model.ProjectStatus";
 
@@ -696,7 +1060,5 @@
                 $("#finalizationNotes").prop("readonly", true);
             }
         });
-
-
     </script>
 }

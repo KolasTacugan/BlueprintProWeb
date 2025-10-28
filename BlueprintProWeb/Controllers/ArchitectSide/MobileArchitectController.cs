@@ -1,13 +1,16 @@
 ﻿using BlueprintProWeb.Data;
+using BlueprintProWeb.Hubs;
 using BlueprintProWeb.Models;
 using iText.Commons.Actions.Contexts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
+using static BlueprintProWeb.Controllers.MobileClientController;
 
 namespace BlueprintProWeb.Controllers
 {
@@ -18,12 +21,14 @@ namespace BlueprintProWeb.Controllers
         private readonly AppDbContext context;
         private readonly UserManager<User> userManager;
         private readonly IWebHostEnvironment env;
+        private readonly IHubContext<ChatHub> _hubContext;
 
-        public MobileArchitectController(AppDbContext context, UserManager<User> userManager, IWebHostEnvironment env)
+        public MobileArchitectController(AppDbContext context, UserManager<User> userManager, IWebHostEnvironment env, IHubContext<ChatHub> hubContext)
         {
             this.context = context;
             this.userManager = userManager;
             this.env = env;
+            _hubContext = hubContext;
         }
 
         [HttpGet("blueprints/{architectId}")]
@@ -304,5 +309,448 @@ namespace BlueprintProWeb.Controllers
 
             return Ok();
         }
+        [HttpGet("Architect/Messages/All")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetAllMessagesForArchitect([FromQuery] string architectId)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(architectId))
+                    return BadRequest(new { success = false, message = "ArchitectId is required." });
+
+                var conversations = await context.Messages
+                    .Where(m => m.ArchitectId == architectId || m.ClientId == architectId)
+                    .GroupBy(m => m.ClientId)
+                    .Select(g => new
+                    {
+                        ClientId = g.Key,
+                        ClientName = context.Users
+                            .Where(u => u.Id == g.Key)
+                            .Select(u => u.user_fname + " " + u.user_lname)
+                            .FirstOrDefault(),
+                        LastMessage = g.OrderByDescending(m => m.MessageDate)
+                            .Select(m => m.MessageBody)
+                            .FirstOrDefault(),
+                        LastMessageTime = g.Max(m => m.MessageDate),
+                        ProfileUrl = context.Users
+                            .Where(u => u.Id == g.Key)
+                            .Select(u => u.user_profilePhoto)
+                            .FirstOrDefault(),
+                        UnreadCount = g.Count(x => x.ClientId == g.Key && !x.IsRead)
+                    })
+                    .OrderByDescending(x => x.LastMessageTime)
+                    .ToListAsync();
+
+                return Ok(new { success = true, messages = conversations });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+
+        [HttpGet("ArchitectMatches")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetAllMatchesForArchitect([FromQuery] string architectId)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(architectId))
+                    return BadRequest(new { success = false, message = "ArchitectId is required." });
+
+                var matches = await context.Matches
+                    .Where(m => m.ArchitectId == architectId)
+                    .Include(m => m.Client)
+                    .Select(m => new
+                    {
+                        MatchId = m.MatchId,
+                        ClientId = m.Client.Id,
+                        ClientName = m.Client.user_fname + " " + m.Client.user_lname,
+                        ClientLocation = m.Client.user_Location,
+                        ClientStyle = m.Client.user_Style,
+                        ClientBudget = m.Client.user_Budget,
+                        ClientPhoto = m.Client.user_profilePhoto,
+                        MatchStatus = "Matched"
+                    })
+                    .ToListAsync();
+
+                return Ok(new { success = true, matches });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("Architect/Messages")]
+        [AllowAnonymous] // or [Authorize] if you add token auth later
+        public async Task<IActionResult> GetMessagesForArchitect([FromQuery] string architectId, [FromQuery] string clientId)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(architectId))
+                    return BadRequest(new { success = false, message = "ClientId and ArchitectId are required." });
+
+                // ✅ Fetch all messages between architect and client
+                var messages = await context.Messages
+                    .Where(m =>
+                        (m.ClientId == clientId && m.ArchitectId == architectId) ||
+                        (m.ClientId == architectId && m.ArchitectId == clientId))
+                    .OrderBy(m => m.MessageDate)
+                    .Select(m => new
+                    {
+                        m.MessageId,
+                        m.ClientId,
+                        m.ArchitectId,
+                        m.SenderId,
+                        m.MessageBody,
+                        m.MessageDate,
+                        m.IsRead,
+                        m.AttachmentUrl
+                    })
+                    .ToListAsync();
+
+                // ✅ Mark unread messages as read for this architect
+                var unreadMessages = await context.Messages
+                    .Where(m =>
+                        m.ArchitectId == architectId &&
+                        m.ClientId == clientId &&
+                        m.SenderId == clientId &&  // only mark those sent by the client
+                        !m.IsRead)
+                    .ToListAsync();
+
+                if (unreadMessages.Any())
+                {
+                    unreadMessages.ForEach(m => m.IsRead = true);
+                    await context.SaveChangesAsync();
+                }
+
+                return Ok(new { success = true, messages });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+        [HttpPost("Architect/SendMessage")]
+        [AllowAnonymous] // or [Authorize] if you use auth later
+        public async Task<IActionResult> SendMessageFromArchitect([FromBody] SendMessageRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(request.ClientId) ||
+                    string.IsNullOrWhiteSpace(request.ArchitectId) ||
+                    string.IsNullOrWhiteSpace(request.MessageBody))
+                {
+                    return BadRequest(new { success = false, message = "ClientId, ArchitectId, and MessageBody are required." });
+                }
+
+                // ✅ Create message object where architect is the sender
+                var message = new Message
+                {
+                    MessageId = Guid.NewGuid(),
+                    ClientId = request.ClientId,
+                    ArchitectId = request.ArchitectId,
+                    SenderId = request.SenderId ?? request.ArchitectId, // default to architect
+                    MessageBody = request.MessageBody,
+                    MessageDate = DateTime.UtcNow,
+                    IsRead = false // unread for the client
+                };
+
+                context.Messages.Add(message);
+                await context.SaveChangesAsync();
+
+                // ✅ Notify the client via SignalR
+                await _hubContext.Clients.User(request.ClientId).SendAsync("ReceiveMessage", new
+                {
+                    SenderId = message.SenderId,
+                    MessageBody = message.MessageBody,
+                    MessageDate = message.MessageDate.ToString("g")
+                });
+
+                return Ok(new { success = true, message = "Message sent successfully." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("getProjectTracker/{blueprintId}")]
+        public async Task<IActionResult> GetProjectTracker(int blueprintId)
+        {
+            var tracker = await context.ProjectTrackers
+                .Include(pt => pt.Project)
+                    .ThenInclude(p => p.Architect)
+                .Include(pt => pt.Compliance)
+                .FirstOrDefaultAsync(pt => pt.Project.blueprint_Id == blueprintId);
+
+            if (tracker == null)
+                return NotFound();
+
+            // ✅ Manually fetch the files using project_Id
+            var projectFiles = await context.ProjectFiles
+                .Where(f => f.project_Id == tracker.project_Id)
+                .OrderByDescending(f => f.projectFile_Version)
+                .ToListAsync();
+
+            var response = new
+            {
+                projectTrack_Id = tracker.projectTrack_Id,
+                project_Id = tracker.project_Id,
+                currentFileName = tracker.projectTrack_currentFileName,
+                currentFilePath = tracker.projectTrack_currentFilePath,
+                currentRevision = tracker.projectTrack_currentRevision,
+                status = tracker.projectTrack_Status,
+
+                architectName = tracker.Project?.Architect == null
+                    ? null
+                    : $"{tracker.Project.Architect.user_fname} {tracker.Project.Architect.user_lname}",
+
+                isRated = tracker.Project?.project_clientHasRated ?? false,
+
+                // ✅ Revision history — manually loaded files
+                revisionHistory = projectFiles.Select(f => new
+                {
+                    projectFile_Id = f.projectFile_Id,
+                    project_Id = f.project_Id,
+                    projectFile_fileName = f.projectFile_fileName,
+                    projectFile_Path = f.projectFile_Path,
+                    projectFile_Version = f.projectFile_Version,
+                    projectFile_uploadedDate = f.projectFile_uploadedDate
+                }).ToList(),
+
+                compliance = tracker.Compliance == null ? null : new
+                {
+                    compliance_Id = tracker.Compliance.compliance_Id,
+                    compliance_Zoning = tracker.Compliance.compliance_Zoning,
+                    compliance_Others = tracker.Compliance.compliance_Others
+                },
+
+                finalizationNotes = tracker.projectTrack_FinalizationNotes,
+                projectTrackerStatus = tracker.projectTrack_Status
+            };
+
+            return Ok(response);
+        }
+
+        [HttpPost("UploadProjectFile")]
+        public async Task<IActionResult> UploadProjectFile(string projectId, IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest(new { success = false, message = "No file uploaded." });
+
+            var project = await context.Projects.FindAsync(projectId);
+            if (project == null)
+                return NotFound(new { success = false, message = "Project not found." });
+
+            var tracker = await context.ProjectTrackers.FirstOrDefaultAsync(t => t.project_Id == projectId);
+            if (tracker == null)
+                return NotFound(new { success = false, message = "Project tracker not found." });
+
+            // Save uploaded file
+            var uploadsFolder = Path.Combine(env.WebRootPath, "uploads");
+            if (!Directory.Exists(uploadsFolder))
+                Directory.CreateDirectory(uploadsFolder);
+
+            var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            // Archive current file
+            if (!string.IsNullOrEmpty(tracker.projectTrack_currentFilePath))
+            {
+                var oldFile = new ProjectFile
+                {
+                    project_Id = projectId,
+                    projectFile_fileName = tracker.projectTrack_currentFileName,
+                    projectFile_Path = tracker.projectTrack_currentFilePath,
+                    projectFile_Version = tracker.projectTrack_currentRevision,
+                    projectFile_uploadedDate = DateTime.UtcNow
+                };
+                context.ProjectFiles.Add(oldFile);
+            }
+
+            // Update tracker to new file
+            tracker.projectTrack_currentFileName = file.FileName;
+            tracker.projectTrack_currentFilePath = "/uploads/" + uniqueFileName;
+            tracker.projectTrack_currentRevision += 1;
+
+            await context.SaveChangesAsync();
+
+            // Send client notification
+            var notif = new Notification
+            {
+                user_Id = project.user_clientId,
+                notification_Title = "New Revision Uploaded",
+                notification_Message = $"A new revision has been uploaded for your project '{project.project_Title}'.",
+                notification_Date = DateTime.Now,
+                notification_isRead = false
+            };
+            context.Notifications.Add(notif);
+            await context.SaveChangesAsync();
+
+            return Ok(new { success = true, message = "New revision uploaded successfully." });
+        }
+
+        [HttpPost("UploadComplianceFile")]
+        public async Task<IActionResult> UploadComplianceFile(int projectTrackId, string fileType, IFormFile file)
+        {
+            try
+            {
+                if (file == null || file.Length == 0)
+                    return BadRequest(new { success = false, message = "File cannot be empty." });
+
+                var tracker = await context.ProjectTrackers
+                    .Include(pt => pt.Compliance)
+                    .Include(pt => pt.Project)
+                    .FirstOrDefaultAsync(pt => pt.projectTrack_Id == projectTrackId);
+
+                if (tracker == null)
+                    return NotFound(new { success = false, message = "ProjectTracker not found." });
+
+                if (tracker.Compliance == null)
+                {
+                    tracker.Compliance = new Compliance
+                    {
+                        projectTrack_Id = tracker.projectTrack_Id,
+                        compliance_Zoning = "",
+                        compliance_Others = ""
+                    };
+                    context.Compliances.Add(tracker.Compliance);
+                }
+
+                var uploadsFolder = Path.Combine(env.WebRootPath, "uploads", "compliance");
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                var fileName = $"{fileType}_{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                switch (fileType.ToLower())
+                {
+                    case "zoning": tracker.Compliance.compliance_Zoning = fileName; break;
+                    case "others": tracker.Compliance.compliance_Others = fileName; break;
+                    default: return BadRequest(new { success = false, message = "Invalid file type." });
+                }
+
+                await context.SaveChangesAsync();
+
+                if (tracker.Project != null)
+                {
+                    var notif = new Notification
+                    {
+                        user_Id = tracker.Project.user_clientId,
+                        notification_Title = "Compliance File Uploaded",
+                        notification_Message = $"A new {fileType} compliance file has been uploaded for your project '{tracker.Project.project_Title}'.",
+                        notification_Date = DateTime.Now,
+                        notification_isRead = false
+                    };
+
+                    context.Notifications.Add(notif);
+                    await context.SaveChangesAsync();
+                }
+
+                return Ok(new
+                {
+                    success = true,
+                    message = $"{fileType} file uploaded successfully.",
+                    fileName
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = $"Server error: {ex.Message}" });
+            }
+        }
+
+        [HttpPost("SaveFinalizationNotes")]
+        public async Task<IActionResult> SaveFinalizationNotes(int projectTrackId, string notes)
+        {
+            var tracker = await context.ProjectTrackers.FirstOrDefaultAsync(pt => pt.projectTrack_Id == projectTrackId);
+            if (tracker == null)
+                return Ok(new { success = false, message = "ProjectTracker not found." });
+
+            tracker.projectTrack_FinalizationNotes = notes;
+            await context.SaveChangesAsync();
+
+            return Ok(new { success = true, message = "Finalization notes saved successfully." });
+        }
+
+        [HttpPost("FinalizeProject")]
+        public async Task<IActionResult> FinalizeProject(string projectId)
+        {
+            var project = await context.Projects.FirstOrDefaultAsync(p => p.project_Id == projectId);
+            if (project == null)
+                return Ok(new { success = false, message = "Project not found." });
+
+            project.project_Status = "Finished";
+            project.project_endDate = DateTime.Now;
+            await context.SaveChangesAsync();
+
+            if (!string.IsNullOrEmpty(project.user_clientId))
+            {
+                var notif = new Notification
+                {
+                    user_Id = project.user_clientId,
+                    notification_Title = "Project Completed",
+                    notification_Message = $"Your project '{project.project_Title}' has been marked as finished by architect {project.Architect?.user_fname} {project.Architect?.user_lname}.",
+                    notification_Date = DateTime.Now,
+                    notification_isRead = false
+                };
+                context.Notifications.Add(notif);
+                await context.SaveChangesAsync();
+            }
+
+            var redirectUrl = Url.Action("ProjectTracker", "ArchitectInterface", new { id = project.blueprint_Id });
+
+            return Ok(new
+            {
+                success = true,
+                message = "✅ Project finalized successfully!",
+                redirectUrl
+            });
+        }
+
+        [HttpPost("updateProjectStatus")]
+        public async Task<IActionResult> UpdateProjectStatus(string projectId, string status)
+        {
+            var tracker = await context.ProjectTrackers
+                .Include(t => t.Project)
+                .FirstOrDefaultAsync(t => t.project_Id == projectId);
+
+            if (tracker == null)
+                return Ok(new { success = false, message = "Tracker not found." });
+
+            tracker.projectTrack_Status = status;
+            await context.SaveChangesAsync();
+
+            if (tracker.Project != null)
+            {
+                var notif = new Notification
+                {
+                    user_Id = tracker.Project.user_clientId,
+                    notification_Title = "Project Phase Updated",
+                    notification_Message = $"Your project '{tracker.Project.project_Title}' is now in the {status} phase.",
+                    notification_Date = DateTime.Now,
+                    notification_isRead = false
+                };
+
+                context.Notifications.Add(notif);
+                await context.SaveChangesAsync();
+            }
+
+            return Ok(new { success = true });
+        }
+
     }
 }
