@@ -1,137 +1,524 @@
 ﻿@model BlueprintProWeb.ViewModels.ProjectTrackerViewModel
 
 @{
-    ViewData["Title"] = "Project Stepper";
+    ViewData["Title"] = "Project Tracker";
     Layout = "~/Views/Shared/_ClientSharedLayout.cshtml";
 }
 
 @section Styles {
     <style>
+        /* Override shared layout background for project tracker page */
+        body::before {
+            background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
+            opacity: 0.1 !important;
+        }
+
+        /* Ensure scrollable page with consistent background */
+        body {
+            background: #F1F7F9 !important;
+            overflow-y: auto !important;
+            height: auto !important;
+            font-family: 'Raleway', sans-serif !important;
+        }
+
+        /* Main content positioning that responds to sidebar state */
+        main.container {
+            margin-left: 300px;
+            margin-top: 90px;
+            padding: 1.5rem;
+            padding-top: 4rem;
+            max-width: calc(100% - 320px);
+            transition: margin-left 0.4s ease, max-width 0.4s ease;
+        }
+
+        /* When sidebar is collapsed, adjust main content */
+        .sidebar.collapsed ~ * main.container,
+        body:has(.sidebar.collapsed) main.container {
+            margin-left: 110px;
+            max-width: calc(100% - 130px);
+        }
+
+        /* Page Header Styling */
+        .project-tracker-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(52, 78, 173, 0.1);
+        }
+
+        .project-tracker-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #1a202c;
+            margin: 0;
+            font-family: 'Raleway', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .project-tracker-title i {
+            color: #344EAD;
+            font-size: 1.5rem;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Enhanced Stepper Container */
+        .stepper-container {
+            background: #FFFFFF;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(52, 78, 173, 0.05);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
         .stepper {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: relative;
         }
 
         .step {
             text-align: center;
             flex: 1;
             position: relative;
-            pointer-events: auto !important;
+            z-index: 2;
         }
 
         .step .icon {
-            font-size: 32px;
+            font-size: 2rem;
             cursor: pointer;
             border-radius: 50%;
-            padding: 8px;
-            transition: 0.3s ease;
-            pointer-events: auto !important;
+            padding: 1rem;
+            transition: all 0.3s ease;
+            background: #E2E8F0;
+            color: #64748B;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.75rem;
+            border: 3px solid transparent;
         }
 
         .step .label {
             display: block;
-            margin-top: 6px;
-            font-size: 14px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #64748B;
+            font-family: 'Raleway', sans-serif;
         }
 
         .step.active .icon {
-            background: #071744;
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
             color: #fff;
+            border-color: rgba(52, 78, 173, 0.2);
+            box-shadow: 0 4px 12px rgba(52, 78, 173, 0.3);
+        }
+
+        .step.active .label {
+            color: #344EAD;
+            font-weight: 700;
         }
 
         .step.completed .icon {
-            background: #fff;
-            color: #071744;
-            border: 2px solid #071744;
+            background: #10B981;
+            color: #fff;
+            border-color: rgba(16, 185, 129, 0.2);
         }
 
-        /* connecting line */
+        .step.completed .label {
+            color: #10B981;
+            font-weight: 600;
+        }
+
+        /* Connecting lines */
         .step::after {
-            content: none; /* no line by default */
+            content: "";
+            position: absolute;
+            top: 30px;
+            left: 28.8%;
+            width: calc(100% - 60px);
+            height: 4px;
+            background: #E2E8F0;
+            z-index: 1;
+            transform: translateX(28.8%);
         }
 
         .step:last-child::after {
             display: none;
         }
 
-        .step.completed::after {
-            background: #071744;
+        .step.line-crossed::after {
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
         }
 
+        /* Enhanced Content Wrapper */
         .content-wrapper {
-            padding: 100px 0;
+            padding: 0;
         }
 
+        /* Step Content Cards */
         .step-content {
-            margin-top: 30px;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background: #f9f9f9;
-            display: none; /* hide all by default */
+            background: #FFFFFF;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(52, 78, 173, 0.05);
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            display: none;
         }
 
         .step-content.active {
-            display: block; /* show only current */
+            display: block;
         }
 
-        .step.line-crossed::after {
+        .step-content h3 {
+            color: #1a202c;
+            font-weight: 700;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            font-family: 'Raleway', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .step-content h3::before {
             content: "";
-            position: absolute;
-            top: 20px;
-            right: -50%;
-            width: 100%;
-            height: 4px;
-            background: #071744; /* visible only when we decide */
-            z-index: -1;
+            width: 4px;
+            height: 1.5rem;
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            border-radius: 2px;
+        }
+
+        .step-content h6 {
+            font-weight: 600;
+            color: #1a202c;
+            font-family: 'Raleway', sans-serif;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .step-content h6::before {
+            content: "📄";
+            font-size: 1rem;
+        }
+
+        /* Enhanced Form Control Styling */
+        .form-control {
+            border: 2px solid #E2E8F0;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-family: 'Raleway', sans-serif;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            background: #FFFFFF;
         }
 
         .form-control[readonly],
-        textarea[readonly],
-        .form-control:disabled,
-        input:disabled {
-            background: #f1f1f1;
-            color: #555;
+        .form-control:disabled {
+            background: #F8FAFC;
+            color: #64748B;
             cursor: not-allowed;
+            border-color: #E2E8F0;
         }
 
-        .star {
-            color: #ccc;
-            font-size: 40px;
-            cursor: pointer;
-            transition: color 0.2s;
+        .form-control:focus {
+            border-color: #344EAD;
+            box-shadow: 0 0 0 3px rgba(52, 78, 173, 0.1);
+            outline: none;
         }
 
-        .star.selected {
-            color: gold;
+        .form-control:hover:not([readonly]):not(:disabled) {
+            border-color: #CBD5E0;
         }
 
-        .star:hover,
-        .star:hover ~ .star {
-            color: gold;
+        /* Enhanced File Display Areas */
+        .file-display-area {
+            background: #F8FAFC;
+            border: 2px dashed #E2E8F0;
+            border-radius: 8px;
+            padding: 1rem;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            transition: all 0.2s ease;
         }
 
-        .confirm-btn{
-            position: relative;
-            color: #fff;
-            background: #071744;
-            transition: 0.2s ease;
+        .file-display-area:not(:empty):not(:has(.text-muted)) {
+            background: rgba(52, 78, 173, 0.02);
+            border-color: rgba(52, 78, 173, 0.1);
+            border-style: solid;
+        }
+
+        .file-display-area a {
+            color: #344EAD;
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+            border-bottom: 1px solid transparent;
+        }
+
+        .file-display-area a:hover {
+            color: #2563EB;
+            text-decoration: none;
+            border-bottom-color: #2563EB;
+        }
+
+        .file-display-area a::before {
+            content: "📄";
+            font-size: 1.2rem;
+        }
+
+        .file-display-area ul {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .file-display-area li {
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Enhanced Section Headers */
+        .section-header {
+            background: linear-gradient(135deg, rgba(52, 78, 173, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%);
+            border: 1px solid rgba(52, 78, 173, 0.1);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-header strong {
+            color: #344EAD;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .section-header p {
+            margin: 0.25rem 0 0 0;
+            font-style: italic;
+            color: #64748B;
+            font-size: 0.85rem;
+        }
+
+        /* Enhanced Button Styling */
+        .btn-warning {
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 0.875rem 1.5rem;
+            font-weight: 600;
+            font-family: 'Raleway', sans-serif;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+            background: linear-gradient(135deg, #D97706 0%, #F59E0B 100%);
+            color: white;
+        }
+
+        .confirm-btn {
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 0.875rem 1.5rem;
+            font-weight: 600;
+            font-family: 'Raleway', sans-serif;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 2px 8px rgba(52, 78, 173, 0.2);
         }
 
         .confirm-btn:hover {
-            background: #fff;
-            color: #071744;
-            border-color: #071744;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(52, 78, 173, 0.3);
+            background: linear-gradient(135deg, #2563EB 0%, #344EAD 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #FFFFFF;
+            color: #64748B;
+            border: 2px solid #E2E8F0;
+            border-radius: 10px;
+            padding: 0.875rem 1.5rem;
+            font-weight: 600;
+            font-family: 'Raleway', sans-serif;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            background: #F8FAFC;
+            border-color: #CBD5E0;
+            color: #475569;
+        }
+
+        /* Enhanced Star Rating */
+        .star {
+            color: #E2E8F0;
+            font-size: 40px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-block;
+            margin: 0 0.25rem;
+        }
+
+        .star.selected {
+            color: #F59E0B;
+            text-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+        }
+
+        .star:hover {
+            color: #F59E0B;
+            transform: scale(1.1);
+        }
+
+        /* Enhanced Modal Styling */
+        .modal-content {
+            border-radius: 16px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            color: white;
+            border-radius: 16px 16px 0 0;
+            border-bottom: none;
+            padding: 1.5rem;
+        }
+
+        .modal-title {
+            font-weight: 600;
+            font-family: 'Raleway', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-close {
+            filter: invert(1);
+        }
+
+        .modal-body {
+            padding: 2rem;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .modal-footer {
+            border-top: 1px solid rgba(52, 78, 173, 0.1);
+            padding: 1.5rem 2rem;
+        }
+
+        /* Text styling */
+        .text-muted {
+            color: #64748B !important;
+            font-style: italic;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        /* Responsive adjustments */
+        @@media (max-width: 768px) {
+            main.container {
+                margin-left: 0 !important;
+                margin-top: 75px;
+                max-width: 100% !important;
+                padding: 1rem;
+                padding-top: 2rem;
+            }
+
+            .project-tracker-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .stepper-container,
+            .step-content {
+                padding: 1.5rem;
+            }
+
+            .stepper {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .step::after {
+                display: none;
+            }
+
+            .step .icon {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .stepper-container,
+            .step-content {
+                padding: 1rem;
+            }
+
+            .project-tracker-title {
+                font-size: 1.4rem;
+            }
         }
     </style>
 }
 
-<div class="content-wrapper">
+<div>
+    <div class="project-tracker-header">
+        <h2 class="project-tracker-title">
+            <i class="fas fa-tasks"></i>
+            Project Tracker
+        </h2>
+    </div>
+
     <div class="stepper-container">
+        <!-- Stepper -->
         <div class="stepper">
             @{
                 var status = Model.Status ?? "Review";
+
                 bool showConnector12 = status == "Compliance" || status == "Finalization";
                 bool showConnector23 = status == "Finalization";
             }
@@ -154,100 +541,54 @@
     </div>
 </div>
 
-<!-- Step 1: Review -->
-<div id="step1Content" class="step-content">
-    <h3>Review</h3>
+<div class="content-wrapper">
+    <!-- Step 1: Review -->
+    <div id="step1Content" class="step-content">
+        <h3>Review</h3>
 
-    <h6><strong>Current Version:</strong></h6>
-    <div class="form-control mb-3" style="height: 60px; overflow-y: auto;" readonly>
-        @if (!string.IsNullOrEmpty(Model.CurrentFilePath))
-        {
-            <a href="@Url.Content(Model.CurrentFilePath)" target="_blank">Current_Version</a>
-        }
-        else
-        {
-            <span class="text-muted">No file uploaded yet.</span>
-        }
-    </div>
-
-    <h6><strong>Revision History:</strong></h6>
-    <div class="form-control mb-3" style="height: 150px; overflow-y: auto;" readonly>
-        @if (Model.RevisionHistory.Any())
-        {
-            <ul class="mb-0" style="list-style: none; padding-left: 0;">
-                @foreach (var revision in Model.RevisionHistory)
-                {
-                    <li>
-                        <a href="@Url.Content(revision.projectFile_Path)" target="_blank">
-                            Revision_ver.@revision.projectFile_Version
-                        </a>
-                        <span class="text-muted">— @revision.projectFile_uploadedDate.ToShortDateString()</span>
-                    </li>
-                }
-            </ul>
-        }
-        else
-        {
-            <span class="text-muted">No revisions yet.</span>
-        }
-    </div>
-</div>
-
-<!-- Step 2: Compliance -->
-<div id="step2Content" class="step-content">
-    <h3>Compliance Documents</h3>
-
-    <div class="mb-3">
-        <strong>STRUCTURAL PLAN:</strong>
-        <div class="form-control p-2" readonly>
-            @if (!string.IsNullOrEmpty(Model.Compliance?.compliance_Structural))
+        <h6><strong>Current Version:</strong></h6>
+        <div class="file-display-area mb-3">
+            @if (!string.IsNullOrEmpty(Model.CurrentFilePath))
             {
-                <a href="@Url.Content("~/uploads/compliance/" + Model.Compliance.compliance_Structural)" target="_blank">
-                    Structural_File
-                </a>
+                <a href="@Url.Content(Model.CurrentFilePath)" target="_blank">Current_Version</a>
             }
             else
             {
-                <span class="text-muted">Not uploaded</span>
+                <span class="text-muted">No file uploaded yet.</span>
+            }
+        </div>
+
+        <h6><strong>Revision History:</strong></h6>
+        <div class="file-display-area mb-3" style="min-height: 150px; flex-direction: column; align-items: flex-start;">
+            @if (Model.RevisionHistory.Any())
+            {
+                <ul class="mb-0">
+                    @foreach (var revision in Model.RevisionHistory)
+                    {
+                        <li>
+                            <a href="@Url.Content(revision.projectFile_Path)" target="_blank">
+                                Revision_ver.@revision.projectFile_Version
+                            </a>
+                            <span class="text-muted">— @revision.projectFile_uploadedDate.ToShortDateString()</span>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <span class="text-muted">No revisions yet.</span>
             }
         </div>
     </div>
 
-    <div class="mb-3">
-        <strong>ELECTRICAL PLAN:</strong>
-        <div class="form-control p-2" readonly>
-            @if (!string.IsNullOrEmpty(Model.Compliance?.compliance_Electrical))
-            {
-                <a href="@Url.Content("~/uploads/compliance/" + Model.Compliance.compliance_Electrical)" target="_blank">
-                    Electrical_File
-                </a>
-            }
-            else
-            {
-                <span class="text-muted">Not uploaded</span>
-            }
-        </div>
-    </div>
+    <!-- Step 2: Compliance -->
+    <div id="step2Content" class="step-content">
+        <h3>Compliance Documents</h3>
 
-    <div class="mb-3">
-        <strong>SANITARY / PLUMBING PLAN:</strong>
-        <div class="form-control p-2" readonly>
-            @if (!string.IsNullOrEmpty(Model.Compliance?.compliance_Sanitary))
-            {
-                <a href="@Url.Content("~/uploads/compliance/" + Model.Compliance.compliance_Sanitary)" target="_blank">
-                    Sanitary_File
-                </a>
-            }
-            else
-            {
-                <span class="text-muted">Not uploaded</span>
-            }
+        <div class="section-header">
+            <strong>ZONING COMPLIANCE:</strong>
         </div>
-    </div>
-
-    <div class="mb-3">
-        <strong>ZONING COMPLIANCE:</strong>
-        <div class="form-control p-2" readonly>
+        <div class="file-display-area mb-3">
             @if (!string.IsNullOrEmpty(Model.Compliance?.compliance_Zoning))
             {
                 <a href="@Url.Content("~/uploads/compliance/" + Model.Compliance.compliance_Zoning)" target="_blank">
@@ -259,11 +600,11 @@
                 <span class="text-muted">Not uploaded</span>
             }
         </div>
-    </div>
 
-    <div class="mb-3">
-        <strong>OTHERS:</strong>
-        <div class="form-control p-2" readonly>
+        <div class="section-header">
+            <strong>OTHERS:</strong>
+        </div>
+        <div class="file-display-area mb-3">
             @if (!string.IsNullOrEmpty(Model.Compliance?.compliance_Others))
             {
                 <a href="@Url.Content("~/uploads/compliance/" + Model.Compliance.compliance_Others)" target="_blank">
@@ -276,56 +617,60 @@
             }
         </div>
     </div>
-</div>
 
-<!-- Step 3: Finalization -->
-<div id="step3Content" class="step-content">
-    <h3>Finalization</h3>
+    <!-- Step 3: Finalization -->
+    <div id="step3Content" class="step-content">
+        <h3>Finalization</h3>
 
-    <h6><strong>Final File:</strong></h6>
-    <div class="form-control mb-3" style="height: 40px; overflow-y: auto;" readonly>
-        @if (!string.IsNullOrEmpty(Model.CurrentFilePath))
-        {
-            <a href="@Url.Content(Model.CurrentFilePath)" target="_blank">Final_Blueprint</a>
-        }
-        else
-        {
-            <span class="text-muted">No final file uploaded yet.</span>
-        }
-    </div>
-
-    <div class="form-group">
-        <label for="finalizationNotes"><strong>Finalization Notes</strong></label>
-        <textarea id="finalizationNotes" class="form-control" rows="10" readonly>@Model.FinalizationNotes</textarea>
-    </div>
-
-    @if (Model.ProjectStatus == "Finished" && !Model.IsRated)
-    {
-        <div class="mt-4 text-center">
-            <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#ratingModal">
-                ⭐ Rate your Architect
-            </button>
+        <h6><strong>Final File:</strong></h6>
+        <div class="file-display-area mb-3">
+            @if (!string.IsNullOrEmpty(Model.CurrentFilePath))
+            {
+                <a href="@Url.Content(Model.CurrentFilePath)" target="_blank">Final_Blueprint</a>
+            }
+            else
+            {
+                <span class="text-muted">No final file uploaded yet.</span>
+            }
         </div>
-    }
+
+        <div class="form-group">
+            <label for="finalizationNotes"><strong>Finalization Notes</strong></label>
+            <textarea id="finalizationNotes" class="form-control" rows="10" readonly>@Model.FinalizationNotes</textarea>
+        </div>
+
+        @if (Model.ProjectStatus == "Finished" && !Model.IsRated)
+        {
+            <div class="mt-4 text-center">
+                <button class="btn-warning" data-bs-toggle="modal" data-bs-target="#ratingModal">
+                    ⭐ Rate your Architect
+                </button>
+            </div>
+        }
+    </div>
 </div>
 
+<!-- Enhanced Rating Modal -->
 <div class="modal fade" id="ratingModal" tabindex="-1" aria-labelledby="ratingModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content p-3">
+        <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="ratingModalLabel">
-                    How would you rate @Model.ArchitectName's service?
+                    <i class="fas fa-star"></i>
+                    Rate Your Architect
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-center">
+                <p class="mb-3">How would you rate @Model.ArchitectName's service?</p>
                 <div id="starRating" class="mb-3">
                     @for (int i = 1; i <= 5; i++)
                     {
-                        <span class="star" data-value="@i" style="font-size: 40px; cursor:pointer;">☆</span>
+                        <span class="star" data-value="@i">☆</span>
                     }
                 </div>
-                <button id="submitRatingBtn" class="btn confirm-btn" disabled>
+                <button id="submitRatingBtn" class="confirm-btn" disabled>
+                    <i class="fas fa-paper-plane"></i>
                     Submit Rating
                 </button>
             </div>
@@ -333,19 +678,19 @@
     </div>
 </div>
 
-<!-- ✅ Success Modal -->
+<!-- Enhanced Success Modal -->
 <div class="modal fade" id="ratingSuccessModal" tabindex="-1" aria-labelledby="ratingSuccessModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content p-3 text-center">
-            <div class="modal-header border-0">
+        <div class="modal-content">
+            <div class="modal-header">
                 <h5 class="modal-title w-100" id="ratingSuccessModalLabel">
-                    ⭐ Thank You!
+                    <i class="fas fa-check-circle"></i>
+                    Thank You!
                 </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body text-center">
                 <p>Your rating has been submitted successfully.</p>
-            </div>
-            <div class="modal-footer border-0">
             </div>
         </div>
     </div>
@@ -378,6 +723,33 @@
 
             // Initial lock
             lockSteps(status);
+
+            // Listen for sidebar toggle and adjust main content accordingly
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarToggler = document.querySelector('.sidebar-toggler');
+            const mainContent = document.querySelector('main.container');
+            
+            function adjustMainContent() {
+                if (sidebar && mainContent) {
+                    if (sidebar.classList.contains('collapsed')) {
+                        mainContent.style.marginLeft = '110px';
+                        mainContent.style.maxWidth = 'calc(100% - 130px)';
+                    } else {
+                        mainContent.style.marginLeft = '300px';
+                        mainContent.style.maxWidth = 'calc(100% - 320px)';
+                    }
+                }
+            }
+            
+            // Adjust on page load
+            adjustMainContent();
+            
+            // Listen for sidebar toggle
+            if (sidebarToggler) {
+                sidebarToggler.addEventListener('click', function() {
+                    setTimeout(adjustMainContent, 50);
+                });
+            }
 
             // Confirm before proceeding
             let pendingStepData = null;
@@ -487,7 +859,6 @@
                         $(this).text("☆").removeClass("selected");
                     }
                 });
-
 
                 $("#submitRatingBtn").prop("disabled", false);
             });

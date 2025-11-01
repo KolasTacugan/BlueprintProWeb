@@ -163,7 +163,8 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             if (user == null) return Unauthorized();
 
             var projects = await context.Projects
-                .Where(p => p.user_architectId == user.Id)
+                .Where(p => p.user_architectId == user.Id &&
+                           (p.project_Status == "Ongoing" || p.project_Status == "Finished"))
                 .Include(p => p.Blueprint)
                 .Include(p => p.Client)
                 .ToListAsync();
@@ -928,9 +929,6 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                     tracker.Compliance = new Compliance
                     {
                         projectTrack_Id = tracker.projectTrack_Id,
-                        compliance_Structural = "",
-                        compliance_Electrical = "",
-                        compliance_Sanitary = "",
                         compliance_Zoning = "",
                         compliance_Others = ""
                     };
@@ -951,9 +949,6 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
 
                 switch (fileType.ToLower())
                 {
-                    case "structural": tracker.Compliance.compliance_Structural = fileName; break;
-                    case "electrical": tracker.Compliance.compliance_Electrical = fileName; break;
-                    case "sanitary": tracker.Compliance.compliance_Sanitary = fileName; break;
                     case "zoning": tracker.Compliance.compliance_Zoning = fileName; break;
                     case "others": tracker.Compliance.compliance_Others = fileName; break;
                     default: return Json(new { success = false, message = "Invalid file type." });
@@ -1082,6 +1077,119 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 .CountAsync(n => n.user_Id == currentUser.Id && !n.notification_isRead);
 
             return Json(count);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> DeletedProjects()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            var deleted = await context.Projects
+                .Where(p => p.user_architectId == user.Id && p.project_Status == "Deleted")
+                .Include(p => p.Client)
+                .ToListAsync();
+
+            var result = deleted.Select(p => new {
+                p.project_Id,
+                p.project_Title,
+                clientName = p.Client != null ? $"{p.Client.user_fname} {p.Client.user_lname}" : "N/A",
+                deletedDate = p.project_endDate?.ToString() ?? DateTime.UtcNow.ToString()
+            });
+
+            return Json(result);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteProject(string id)
+        {
+            var project = await context.Projects
+                .FirstOrDefaultAsync(p => p.project_Id == id);
+
+            if (project == null)
+                return NotFound();
+
+            project.project_Status = "Deleted";
+            await context.SaveChangesAsync();
+
+            // Notify the client
+            var notif = new Notification
+            {
+                user_Id = project.user_clientId,
+                notification_Title = "Project Deleted",
+                notification_Message = $"Your project '{project.project_Title}' has been removed by the architect.",
+                notification_Date = DateTime.Now,
+                notification_isRead = false
+            };
+            context.Notifications.Add(notif);
+            await context.SaveChangesAsync();
+
+            return RedirectToAction("Projects");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RestoreProject(string id)
+        {
+            var project = await context.Projects
+                .FirstOrDefaultAsync(p => p.project_Id == id);
+
+            if (project == null)
+                return NotFound();
+
+            project.project_Status = "Ongoing";
+            await context.SaveChangesAsync();
+
+            var notif = new Notification
+            {
+                user_Id = project.user_clientId,
+                notification_Title = "Project Restored",
+                notification_Message = $"Your project '{project.project_Title}' has been restored by the architect.",
+                notification_Date = DateTime.Now,
+                notification_isRead = false
+            };
+            context.Notifications.Add(notif);
+            await context.SaveChangesAsync();
+
+            return RedirectToAction("Projects");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> PermanentlyDeleteProject(string id)
+        {
+            var project = await context.Projects
+                .Include(p => p.Blueprint)
+                .FirstOrDefaultAsync(p => p.project_Id == id);
+
+            if (project == null)
+                return NotFound();
+
+            // Load related tracker and children
+            var tracker = await context.ProjectTrackers
+                .Include(t => t.Compliance)
+                .Include(t => t.ProjectFiles)
+                .FirstOrDefaultAsync(t => t.project_Id == id);
+
+            if (tracker != null)
+            {
+                if (tracker.Compliance != null)
+                    context.Compliances.Remove(tracker.Compliance);
+
+                if (tracker.ProjectFiles.Any())
+                    context.ProjectFiles.RemoveRange(tracker.ProjectFiles);
+
+                context.ProjectTrackers.Remove(tracker);
+            }
+
+            // Optional: delete blueprint
+            var blueprint = await context.Blueprints
+                .FirstOrDefaultAsync(b => b.blueprintId == project.blueprint_Id);
+            if (blueprint != null)
+                context.Blueprints.Remove(blueprint);
+
+            context.Projects.Remove(project);
+            await context.SaveChangesAsync();
+
+            return RedirectToAction("Projects");
         }
     }
 }

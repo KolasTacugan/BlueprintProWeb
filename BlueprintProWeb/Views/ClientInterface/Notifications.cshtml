@@ -7,142 +7,507 @@
 
 @section Styles {
     <style>
-        .notifications-container {
-            margin-left: 100px; /* adjusts for sidebar width */
-            padding-top: 80px;
-            padding-bottom: 80px;
-            padding-right: 40px;
-            padding-left: 40px;
-            background-color: #f8f9fc;
-            min-height: 100vh;
+        /* Override shared layout background for notifications page */
+        body::before {
+            background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
+            opacity: 0.1 !important;
         }
 
-        .notifications-header {
-            font-weight: 700;
-            color: #071744;
-            margin-bottom: 30px;
-            font-size: 1.8rem;
-            letter-spacing: 0.5px;
+        /* Ensure scrollable page with consistent background */
+        body {
+            background: #F1F7F9 !important;
+            overflow-y: auto !important;
+            height: auto !important;
+            font-family: 'Raleway', sans-serif !important;
         }
 
-        .list-group {
-            border: none;
+        /* Main content positioning that responds to sidebar state */
+        main.container {
+            margin-left: 300px;
+            margin-top: 90px;
+            padding: 1.5rem;
+            padding-top: 4rem;
+            max-width: calc(100% - 320px);
+            transition: margin-left 0.4s ease, max-width 0.4s ease;
         }
 
+        /* When sidebar is collapsed, adjust main content */
+        .sidebar.collapsed ~ * main.container,
+        body:has(.sidebar.collapsed) main.container {
+            margin-left: 110px;
+            max-width: calc(100% - 130px);
+        }
+
+        /* Page Header Styling */
+        .notifications-page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(52, 78, 173, 0.1);
+        }
+
+        .notifications-page-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #1a202c;
+            margin: 0;
+            font-family: 'Raleway', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .notifications-page-title i {
+            color: #344EAD;
+            font-size: 1.5rem;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Notifications Container */
+        .notifications-main-container {
+            background: #FFFFFF;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(52, 78, 173, 0.05);
+            min-height: 500px;
+            overflow: hidden;
+        }
+
+        .notifications-container-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(52, 78, 173, 0.1);
+            background: linear-gradient(135deg, rgba(52, 78, 173, 0.05) 0%, rgba(37, 99, 235, 0.02) 100%);
+        }
+
+        .notifications-container-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1a202c;
+            margin: 0;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .notifications-list {
+            padding: 1.5rem;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        /* Enhanced Notification Card */
         .notification-card {
-            background: #fff;
-            border-radius: 14px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-            padding: 20px 25px;
-            margin-bottom: 18px;
-            transition: all 0.25s ease-in-out;
-            border-left: 5px solid transparent;
+            background: #FFFFFF;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(52, 78, 173, 0.05);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .notification-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
         .notification-card:hover {
-            transform: translateY(-3px);
-            border-left-color: #0d6efd;
-            box-shadow: 0 5px 14px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(52, 78, 173, 0.15);
+            border-color: rgba(52, 78, 173, 0.1);
+        }
+
+        .notification-card:hover::before {
+            opacity: 1;
+        }
+
+        .notification-card.notification-read {
+            opacity: 0.7;
+            background: #F8FAFC;
+        }
+
+        .notification-card.notification-read .notification-title {
+            color: #64748B;
+        }
+
+        /* Notification Content */
+        .notification-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        /* Blue circle indicator for unread notifications */
+        .notification-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #344EAD;
+            flex-shrink: 0;
+            margin-top: 0.5rem;
+        }
+
+        /* Hide indicator for read notifications */
+        .notification-card.notification-read .notification-indicator {
+            visibility: hidden;
+        }
+
+        .notification-content {
+            flex: 1;
         }
 
         .notification-title {
-            font-weight: 600;
-            color: #071744;
-            margin-bottom: 8px;
-            font-size: 1.05rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+            font-family: 'Raleway', sans-serif;
+            line-height: 1.3;
         }
 
-        .notification-message {
-            color: #444;
-            margin-bottom: 6px;
-            font-size: 0.95rem;
+        .notification-preview {
+            color: #64748B;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            margin-bottom: 0.5rem;
+        }
+
+        .notification-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 0.75rem;
         }
 
         .notification-date {
             font-size: 0.85rem;
-            color: #888;
+            color: #94A3B8;
+            font-weight: 500;
         }
 
-        .notification-read {
-            opacity: 0.6;
+        /* Enhanced Modal Styling */
+        .modal-content {
+            border-radius: 16px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
 
-        .no-notifs {
+        .modal-header {
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            color: white;
+            border-radius: 16px 16px 0 0;
+            border-bottom: none;
+            padding: 1.5rem;
+        }
+
+        .modal-title {
+            font-weight: 600;
+            font-family: 'Raleway', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .modal-title::before {
+            content: "🔔";
+            font-size: 1.2rem;
+        }
+
+        .btn-close {
+            filter: invert(1);
+        }
+
+        .modal-body {
+            padding: 2rem;
+            font-family: 'Raleway', sans-serif;
+            line-height: 1.6;
+            color: #374151;
+        }
+
+        /* Empty State Styling */
+        .empty-state {
             text-align: center;
-            color: #888;
-            margin-top: 80px;
-            font-size: 1.1rem;
+            padding: 4rem 2rem;
+            color: #64748B;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            color: #CBD5E1;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 0.5rem;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .empty-state-subtitle {
+            font-size: 0.9rem;
+            color: #64748B;
+            line-height: 1.5;
+        }
+
+        /* Responsive Design */
+        @@media (max-width: 768px) {
+            main.container {
+                margin-left: 0 !important;
+                margin-top: 75px;
+                max-width: 100% !important;
+                padding: 1rem;
+                padding-top: 2rem;
+            }
+
+            .notifications-page-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .notifications-page-title {
+                font-size: 1.4rem;
+            }
+
+            .notifications-main-container {
+                margin-bottom: 1rem;
+            }
+
+            .notifications-list {
+                padding: 1rem;
+                max-height: none;
+            }
+
+            .notification-card {
+                padding: 1rem;
+            }
+
+            .notification-header {
+                gap: 0.75rem;
+            }
+
+            .modal-body {
+                padding: 1.5rem;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .notifications-page-title {
+                font-size: 1.25rem;
+            }
+
+            .notification-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+        }
+
+        /* Custom scrollbar for notifications list */
+        .notifications-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .notifications-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .notifications-list::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 3px;
+        }
+
+        .notifications-list::-webkit-scrollbar-thumb:hover {
+            background: #94A3B8;
         }
     </style>
 }
 
-<div class="notifications-container">
-    <h2 class="notifications-header">Notifications</h2>
+<div>
+    <div class="notifications-page-header">
+        <h2 class="notifications-page-title">
+            <i class="fas fa-bell"></i>
+            Notifications
+        </h2>
+    </div>
 
-    @if (!Model.Any())
-    {
-        <p class="no-notifs">You don’t have any notifications yet 📭</p>
-    }
-    else
-    {
-        <div class="list-group">
-            @foreach (var notif in Model)
-            {
-                <div class="notification-card @(notif.notification_isRead ? "notification-read" : "")"
-                     data-id="@notif.notification_Id"
-                     data-title="@notif.notification_Title"
-                     data-message="@notif.notification_Message"
-                     data-bs-toggle="modal"
-                     data-bs-target="#notificationModal"
-                     style="cursor: pointer;">
-
-                    <div class="notification-title">@notif.notification_Title</div>
-                    <div class="notification-date">@notif.notification_Date.ToString("MMM dd, yyyy • hh:mm tt")</div>
-                </div>
-            }
+    <!-- Main Notifications Container -->
+    <div class="notifications-main-container">
+        <div class="notifications-container-header">
+            <h3 class="notifications-container-title">Recent Activity</h3>
         </div>
-    }
+
+        @if (!Model.Any())
+        {
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="fas fa-bell-slash"></i>
+                </div>
+                <div class="empty-state-title">No Notifications Yet</div>
+                <div class="empty-state-subtitle">
+                    You don't have any notifications yet. When you receive new updates,<br>
+                    they will appear here to keep you informed about your projects and activities.
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="notifications-list">
+                @foreach (var notif in Model)
+                {
+                    <div class="notification-card @(notif.notification_isRead ? "notification-read" : "")"
+                         data-id="@notif.notification_Id"
+                         data-title="@notif.notification_Title"
+                         data-message="@notif.notification_Message">
+
+                        <div class="notification-header">
+                            <div class="notification-indicator"></div>
+                            <div class="notification-content">
+                                <div class="notification-title">@notif.notification_Title</div>
+                                @* <div class="notification-preview">
+                                    @if (notif.notification_Message.Length > 80)
+                                    {
+                                        @(notif.notification_Message.Substring(0, 80) + "...")
+                                    }
+                                    else
+                                    {
+                                        @notif.notification_Message
+                                    }
+                                </div> *@
+                                <div class="notification-meta">
+                                    <div class="notification-date">
+                                        @notif.notification_Date.ToString("MMM dd, yyyy • hh:mm tt")
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
 </div>
 
-<!-- Modal -->
+<!-- Enhanced Notification Modal -->
 <div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="notificationModalLabel"></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title" id="notificationModalLabel">Notification Details</h5>
             </div>
-            <div class="modal-body"></div>
+            <div class="modal-body" id="notificationModalBody">
+                <!-- Content will be dynamically inserted -->
+            </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            const modal = new bootstrap.Modal(document.getElementById('notificationModal'));
+            // Listen for sidebar toggle and adjust main content accordingly
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarToggler = document.querySelector('.sidebar-toggler');
+            const mainContent = document.querySelector('main.container');
+
+            function adjustMainContent() {
+                if (sidebar && mainContent) {
+                    if (sidebar.classList.contains('collapsed')) {
+                        mainContent.style.marginLeft = '110px';
+                        mainContent.style.maxWidth = 'calc(100% - 130px)';
+                    } else {
+                        mainContent.style.marginLeft = '300px';
+                        mainContent.style.maxWidth = 'calc(100% - 320px)';
+                    }
+                }
+            }
+
+            adjustMainContent();
+
+            if (sidebarToggler) {
+                sidebarToggler.addEventListener('click', function () {
+                    setTimeout(adjustMainContent, 50);
+                });
+            }
+
+            // Initialize modal properly - avoid conflicts with Bootstrap data attributes
+            const modalElement = document.getElementById('notificationModal');
+            const modal = new bootstrap.Modal(modalElement, {
+                backdrop: true,
+                keyboard: true,
+                focus: true
+            });
+            
             const modalTitle = document.getElementById('notificationModalLabel');
-            const modalBody = document.querySelector('#notificationModal .modal-body');
+            const modalBody = document.getElementById('notificationModalBody');
 
+            // Handle notification card clicks
             document.querySelectorAll(".notification-card").forEach(item => {
-                item.addEventListener("click", async function () {
+                item.addEventListener("click", function (event) {
+                    // Prevent any default behavior
+                    event.preventDefault();
+                    event.stopPropagation();
+                    
                     const id = this.dataset.id;
-                    modalTitle.textContent = this.dataset.title;
-                    modalBody.textContent = this.dataset.message;
-                    // Mark as read
-                    await fetch('@Url.Action("MarkAsRead")', {
+                    const title = this.dataset.title;
+                    const message = this.dataset.message;
+                    
+                    // Update modal content
+                    modalTitle.textContent = title;
+                    modalBody.textContent = message;
+                    
+                    // Mark as read via AJAX
+                    fetch('@Url.Action("MarkAsRead")', {
                         method: "POST",
-                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                        body: "id=" + id
+                        headers: { 
+                            "Content-Type": "application/x-www-form-urlencoded",
+                            "X-Requested-With": "XMLHttpRequest"
+                        },
+                        body: "id=" + encodeURIComponent(id)
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            // Update visual state
+                            this.classList.add("notification-read");
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Failed to mark notification as read:', error);
                     });
-
-                    // Fade out / mark visually as read
-                    this.classList.add("notification-read");
+                    
+                    // Show modal
+                    modal.show();
                 });
             });
 
+            // Ensure modal cleanup on hide
             modalElement.addEventListener('hidden.bs.modal', function () {
-                location.reload();
+                // Remove any lingering backdrop
+                const backdrops = document.querySelectorAll('.modal-backdrop');
+                backdrops.forEach(backdrop => backdrop.remove());
+                
+                // Restore body scroll
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
             });
         });
     </script>

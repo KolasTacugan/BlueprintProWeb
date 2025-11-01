@@ -329,7 +329,8 @@ namespace BlueprintProWeb.Controllers.ClientSide
             if (user == null) return Unauthorized();
 
             var projects = await context.Projects
-                .Where(p => p.user_clientId == user.Id) 
+                .Where(p => p.user_clientId == user.Id
+                            && (p.project_Status == "Ongoing" || p.project_Status == "Finished"))
                 .Include(p => p.Blueprint)
                 .Include(p => p.Architect)
                 .ToListAsync();
