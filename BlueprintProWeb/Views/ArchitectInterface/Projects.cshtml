@@ -383,6 +383,9 @@
             <i class="fas fa-project-diagram"></i>
             My Projects
         </h2>
+        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deletedProjectsModal">
+            <i class="fas fa-trash"></i> Bin
+        </button>
     </div>
 
     <div class="projects-container">
@@ -411,6 +414,10 @@
                                                     @item.Client.user_fname @item.Client.user_lname
                                                 </a>
                                             </div>
+                                            <div class="project-detail-item">
+                                                <span class="project-detail-label">Project Status:</span>
+                                                <span class="project-detail-value">@item.project_Status</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -422,6 +429,21 @@
                                    class="track-btn">
                                     Track
                                 </a>
+                            
+                                @if (item.project_Status == "Ongoing")
+                                {
+                                    <form asp-controller="ArchitectInterface"
+                                          asp-action="DeleteProject"
+                                          asp-route-id="@item.project_Id"
+                                          method="post"
+                                          style="display:inline;">
+                                        <button type="button"
+                                                class="btn btn-danger btn-sm ms-2"
+                                                onclick="openMoveToBinModal('@item.project_Id')">
+                                            <span class="material-symbols-outlined">DELETE</span>
+                                        </button>
+                                    </form>
+                                }
                             </td>
                         </tr>
                     }
@@ -470,6 +492,82 @@
         </div>
     </div>
 </div>
+
+<!-- Deleted Projects (Bin) Modal -->
+<div class="modal fade" id="deletedProjectsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-3 shadow">
+            <div class="modal-header" style="background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%); color: white;">
+                <h5 class="modal-title">
+                    <i class="fas fa-trash"></i>
+                    Deleted Projects
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(1);"></button>
+            </div>
+
+            <div class="modal-body" style="padding: 2rem;">
+                <div id="deletedProjectsContainer" class="text-center text-muted">
+                    <i class="fas fa-spinner fa-spin"></i> Loading deleted projects...
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Move to Bin Confirmation Modal -->
+<div class="modal fade" id="moveToBinModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-3 shadow">
+            <div class="modal-header" style="background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%); color: white;">
+                <h5 class="modal-title">
+                    <i class="fas fa-trash"></i>
+                    Move to Bin
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(1);"></button>
+            </div>
+            <div class="modal-body text-center" style="padding: 2rem;">
+                <p class="fw-semibold mb-2">Are you sure you want to move this project to the bin?</p>
+                <p class="text-muted mb-0" style="font-size: 0.9rem;">You can restore it later if needed.</p>
+            </div>
+            <div class="modal-footer justify-content-center" style="border-top: 1px solid rgba(52,78,173,0.1);">
+                <form id="moveToBinForm" method="post" action="/ArchitectInterface/DeleteProject">
+                    <input type="hidden" name="id" id="moveToBinProjectId" />
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Move to Bin
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Permanent Delete Confirmation Modal -->
+<div class="modal fade" id="permanentDeleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-3 shadow">
+            <div class="modal-header" style="background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%); color: white;">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Permanently Delete
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(1);"></button>
+            </div>
+            <div class="modal-body text-center" style="padding: 2rem;">
+                <p class="fw-semibold text-danger">⚠️ Are you sure you want to permanently delete this project?</p>
+                <p class="text-muted mb-0" style="font-size: 0.9rem;">Once deleted, this project cannot be restored.</p>
+            </div>
+            <div class="modal-footer justify-content-center" style="border-top: 1px solid rgba(52,78,173,0.1);">
+                <form id="permanentDeleteForm" method="post" action="/ArchitectInterface/PermanentlyDeleteProject">
+                    <input type="hidden" name="id" id="permanentDeleteProjectId" />
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash-alt"></i> Permanently Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 @section Scripts {
     <script>
@@ -525,6 +623,70 @@
                         })
                         .catch(() => alert("❌ Failed to load client profile."));
                 });
+            });
+        });
+
+        // Open "Move to Bin" modal
+        function openMoveToBinModal(projectId) {
+            document.getElementById('moveToBinProjectId').value = projectId;
+            new bootstrap.Modal(document.getElementById('moveToBinModal')).show();
+        }
+
+        // Open "Permanently Delete" modal
+        function openPermanentDeleteModal(projectId) {
+            // ✅ Close Bin modal first if it's open
+            const binModalEl = document.getElementById('deletedProjectsModal');
+            const binModalInstance = bootstrap.Modal.getInstance(binModalEl);
+            if (binModalInstance) {
+                binModalInstance.hide();
+            }
+
+            // ✅ Wait a moment before showing the delete modal (smooth transition)
+            setTimeout(() => {
+                document.getElementById('permanentDeleteProjectId').value = projectId;
+                new bootstrap.Modal(document.getElementById('permanentDeleteModal')).show();
+            }, 400); // small delay ensures fade animation looks clean
+        }
+
+        // Load deleted projects dynamically when Bin modal opens
+        document.addEventListener('DOMContentLoaded', function () {
+            const deletedProjectsModal = document.getElementById('deletedProjectsModal');
+            const container = document.getElementById('deletedProjectsContainer');
+
+            deletedProjectsModal.addEventListener('show.bs.modal', function () {
+                container.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading deleted projects...';
+
+                fetch('/ArchitectInterface/DeletedProjects')
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.length === 0) {
+                            container.innerHTML = '<p class="text-muted mt-3">No deleted projects found.</p>';
+                            return;
+                        }
+
+                        container.innerHTML = data.map(p => `
+                            <div class="border rounded-3 p-3 mb-3 text-start" style="background:#F8FAFC;">
+                                <h6 class="fw-bold mb-2">${p.project_Title}</h6>
+                                <p class="mb-1"><strong>Client:</strong> ${p.clientName}</p>
+                                <p class="mb-2"><strong>Deleted On:</strong> ${new Date(p.deletedDate).toLocaleDateString()}</p>
+                                <div class="d-flex gap-2">
+                                    <form method="post" action="/ArchitectInterface/RestoreProject">
+                                        <input type="hidden" name="id" value="${p.project_Id}">
+                                        <button type="submit" class="btn btn-sm btn-success">
+                                            <i class="fas fa-undo"></i> Restore
+                                        </button>
+                                    </form>
+                                    <button type="button" class="btn btn-sm btn-danger"
+                                            onclick="openPermanentDeleteModal('${p.project_Id}')">
+                                        <i class="fas fa-trash-alt"></i> Delete
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('');
+                    })
+                    .catch(() => {
+                        container.innerHTML = '<p class="text-danger mt-3">Failed to load deleted projects.</p>';
+                    });
             });
         });
     </script>

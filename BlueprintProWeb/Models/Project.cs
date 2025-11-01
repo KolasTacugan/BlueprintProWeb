@@ -23,7 +23,7 @@ namespace BlueprintProWeb.Models
         public string project_Title { get; set; }
 
         [Required]
-        public string project_Status { get; set; } = "Pending";
+        public string project_Status { get; set; } = "Ongoing";
 
         public string? project_Budget { get; set; }
 

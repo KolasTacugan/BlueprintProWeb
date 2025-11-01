@@ -381,7 +381,7 @@
                             <div class="notification-indicator"></div>
                             <div class="notification-content">
                                 <div class="notification-title">@notif.notification_Title</div>
-                                <div class="notification-preview">
+                                @* <div class="notification-preview">
                                     @if (notif.notification_Message.Length > 80)
                                     {
                                         @(notif.notification_Message.Substring(0, 80) + "...")
@@ -390,7 +390,7 @@
                                     {
                                         @notif.notification_Message
                                     }
-                                </div>
+                                </div> *@
                                 <div class="notification-meta">
                                     <div class="notification-date">
                                         @notif.notification_Date.ToString("MMM dd, yyyy • hh:mm tt")
@@ -411,7 +411,6 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="notificationModalLabel">Notification Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" id="notificationModalBody">
                 <!-- Content will be dynamically inserted -->
@@ -421,6 +420,7 @@
 </div>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             // Listen for sidebar toggle and adjust main content accordingly

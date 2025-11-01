@@ -1,4 +1,4 @@
-﻿@model BlueprintProWeb.ViewModels.ProjectTrackerViewModel
+@model BlueprintProWeb.ViewModels.ProjectTrackerViewModel
 
 @{
     ViewData["Title"] = "Project Tracker";
@@ -146,12 +146,12 @@
             content: "";
             position: absolute;
             top: 30px;
-            left: 50%;
+            left: 28.8%;
             width: calc(100% - 60px);
             height: 4px;
             background: #E2E8F0;
             z-index: 1;
-            transform: translateX(-50%);
+            transform: translateX(28.8%);
         }
 
         .step:last-child::after {
@@ -255,6 +255,7 @@
             min-height: 60px;
             display: flex;
             align-items: center;
+            margin-bottom: 1rem;
             transition: all 0.2s ease;
         }
 
@@ -585,59 +586,7 @@
         <h3>Compliance Documents</h3>
 
         <div class="section-header">
-            <strong>STRUCTURAL PLAN:</strong>
-            <p>Must be prepared by a licensed structural engineer.</p>
-        </div>
-        <div class="file-display-area mb-3">
-            @if (!string.IsNullOrEmpty(Model.Compliance?.compliance_Structural))
-            {
-                <a href="@Url.Content("~/uploads/compliance/" + Model.Compliance.compliance_Structural)" target="_blank">
-                    Structural_File
-                </a>
-            }
-            else
-            {
-                <span class="text-muted">Not uploaded</span>
-            }
-        </div>
-
-        <div class="section-header">
-            <strong>ELECTRICAL PLAN:</strong>
-            <p>Must be prepared by a licensed electrical engineer.</p>
-        </div>
-        <div class="file-display-area mb-3">
-            @if (!string.IsNullOrEmpty(Model.Compliance?.compliance_Electrical))
-            {
-                <a href="@Url.Content("~/uploads/compliance/" + Model.Compliance.compliance_Electrical)" target="_blank">
-                    Electrical_File
-                </a>
-            }
-            else
-            {
-                <span class="text-muted">Not uploaded</span>
-            }
-        </div>
-
-        <div class="section-header">
-            <strong>SANITARY / PLUMBING PLAN:</strong>
-            <p>Must be prepared by a licensed sanitary/plumbing engineer.</p>
-        </div>
-        <div class="file-display-area mb-3">
-            @if (!string.IsNullOrEmpty(Model.Compliance?.compliance_Sanitary))
-            {
-                <a href="@Url.Content("~/uploads/compliance/" + Model.Compliance.compliance_Sanitary)" target="_blank">
-                    Sanitary_File
-                </a>
-            }
-            else
-            {
-                <span class="text-muted">Not uploaded</span>
-            }
-        </div>
-
-        <div class="section-header">
             <strong>ZONING COMPLIANCE:</strong>
-            <p>Must comply with local zoning laws and regulations.</p>
         </div>
         <div class="file-display-area mb-3">
             @if (!string.IsNullOrEmpty(Model.Compliance?.compliance_Zoning))
@@ -654,7 +603,6 @@
 
         <div class="section-header">
             <strong>OTHERS:</strong>
-            <p>If multiple, combine into one file before uploading.</p>
         </div>
         <div class="file-display-area mb-3">
             @if (!string.IsNullOrEmpty(Model.Compliance?.compliance_Others))

@@ -107,14 +107,6 @@
             letter-spacing: 0.5px;
         }
 
-        .settings-btn {
-            background: transparent;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #0D3C80;
-        }
-
         .profile-section {
             display: flex;
             gap: 20px;
@@ -137,12 +129,6 @@
         .profile-card.pro-user {
             border: 2px solid #0D3C80;
             background: linear-gradient(135deg, rgba(13, 60, 128, 0.02), rgba(255, 255, 255, 0.9));
-        }
-
-        .profile-info {
-            display: flex;
-            align-items: center;
-            gap: 16px;
         }
 
         .avatar-container {
@@ -171,48 +157,18 @@
             box-shadow: 0 0 15px rgba(13, 60, 128, 0.3);
         }
 
-        .avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .avatar-placeholder {
-            color: #0D3C80;
-            font-size: 24px;
-            font-weight: 600;
-        }
-
-        .avatar-upload-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(13, 60, 128, 0.8);
-            color: white;
+        .user-details {
+            flex: 1;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .avatar-container:hover .avatar-upload-overlay {
-            opacity: 1;
-        }
-
-        .file-input {
-            display: none;
+            flex-direction: column;
+            gap: 4px;
         }
 
         .user-details h3 {
             margin: 0;
             color: #0D3C80;
             font-weight: 600;
+            font-size: 1.1rem;
         }
 
         .user-details .email,
@@ -834,14 +790,13 @@
 
     <div class="page-header">
         <h2>Profile</h2>
-        <button class="settings-btn">⚙</button>
     </div>
 
     <div class="profile-section">
         <div class="profile-card @(Model.IsPro ? "pro-user" : "")">
             <div class="profile-info">
                 <div class="avatar-container">
-                    <div class="avatar @(Model.IsPro ? "pro-user" : "")" onclick="document.getElementById('profilePictureInput').click()">
+                    <div class="avatar @(Model.IsPro ? "pro-user" : "")" @* onclick="document.getElementById('profilePictureInput').click()" *@ >
                         @if (!string.IsNullOrEmpty(Model.ProfilePhoto))
                         {
                             <img src="@Url.Content(Model.ProfilePhoto)" alt="@Model.FullName">
@@ -853,9 +808,9 @@
                             </div>
                         }
                     </div>
-                    <div class="avatar-upload-overlay" onclick="document.getElementById('profilePictureInput').click()">
+                    @* <div class="avatar-upload-overlay" onclick="document.getElementById('profilePictureInput').click()">
                         Upload Photo
-                    </div>
+                    </div> *@
                 </div>
                 <div class="user-details">
                     <div class="user-name-container">
@@ -873,7 +828,6 @@
         </div>
 
         <div class="side-buttons">
-            <div class="card">Favorites</div>
             <button class="card @(Model.IsPro ? "subscription-card-pro" : "")" onclick="openSubscriptionModal()">Subscription</button>
         </div>
     </div>
