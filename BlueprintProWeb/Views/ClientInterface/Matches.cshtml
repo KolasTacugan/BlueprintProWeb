@@ -17,56 +17,71 @@
             opacity: 0.1 !important;
         }
 
-        /* Ensure scrollable page */
+        /* Ensure scrollable page with consistent background */
         body {
+            background: #F1F7F9 !important;
             overflow-y: auto !important;
             height: auto !important;
-            background: #F1F7F9 !important;
             font-family: 'Raleway', sans-serif !important;
         }
 
         /* Main content positioning that responds to sidebar state */
         main.container {
-            margin-left: 300px; /* Default for expanded sidebar */
-            margin-top: 90px; /* Account for navbar */
-            padding: 2rem;
-            padding-top: 3rem; /* Add extra top padding to avoid header overlap */
+            margin-left: 300px;
+            margin-top: 90px;
+            padding: 1.5rem;
+            padding-top: 4rem;
             max-width: calc(100% - 320px);
-            transition: margin-left 0.4s ease, max-width 0.4s ease; /* Smooth transition */
+            transition: margin-left 0.4s ease, max-width 0.4s ease;
         }
 
         /* When sidebar is collapsed, adjust main content */
         .sidebar.collapsed ~ * main.container,
         body:has(.sidebar.collapsed) main.container {
-            margin-left: 110px; /* Account for collapsed sidebar (85px + margins) */
+            margin-left: 110px;
             max-width: calc(100% - 130px);
         }
 
+        /* Enhanced Match Button */
         .match-btn{
-            position: relative;
-            color: #fff;
             background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
+            padding: 0.75rem 1.5rem;
             font-weight: 600;
             font-family: 'Raleway', sans-serif;
+            font-size: 0.9rem;
             transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
             box-shadow: 0 2px 8px rgba(52, 78, 173, 0.2);
         }
 
         .match-btn:hover {
-            background: linear-gradient(135deg, #2563EB 0%, #344EAD 100%);
-            color: #fff;
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(52, 78,173, 0.3);
+            box-shadow: 0 4px 12px rgba(52, 78, 173, 0.3);
+            background: linear-gradient(135deg, #2563EB 0%, #344EAD 100%);
+            color: white;
         }
 
-        /* Chat Panel Styling - Unified with Messages.cshtml */
+        .match-btn:active {
+            transform: translateY(0);
+        }
+
+        .match-btn::before {
+            content: "🤝";
+            font-size: 1rem;
+        }
+
+        /* Chat Panel Styling - Enhanced */
         .chat-panel {
             background: #FFFFFF;
-            border-radius: 12px;
+            border-radius: 16px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            border: none;
+            border: 1px solid rgba(52, 78, 173, 0.05);
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -74,18 +89,26 @@
         }
 
         .chat-header {
-            padding: 1.25rem 1.5rem;
-            border-bottom: 1px solid #E2E8F0;
-            background: #F8FAFC;
-            border-radius: 12px 12px 0 0;
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(52, 78, 173, 0.1);
+            background: linear-gradient(135deg, rgba(52, 78, 173, 0.05) 0%, rgba(37, 99, 235, 0.02) 100%);
+            border-radius: 16px 16px 0 0;
         }
 
         .chat-title {
-            font-size: 1rem; /* Keep section title size consistent */
+            font-size: 1.1rem;
             font-weight: 600;
             color: #1a202c;
             margin: 0;
             font-family: 'Raleway', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chat-title::before {
+            content: "💬";
+            font-size: 1.2rem;
         }
 
         .chat-messages {
@@ -126,15 +149,15 @@
         .message-bubble.other {
             background: #FFFFFF;
             color: #374151;
-            border: 1px solid #E2E8F0;
+            border: 1px solid rgba(52, 78, 173, 0.1);
             border-bottom-left-radius: 6px;
         }
 
         .chat-input-area {
-            padding: 1.25rem 1.5rem;
+            padding: 1.5rem;
             background: #FFFFFF;
-            border-top: 1px solid #E2E8F0;
-            border-radius: 0 0 12px 12px;
+            border-top: 1px solid rgba(52, 78, 173, 0.1);
+            border-radius: 0 0 16px 16px;
         }
 
         .chat-input-container {
@@ -143,7 +166,7 @@
             align-items: flex-end;
             background: #F8FAFC;
             border-radius: 16px;
-            border: 1px solid #E2E8F0;
+            border: 2px solid #E2E8F0;
             padding: 1rem;
             transition: all 0.2s ease;
         }
@@ -164,9 +187,6 @@
             min-height: 20px;
             max-height: 100px;
             line-height: 1.4;
-        }
-
-        .message-input:focus {
             outline: none;
         }
 
@@ -187,20 +207,20 @@
             font-size: 1.1rem;
             transition: all 0.2s ease;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(52, 78, 173, 0.3);
+            box-shadow: 0 2px 8px rgba(52, 78, 173, 0.2);
         }
 
         .send-button:hover {
             transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(52, 78, 173, 0.4);
+            box-shadow: 0 4px 12px rgba(52, 78, 173, 0.3);
         }
 
-        /* Architect Results Panel */
+        /* Architect Results Panel - Enhanced */
         .architect-results-panel {
             background: #FFFFFF;
-            border-radius: 12px;
+            border-radius: 16px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            border: none;
+            border: 1px solid rgba(52, 78, 173, 0.05);
             overflow: hidden;
             height: 100%;
             display: flex;
@@ -208,30 +228,30 @@
         }
 
         .results-header {
-            padding: 1.25rem 1.5rem;
-            border-bottom: 1px solid #E2E8F0;
-            background: #F8FAFC;
-            border-radius: 12px 12px 0 0;
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(52, 78, 173, 0.1);
+            background: linear-gradient(135deg, rgba(52, 78, 173, 0.05) 0%, rgba(37, 99, 235, 0.02) 100%);
+            border-radius: 16px 16px 0 0;
         }
 
         .results-title {
-            font-size: 1.75rem; /* Match dashboard-greeting size */
+            font-size: 1.75rem;
             font-weight: 600;
             color: #1a202c;
             margin: 0;
             font-family: 'Raleway', sans-serif;
             display: flex;
             align-items: center;
-            gap: 0.6rem; /* Match dashboard gap */
+            gap: 0.6rem;
         }
 
         .results-title-icon {
             color: #344EAD;
-            font-size: 1.5rem; /* Slightly smaller than title */
-            width: 28px; /* Match dashboard icon size */
+            font-size: 1.5rem;
+            width: 28px;
             height: 28px;
-            background: #F1F7F9;
-            border-radius: 6px;
+            background: rgba(52, 78, 173, 0.1);
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -243,10 +263,10 @@
             padding: 1.5rem;
         }
 
-        /* Enhanced Architect Card Styling - Match Blueprint Cards */
+        /* Enhanced Architect Card Styling */
         .card {
             background: #FFFFFF;
-            border-radius: 16px; /* Match blueprint cards */
+            border-radius: 16px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             border: 1px solid rgba(52, 78, 173, 0.05);
             overflow: hidden;
@@ -259,8 +279,8 @@
         }
 
         .card:hover {
-            transform: translateY(-4px); /* Match blueprint card hover */
-            box-shadow: 0 8px 25px rgba(52, 78,173, 0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(52, 78, 173, 0.15);
             border-color: rgba(52, 78, 173, 0.1);
         }
 
@@ -281,7 +301,7 @@
         }
 
         .card-body {
-            padding: 1.5rem; /* Match blueprint card padding */
+            padding: 1.5rem;
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -290,13 +310,13 @@
 
         /* Architect Profile Image Enhancement */
         .card-body img {
-            transition: transform 0.3s ease;
+            transition: all 0.3s ease;
             border-radius: 50%;
-            border: 2px solid rgba(52, 78, 173, 0.1);
+            border: 3px solid rgba(52, 78, 173, 0.1);
         }
 
         .card:hover .card-body img {
-            transform: scale(1.05); /* Subtle hover effect */
+            transform: scale(1.05);
             border-color: rgba(52, 78, 173, 0.2);
         }
 
@@ -306,19 +326,149 @@
             cursor: pointer;
             transition: all 0.2s ease;
             text-decoration: none;
-            font-weight: 600;
-            font-size: 1rem; /* Match blueprint title size */
+            font-weight: 700;
+            font-size: 1rem;
             line-height: 1.3;
+            font-family: 'Raleway', sans-serif;
+            border-bottom: 1px solid transparent;
         }
 
         .architect-link:hover {
             color: #2563EB;
-            font-weight: 700;
             text-decoration: none;
+            border-bottom-color: #2563EB;
+        }
+
+        /* Enhanced Modal Styling */
+        .modal-content {
+            border-radius: 16px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            color: white;
+            border-radius: 16px 16px 0 0;
+            border-bottom: none;
+            padding: 1.5rem;
+        }
+
+        .modal-title {
+            font-weight: 600;
+            font-family: 'Raleway', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .modal-title::before {
+            content: "👨‍💼";
+            font-size: 1.2rem;
+        }
+
+        .btn-close {
+            filter: invert(1);
+        }
+
+        .modal-body {
+            padding: 2rem;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        /* Profile Card in Modal */
+        .profile-main-card {
+            background: #F8FAFC;
+            border-radius: 12px;
+            border: 1px solid rgba(52, 78, 173, 0.1);
+        }
+
+        .profile-info {
+            margin-bottom: 1.5rem;
+        }
+
+        .architect-name {
+            color: #1a202c;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .profile-info .text-muted {
+            color: #64748B !important;
+            font-size: 0.9rem;
+        }
+
+        .avatar img {
+            border: 3px solid rgba(52, 78, 173, 0.1);
+            transition: all 0.2s ease;
+        }
+
+        .avatar img:hover {
+            border-color: rgba(52, 78, 173, 0.3);
+            transform: scale(1.05);
+        }
+
+        /* Enhanced Rating Bar */
+        .rating-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .rating-bar {
+            flex: 1;
+            height: 8px;
+            background: #E2E8F0;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .rating-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            transition: width 0.6s ease-in-out;
+            border-radius: 4px;
+        }
+
+        .rating-text {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #1a202c;
+            min-width: 2rem;
+        }
+
+        /* Alert Enhancement */
+        .alert-warning {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
+            border: 1px solid rgba(251, 191, 36, 0.2);
+            border-radius: 12px;
+            color: #92400e;
+            font-family: 'Raleway', sans-serif;
+            font-weight: 500;
+        }
+
+        /* Notification Modal Enhancement */
+        #notificationModal .modal-content {
+            border-radius: 16px;
+        }
+
+        #notificationModal .modal-header {
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            color: white;
+            border-radius: 16px 16px 0 0;
+        }
+
+        #notificationModal .btn-primary {
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-family: 'Raleway', sans-serif;
+            box-shadow: 0 2px 8px rgba(52, 78, 173, 0.2);
         }
 
         /* Responsive adjustments */
-        @@media (max-width: 767.98px) {
+        @@media (max-width: 768px) {
             main.container {
                 margin-left: 0 !important;
                 margin-top: 75px;
@@ -355,7 +505,7 @@
             }
 
             .results-title {
-                font-size: 1.4rem; /* Match dashboard mobile greeting size */
+                font-size: 1.4rem;
             }
         }
 
@@ -385,20 +535,6 @@
         .chat-messages::-webkit-scrollbar-thumb:hover,
         .results-content::-webkit-scrollbar-thumb:hover {
             background: #94A3B8;
-        }
-
-        .rating-bar {
-            flex: 1;
-            height: 8px;
-            background: #e0e0e0;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .rating-fill {
-            height: 100%;
-            background: #071744;
-            transition: width 0.6s ease-in-out;
         }
     </style>
 }
@@ -438,14 +574,12 @@
                                                         @match.ArchitectName
                                                     </a>
                                                 </h6>
-
-                                                <!-- ⭐ Rating bar below the name -->
-                                                <div class="rating-wrapper d-flex align-items-center mt-1" style="max-width: 120px;">
-                                                    <div class="rating-bar flex-grow-1 me-2" style="height: 6px; background: #e0e0e0; border-radius: 4px; overflow: hidden;">
-                                                        <div class="rating-fill" style="height: 100%; background: #071744; width: @(match.AverageRating * 20)%;">
-                                                        </div>
+                                                <!-- Enhanced Rating Display -->
+                                                <div class="rating-wrapper mt-2" style="max-width: 120px;">
+                                                    <div class="rating-bar">
+                                                        <div class="rating-fill" style="width: @(match.AverageRating * 20)%;"></div>
                                                     </div>
-                                                    <span class="fw-semibold small">@match.AverageRating.ToString("0.0")</span>
+                                                    <span class="rating-text">@match.AverageRating.ToString("0.0")</span>
                                                 </div>
                                                 <small class="text-muted">
                                                     (@match.RatingCount @(match.RatingCount == 1 ? "rating" : "ratings"))

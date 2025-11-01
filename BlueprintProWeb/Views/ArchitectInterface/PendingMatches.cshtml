@@ -7,144 +7,474 @@
 
 @section Styles {
     <style>
-        .match-title {
-            position: relative;
-            top: 80px;
-            left: 55px;
-            font-weight: 700;
+        /* Override shared layout background for pending matches page */
+        body::before {
+            background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
+            opacity: 0.1 !important;
         }
 
+        /* Ensure scrollable page with consistent background */
+        body {
+            background: #F1F7F9 !important;
+            overflow-y: auto !important;
+            height: auto !important;
+            font-family: 'Raleway', sans-serif !important;
+        }
+
+        /* Main content positioning that responds to sidebar state */
+        main.container {
+            margin-left: 300px;
+            margin-top: 90px;
+            padding: 1.5rem;
+            padding-top: 4rem;
+            max-width: calc(100% - 320px);
+            transition: margin-left 0.4s ease, max-width 0.4s ease;
+        }
+
+        /* When sidebar is collapsed, adjust main content */
+        .sidebar.collapsed ~ * main.container,
+        body:has(.sidebar.collapsed) main.container {
+            margin-left: 110px;
+            max-width: calc(100% - 130px);
+        }
+
+        /* Page Header Styling */
+        .pending-matches-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(52, 78, 173, 0.1);
+        }
+
+        .pending-matches-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #1a202c;
+            margin: 0;
+            font-family: 'Raleway', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .pending-matches-title i {
+            color: #344EAD;
+            font-size: 1.5rem;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Matches Container */
+        .matches-container {
+            background: #FFFFFF;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(52, 78, 173, 0.05);
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Enhanced Match Card Styling */
         .match-card {
-            border-radius: 10px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            background: #FFFFFF;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(52, 78, 173, 0.05);
             overflow: hidden;
-            transition: transform 0.2s ease;
-            background: #fff;
+            transition: all 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .match-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(52, 78, 173, 0.15);
+            border-color: rgba(52, 78, 173, 0.1);
+        }
+
+        .match-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .match-card:hover::before {
+            opacity: 1;
         }
 
         .match-body {
-            padding: 16px;
+            padding: 1.5rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
 
+        /* Enhanced Client Name Styling */
         .client-name {
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        .client-info {
-            font-size: 0.9rem;
-            color: #555;
-        }
-
-        .btn-accept {
-            width: 48%;
-            background: #198754;
-            color: #fff;
-            font-weight: 600;
-            transition: 0.2s ease;
-        }
-
-        .btn-accept:hover {
-            background: #fff;
-            border-color: #198754;
-            color: #198754;
-        }
-
-        .btn-decline {
-            width: 48%;
-            background: #dc3545;
-            color: #fff;
-            font-weight: 600;
-            transition: 0.2s ease;
-        }
-
-        .btn-decline:hover {
-            background: #fff;
-            border-color: #dc3545;
-            color: #dc3545;
-        }
-
-        .cards-row {
-            margin-top: 120px;
-        }
-
-        .modal-btn {
-            width: 70px;
-            height: 50px;
-            color: #fff;
-            background: #071744;
-            border-color: #fff;
-            border-radius: 10px;
-            transition: 0.2s ease;
-        }
-
-        .modal-btn:hover {
-            background: #fff;
-            color: #071744;
-            border-color: #071744;
+            font-weight: 700;
+            color: #1a202c;
+            font-size: 1.1rem;
+            font-family: 'Raleway', sans-serif;
+            margin-bottom: 1rem;
+            line-height: 1.3;
         }
 
         .client-profile-link {
-            color: #071744;
-            cursor: pointer;
+            color: #344EAD;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.2s ease;
+            border-bottom: 1px solid transparent;
         }
 
         .client-profile-link:hover {
-            text-decoration: underline;
+            color: #2563EB;
+            text-decoration: none;
+            border-bottom-color: #2563EB;
         }
 
+        /* Client Information Styling */
+        .client-info {
+            font-size: 0.9rem;
+            color: #64748B;
+            margin-bottom: 1.5rem;
+            flex: 1;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .client-info strong {
+            color: #1a202c;
+            font-weight: 600;
+        }
+
+        /* Enhanced Button Styling */
+        .btn-accept {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            font-family: 'Raleway', sans-serif;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+            width: 48%;
+        }
+
+        .btn-accept:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+            color: white;
+        }
+
+        .btn-accept:active {
+            transform: translateY(0);
+        }
+
+        .btn-accept::before {
+            content: "✓";
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .btn-decline {
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            font-family: 'Raleway', sans-serif;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+            width: 48%;
+        }
+
+        .btn-decline:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+            background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
+            color: white;
+        }
+
+        .btn-decline:active {
+            transform: translateY(0);
+        }
+
+        .btn-decline::before {
+            content: "✕";
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        /* Enhanced Modal Styling */
+        .modal-content {
+            border-radius: 16px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            color: white;
+            border-radius: 16px 16px 0 0;
+            border-bottom: none;
+            padding: 1.5rem;
+        }
+
+        .modal-title {
+            font-weight: 600;
+            font-family: 'Raleway', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-close {
+            filter: invert(1);
+        }
+
+        .modal-body {
+            padding: 2rem;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .modal-footer {
+            border-top: 1px solid rgba(52, 78, 173, 0.1);
+            padding: 1.5rem 2rem;
+        }
+
+        /* Enhanced Modal Button */
+        .modal-btn {
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            font-family: 'Raleway', sans-serif;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(52, 78, 173, 0.2);
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(52, 78, 173, 0.3);
+            background: linear-gradient(135deg, #2563EB 0%, #344EAD 100%);
+            color: white;
+        }
+
+        /* Profile Card in Modal */
+        .profile-main-card {
+            background: #F8FAFC;
+            border-radius: 12px;
+            border: 1px solid rgba(52, 78, 173, 0.1);
+        }
+
+        .profile-info {
+            margin-bottom: 1.5rem;
+        }
+
+        .client-name {
+            color: #1a202c;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .profile-info .text-muted {
+            color: #64748B !important;
+            font-size: 0.9rem;
+        }
+
+        .avatar img {
+            border: 3px solid rgba(52, 78, 173, 0.1);
+            transition: all 0.2s ease;
+        }
+
+        .avatar img:hover {
+            border-color: rgba(52, 78, 173, 0.3);
+            transform: scale(1.05);
+        }
+
+        /* Empty State Styling */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #64748B;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            color: #CBD5E1;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 0.5rem;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .empty-state-subtitle {
+            font-size: 0.9rem;
+            color: #64748B;
+            line-height: 1.5;
+        }
+
+        /* Responsive Design */
+        @@media (max-width: 768px) {
+            main.container {
+                margin-left: 0 !important;
+                margin-top: 75px;
+                max-width: 100% !important;
+                padding: 1rem;
+                padding-top: 2rem;
+            }
+
+            .pending-matches-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .pending-matches-title {
+                font-size: 1.4rem;
+            }
+
+            .matches-container {
+                padding: 1.5rem;
+            }
+
+            .match-body {
+                padding: 1rem;
+            }
+
+            .btn-accept,
+            .btn-decline {
+                padding: 0.6rem 0.8rem;
+                font-size: 0.85rem;
+            }
+
+            .modal-body {
+                padding: 1.5rem;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .matches-container {
+                padding: 1rem;
+            }
+
+            .pending-matches-title {
+                font-size: 1.25rem;
+            }
+
+            .btn-accept,
+            .btn-decline {
+                padding: 0.5rem 0.6rem;
+                font-size: 0.8rem;
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+
+            .d-flex.justify-content-between {
+                flex-direction: column;
+            }
+        }
     </style>
 }
 
-<div class="row mb-5 align-items-center">
-    <div class="col">
-        <h1 class="match-title">Pending Matches</h1>
+<div>
+    <div class="pending-matches-header">
+        <h2 class="pending-matches-title">
+            <i class="fas fa-handshake"></i>
+            Pending Matches
+        </h2>
     </div>
-</div>
 
-<div class="row px-5 cards-row">
-    @if (!Model.Any())
-    {
-        <div class="col-12 text-center">
-            <p class="text-muted">No pending matches at the moment.</p>
-        </div>
-    }
-    else
-    {
-        @foreach (var item in Model)
+    <div class="matches-container">
+        @if (!Model.Any())
         {
-            <div class="col-md-4 mb-4">
-                <div class="card match-card">
-                    <div class="match-body">
-                        <h5 class="client-name">
-                            <a href="#" class="client-profile-link text-decoration-none"
-                               data-client-id="@item.ClientId">
-                                @item.ClientName
-                            </a>
-                        </h5>
-
-                        <p class="client-info">
-                            <strong>Date Requested:</strong> @item.MatchDate.ToShortDateString()<br />
-                            <strong>Status:</strong> @item.MatchStatus
-                        </p>
-
-                        <div class="d-flex justify-content-between mt-3">
-                            <button class="btn btn-accept respond-btn"
-                                    data-id="@item.MatchId"
-                                    data-approve="true">
-                                Accept
-                            </button>
-                            <button class="btn btn-decline respond-btn"
-                                    data-id="@item.MatchId"
-                                    data-approve="false">
-                                Decline
-                            </button>
-                        </div>
-                    </div>
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="fas fa-handshake"></i>
+                </div>
+                <div class="empty-state-title">No Pending Matches</div>
+                <div class="empty-state-subtitle">
+                    You don't have any pending match requests at the moment.<br>
+                    New client requests will appear here when they find your profile.
                 </div>
             </div>
         }
-    }
+        else
+        {
+            <div class="row g-4">
+                @foreach (var item in Model)
+                {
+                    <div class="col-lg-4 col-md-6 col-sm-12">
+                        <div class="card match-card">
+                            <div class="match-body">
+                                <h5 class="client-name">
+                                    <a href="#" class="client-profile-link"
+                                       data-client-id="@item.ClientId">
+                                        @item.ClientName
+                                    </a>
+                                </h5>
+
+                                <div class="client-info">
+                                    <div class="mb-2">
+                                        <strong>Date Requested:</strong> @item.MatchDate.ToShortDateString()
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>Status:</strong> @item.MatchStatus
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between mt-auto">
+                                    <button class="btn btn-accept respond-btn"
+                                            data-id="@item.MatchId"
+                                            data-approve="true">
+                                        Accept
+                                    </button>
+                                    <button class="btn btn-decline respond-btn"
+                                            data-id="@item.MatchId"
+                                            data-approve="false">
+                                        Decline
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
 </div>
 
 <!-- Match Result Modal -->
@@ -170,7 +500,10 @@
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Client Profile</h5>
+                <h5 class="modal-title">
+                    <i class="fas fa-user"></i>
+                    Client Profile
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -193,72 +526,99 @@
     </div>
 </div>
 
-
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const resultModalEl = document.getElementById("matchResultModal");
-        const resultModal = new bootstrap.Modal(resultModalEl);
+        document.addEventListener('DOMContentLoaded', function () {
+            // Listen for sidebar toggle and adjust main content accordingly
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarToggler = document.querySelector('.sidebar-toggler');
+            const mainContent = document.querySelector('main.container');
 
-        document.querySelectorAll('.respond-btn').forEach(btn => {
-            btn.addEventListener('click', function () {
-                const matchId = this.dataset.id;
-                const approve = this.dataset.approve === "true";
-
-                fetch('/ArchitectInterface/RespondMatch', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
-                    },
-                    body: JSON.stringify({ matchId, approve })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        document.getElementById("matchResultTitle").innerText = "✅ Success";
-                        document.getElementById("matchResultMessage").innerText = `Match ${data.status}`;
+            function adjustMainContent() {
+                if (sidebar && mainContent) {
+                    if (sidebar.classList.contains('collapsed')) {
+                        mainContent.style.marginLeft = '110px';
+                        mainContent.style.maxWidth = 'calc(100% - 130px)';
                     } else {
-                        document.getElementById("matchResultTitle").innerText = "❌ Error";
-                        document.getElementById("matchResultMessage").innerText = "Failed to update match.";
+                        mainContent.style.marginLeft = '300px';
+                        mainContent.style.maxWidth = 'calc(100% - 320px)';
                     }
+                }
+            }
 
-                    resultModal.show();
-                    if (data.success) {
-                        resultModalEl.addEventListener("hidden.bs.modal", () => {
-                            location.reload();
-                        }, { once: true });
-                    }
-                })
-                .catch(() => {
-                    document.getElementById("matchResultTitle").innerText = "❌ Error";
-                    document.getElementById("matchResultMessage").innerText = "Error responding to match.";
-                    resultModal.show();
+            adjustMainContent();
+
+            if (sidebarToggler) {
+                sidebarToggler.addEventListener('click', function () {
+                    setTimeout(adjustMainContent, 50);
                 });
-            });
-        });
-        const clientProfileModal = new bootstrap.Modal(document.getElementById('clientProfileModal'));
+            }
 
-        document.querySelectorAll('.client-profile-link').forEach(link => {
-            link.addEventListener('click', function (e) {
-                e.preventDefault();
+            const resultModalEl = document.getElementById("matchResultModal");
+            const resultModal = new bootstrap.Modal(resultModalEl);
 
-                const clientId = this.dataset.clientId;
+            document.querySelectorAll('.respond-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const matchId = this.dataset.id;
+                    const approve = this.dataset.approve === "true";
 
-                fetch(`/ArchitectInterface/GetClientProfile?clientId=${clientId}`)
+                    fetch('/ArchitectInterface/RespondMatch', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                        },
+                        body: JSON.stringify({ matchId, approve })
+                    })
                     .then(res => res.json())
                     .then(data => {
                         if (data.success) {
-                            document.getElementById("clientProfileName").innerText = data.name;
-                            document.getElementById("clientProfileEmail").innerText = data.email || "No email provided";
-                            document.getElementById("clientProfilePhone").innerText = data.phone || "No phone provided";
-
-                            clientProfileModal.show();
+                            document.getElementById("matchResultTitle").innerText = "✅ Success";
+                            document.getElementById("matchResultMessage").innerText = `Match ${data.status}`;
                         } else {
-                            alert("❌ " + data.message);
+                            document.getElementById("matchResultTitle").innerText = "❌ Error";
+                            document.getElementById("matchResultMessage").innerText = "Failed to update match.";
+                        }
+
+                        resultModal.show();
+                        if (data.success) {
+                            resultModalEl.addEventListener("hidden.bs.modal", () => {
+                                location.reload();
+                            }, { once: true });
                         }
                     })
-                    .catch(() => alert("❌ Failed to load client profile."));
+                    .catch(() => {
+                        document.getElementById("matchResultTitle").innerText = "❌ Error";
+                        document.getElementById("matchResultMessage").innerText = "Error responding to match.";
+                        resultModal.show();
+                    });
+                });
+            });
+
+            const clientProfileModal = new bootstrap.Modal(document.getElementById('clientProfileModal'));
+
+            document.querySelectorAll('.client-profile-link').forEach(link => {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    const clientId = this.dataset.clientId;
+
+                    fetch(`/ArchitectInterface/GetClientProfile?clientId=${clientId}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                document.getElementById("clientProfileName").innerText = data.name;
+                                document.getElementById("clientProfileEmail").innerText = data.email || "No email provided";
+                                document.getElementById("clientProfilePhone").innerText = data.phone || "No phone provided";
+
+                                clientProfileModal.show();
+                            } else {
+                                alert("❌ " + data.message);
+                            }
+                        })
+                        .catch(() => alert("❌ Failed to load client profile."));
+                });
             });
         });
     </script>
