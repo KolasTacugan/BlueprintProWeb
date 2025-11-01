@@ -144,7 +144,8 @@ namespace BlueprintProWeb.Controllers
         public async Task<IActionResult> GetProjects(string architectId)
         {
             var projects = await context.Projects
-                .Where(p => p.user_architectId == architectId)
+                .Where(p => p.user_architectId == architectId
+                    && (p.project_Status == "Ongoing" || p.project_Status == "Finished"))
                 .Include(p => p.Blueprint)
                 .Include(p => p.Client)
                 .Select(p => new

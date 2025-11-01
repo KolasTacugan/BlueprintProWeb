@@ -796,7 +796,7 @@
         <div class="profile-card @(Model.IsPro ? "pro-user" : "")">
             <div class="profile-info">
                 <div class="avatar-container">
-                    <div class="avatar @(Model.IsPro ? "pro-user" : "")" onclick="document.getElementById('profilePictureInput').click()">
+                    <div class="avatar @(Model.IsPro ? "pro-user" : "")" @* onclick="document.getElementById('profilePictureInput').click()" *@ >
                         @if (!string.IsNullOrEmpty(Model.ProfilePhoto))
                         {
                             <img src="@Url.Content(Model.ProfilePhoto)" alt="@Model.FullName">
@@ -808,9 +808,9 @@
                             </div>
                         }
                     </div>
-                    <div class="avatar-upload-overlay" onclick="document.getElementById('profilePictureInput').click()">
+                    @* <div class="avatar-upload-overlay" onclick="document.getElementById('profilePictureInput').click()">
                         Upload Photo
-                    </div>
+                    </div> *@
                 </div>
                 <div class="user-details">
                     <div class="user-name-container">
@@ -828,7 +828,6 @@
         </div>
 
         <div class="side-buttons">
-            <div class="card">Favorites</div>
             <button class="card @(Model.IsPro ? "subscription-card-pro" : "")" onclick="openSubscriptionModal()">Subscription</button>
         </div>
     </div>
