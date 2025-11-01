@@ -201,10 +201,49 @@ namespace BlueprintProWeb.Controllers
         }
 
         // ✅ UPDATE PROFILE (Mobile)
+
+        [HttpGet("edit-profile/{userId}")]
+        public async Task<IActionResult> GetEditProfile(string userId)
+        {
+            if (string.IsNullOrEmpty(userId))
+                return BadRequest(new { message = "User ID is required", success = false, statusCode = 400 });
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                return NotFound(new { message = "User not found", success = false, statusCode = 404 });
+
+            var data = new
+            {
+                Id = user.Id,
+                FirstName = user.user_fname,
+                LastName = user.user_lname,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                Role = user.user_role,
+                ProfilePhoto = user.user_profilePhoto?.Replace("~", ""),
+                LicenseNo = user.user_licenseNo,
+                Style = user.user_Style,
+                Specialization = user.user_Specialization,
+                Location = user.user_Location,
+                Budget = user.user_Budget,
+                CredentialsFile = user.user_CredentialsFile,
+                IsPro = user.IsProActive
+            };
+
+            return Ok(new
+            {
+                message = "Edit profile data retrieved successfully",
+                success = true,
+                statusCode = 200,
+                data
+            });
+        }
+
         [HttpPost("edit-profile")]
+        [Consumes("multipart/form-data")]
         public async Task<IActionResult> EditProfile([FromForm] MobileEditProfileRequest model)
         {
-            if (model == null || string.IsNullOrEmpty(model.UserId))
+            if (!ModelState.IsValid)
                 return BadRequest(new { message = "Invalid request data", success = false, statusCode = 400 });
 
             var user = await _userManager.FindByIdAsync(model.UserId);
@@ -225,24 +264,25 @@ namespace BlueprintProWeb.Controllers
                 var fileExtension = Path.GetExtension(model.ProfilePhoto.FileName).ToLowerInvariant();
 
                 if (!allowedExtensions.Contains(fileExtension))
-                    return BadRequest(new { message = "Invalid image format", success = false, statusCode = 400 });
+                    return BadRequest(new { message = "Please upload a valid image file (jpg, jpeg, png, gif).", success = false });
 
                 if (model.ProfilePhoto.Length > 5 * 1024 * 1024)
-                    return BadRequest(new { message = "Profile photo must be under 5MB", success = false, statusCode = 400 });
+                    return BadRequest(new { message = "Profile picture must be less than 5MB.", success = false });
 
                 string uploadDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "profiles");
                 Directory.CreateDirectory(uploadDir);
 
-                // Delete old photo if it exists
+                // Delete old profile picture if it exists
                 if (!string.IsNullOrEmpty(user.user_profilePhoto))
                 {
-                    var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", user.user_profilePhoto.TrimStart('~', '/'));
-                    if (System.IO.File.Exists(oldPath))
-                        System.IO.File.Delete(oldPath);
+                    var oldPhotoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", user.user_profilePhoto.TrimStart('~', '/'));
+                    if (System.IO.File.Exists(oldPhotoPath))
+                        System.IO.File.Delete(oldPhotoPath);
                 }
 
                 string fileName = $"{user.Id}_{Guid.NewGuid()}{fileExtension}";
                 string filePath = Path.Combine(uploadDir, fileName);
+
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
                     await model.ProfilePhoto.CopyToAsync(stream);
@@ -260,7 +300,7 @@ namespace BlueprintProWeb.Controllers
                 user.user_Location = model.Location ?? user.user_Location;
                 user.user_Budget = model.Budget ?? user.user_Budget;
 
-                // ✅ Upload credentials file (portfolio)
+                // ✅ If portfolio (credentials) file uploaded → overwrite existing embedding
                 if (model.CredentialsFile != null && model.CredentialsFile.Length > 0)
                 {
                     string credentialsDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "credentials");
@@ -268,6 +308,7 @@ namespace BlueprintProWeb.Controllers
 
                     string fileName = $"{user.Id}_{Guid.NewGuid()}_{model.CredentialsFile.FileName}";
                     string filePath = Path.Combine(credentialsDir, fileName);
+
                     using (var stream = new FileStream(filePath, FileMode.Create))
                     {
                         await model.CredentialsFile.CopyToAsync(stream);
@@ -275,7 +316,7 @@ namespace BlueprintProWeb.Controllers
 
                     user.user_CredentialsFile = fileName;
 
-                    // ✅ Generate embeddings from PDF text
+                    // ✅ Extract text and embed
                     try
                     {
                         string extractedText = await ExtractTextFromPdf(filePath);
@@ -289,9 +330,36 @@ namespace BlueprintProWeb.Controllers
                         Console.WriteLine($"⚠️ Embedding generation failed: {ex.Message}");
                     }
                 }
+                else
+                {
+                    // ✅ No portfolio uploaded → fallback to profile-based embedding
+                    try
+                    {
+                        string profileText =
+                            $"Architect specializing in {user.user_Specialization}, style: {user.user_Style}, " +
+                            $"based in {user.user_Location}, budget preference: {user.user_Budget}, rating: {user.user_Rating}.";
+
+                        user.PortfolioText = profileText;
+
+                        var embeddingVector = await GenerateEmbedding(profileText);
+                        user.PortfolioEmbedding = string.Join(",", embeddingVector.Select(v => v.ToString(CultureInfo.InvariantCulture)));
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"⚠️ Profile-based embedding failed: {ex.Message}");
+                    }
+                }
+            }
+            else
+            {
+                // Prevent non-architects from uploading credentials
+                if (model.CredentialsFile != null)
+                {
+                    return BadRequest(new { message = "Only architects can upload credentials.", success = false, statusCode = 403 });
+                }
             }
 
-            // ✅ Save changes
+            // ✅ Save updates
             var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded)
             {
@@ -299,9 +367,12 @@ namespace BlueprintProWeb.Controllers
                 return BadRequest(new { message = $"Profile update failed: {errors}", success = false, statusCode = 400 });
             }
 
+            await _signInManager.RefreshSignInAsync(user);
+
+            // ✅ Success response (JSON)
             return Ok(new
             {
-                message = "Profile updated successfully",
+                message = "Profile updated successfully.",
                 success = true,
                 statusCode = 200,
                 data = new
@@ -312,11 +383,17 @@ namespace BlueprintProWeb.Controllers
                     user.Email,
                     user.PhoneNumber,
                     user.user_role,
-                    user.user_profilePhoto,
-                    user.user_CredentialsFile
+                    ProfilePhoto = user.user_profilePhoto?.Replace("~", ""),
+                    CredentialsFile = user.user_CredentialsFile,
+                    user.user_licenseNo,
+                    user.user_Style,
+                    user.user_Specialization,
+                    user.user_Location,
+                    user.user_Budget
                 }
             });
         }
+
 
         // 🧩 Helper: Extract text from PDF
         private async Task<string> ExtractTextFromPdf(string filePath)
@@ -346,22 +423,44 @@ namespace BlueprintProWeb.Controllers
     public class MobileEditProfileRequest
     {
         [Required]
+        [FromForm(Name = "UserId")]
         public string UserId { get; set; }
 
+        [FromForm(Name = "FirstName")]
         public string? FirstName { get; set; }
+
+        [FromForm(Name = "LastName")]
         public string? LastName { get; set; }
+
+        [FromForm(Name = "Email")]
         public string? Email { get; set; }
+
+        [FromForm(Name = "PhoneNumber")]
         public string? PhoneNumber { get; set; }
 
+        // Architect fields
+        [FromForm(Name = "LicenseNo")]
         public string? LicenseNo { get; set; }
+
+        [FromForm(Name = "Style")]
         public string? Style { get; set; }
+
+        [FromForm(Name = "Specialization")]
         public string? Specialization { get; set; }
+
+        [FromForm(Name = "Location")]
         public string? Location { get; set; }
+
+        [FromForm(Name = "Budget")]
         public string? Budget { get; set; }
 
+        [FromForm(Name = "ProfilePhoto")]
         public IFormFile? ProfilePhoto { get; set; }
+
+        [FromForm(Name = "CredentialsFile")]
         public IFormFile? CredentialsFile { get; set; }
     }
+
 
 
     // ✅ REGISTER REQUEST MODEL (matches User model)
