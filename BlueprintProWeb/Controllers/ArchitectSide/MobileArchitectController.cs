@@ -537,8 +537,10 @@ namespace BlueprintProWeb.Controllers
         }
 
         [HttpPost("UploadProjectFile")]
-        public async Task<IActionResult> UploadProjectFile(string projectId, IFormFile file)
-        {
+        public async Task<IActionResult> UploadProjectFile(
+            [FromForm] string projectId,
+            [FromForm] IFormFile file
+        ){
             if (file == null || file.Length == 0)
                 return BadRequest(new { success = false, message = "No file uploaded." });
 
@@ -599,7 +601,10 @@ namespace BlueprintProWeb.Controllers
         }
 
         [HttpPost("UploadComplianceFile")]
-        public async Task<IActionResult> UploadComplianceFile(int projectTrackId, string fileType, IFormFile file)
+        public async Task<IActionResult> UploadComplianceFile(
+            [FromForm] int projectTrackId,
+            [FromForm] string fileType,
+            [FromForm] IFormFile file)
         {
             try
             {
@@ -723,7 +728,7 @@ namespace BlueprintProWeb.Controllers
         }
 
         [HttpPost("updateProjectStatus")]
-        public async Task<IActionResult> UpdateProjectStatus(string projectId, string status)
+        public async Task<IActionResult> UpdateProjectStatus([FromForm] string projectId, [FromForm] string status)
         {
             var tracker = await context.ProjectTrackers
                 .Include(t => t.Project)
