@@ -680,7 +680,9 @@ namespace BlueprintProWeb.Controllers
         }
 
         [HttpPost("SaveFinalizationNotes")]
-        public async Task<IActionResult> SaveFinalizationNotes(int projectTrackId, string notes)
+        public async Task<IActionResult> SaveFinalizationNotes(
+            [FromForm] int projectTrackId,
+            [FromForm] string notes)
         {
             var tracker = await context.ProjectTrackers.FirstOrDefaultAsync(pt => pt.projectTrack_Id == projectTrackId);
             if (tracker == null)
@@ -693,7 +695,7 @@ namespace BlueprintProWeb.Controllers
         }
 
         [HttpPost("FinalizeProject")]
-        public async Task<IActionResult> FinalizeProject(string projectId)
+        public async Task<IActionResult> FinalizeProject([FromForm] string projectId)
         {
             var project = await context.Projects.FirstOrDefaultAsync(p => p.project_Id == projectId);
             if (project == null)
