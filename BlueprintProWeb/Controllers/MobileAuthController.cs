@@ -1,14 +1,23 @@
-﻿using BlueprintProWeb.Models;
+﻿using BlueprintProWeb.Data;
+using BlueprintProWeb.Models;
+using BlueprintProWeb.Settings;
 using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Canvas.Parser;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using OpenAI;
 using OpenAI.Embeddings;
+using Stripe;
+using Stripe.Checkout;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
+
+
 
 
 namespace BlueprintProWeb.Controllers
@@ -21,12 +30,17 @@ namespace BlueprintProWeb.Controllers
         private readonly SignInManager<User> _signInManager;
         private readonly OpenAIClient _openAi;
         private readonly OpenAI.Embeddings.EmbeddingClient _embeddingClient;
+        private readonly AppDbContext _context;
+        private readonly StripeSettings _stripeSettings;
 
-        public MobileAuthController(UserManager<User> userManager, SignInManager<User> signInManager, OpenAIClient openAi, OpenAI.Embeddings.EmbeddingClient embeddingClient)
+        public MobileAuthController(UserManager<User> userManager, SignInManager<User> signInManager, OpenAIClient openAi, OpenAI.Embeddings.EmbeddingClient embeddingClient, AppDbContext context,
+            IOptions<StripeSettings> stripeSettingsOptions)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _embeddingClient = embeddingClient;
+            _context = context;
+            _stripeSettings = stripeSettingsOptions.Value;
         }
 
         // ✅ REGISTER (Mobile)
@@ -414,10 +428,156 @@ namespace BlueprintProWeb.Controllers
             return await Task.FromResult(cleaned);
         }
 
-   
-        
+
+        // -------------------- ARCHITECT SUBSCRIPTION --------------------
+        [HttpPost("CreateArchitectSubscription")]
+        [Produces("application/json")]
+        public IActionResult CreateArchitectSubscription([FromBody] ArchitectSubscriptionRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(request.ArchitectId))
+                    return BadRequest(new { success = false, message = "ArchitectId is required." });
+
+                StripeConfiguration.ApiKey = _stripeSettings.SecretKey;
+
+                var options = new SessionCreateOptions
+                {
+                    PaymentMethodTypes = new List<string> { "card" },
+                    LineItems = new List<SessionLineItemOptions>
+            {
+                new SessionLineItemOptions
+                {
+                    PriceData = new SessionLineItemPriceDataOptions
+                    {
+                        UnitAmount = 18000,
+                        Currency = "php",
+                        ProductData = new SessionLineItemPriceDataProductDataOptions
+                        {
+                            Name = "Pro Subscription Plan (Monthly)"
+                        }
+                    },
+                    Quantity = 1
+                }
+            },
+                    Mode = "payment",
+                    SuccessUrl = "blueprintpro://subscription-success",
+                    CancelUrl = "blueprintpro://subscription-cancel"
+                };
+
+                var service = new SessionService();
+                var session = service.Create(options);
+
+                return Ok(new
+                {
+                    success = true,
+                    sessionId = session.Id,
+                    paymentUrl = session.Url,
+                    totalAmount = 180,
+                    currency = "PHP"
+                });
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
 
 
+        [HttpPost("CompleteSubscription")]
+        public async Task<IActionResult> CompleteSubscription([FromBody] ArchitectSubscriptionCompleteRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(request.ArchitectId))
+                    return BadRequest(new { success = false, message = "ArchitectId is required." });
+
+                var architect = await _context.Users.FirstOrDefaultAsync(u => u.Id == request.ArchitectId);
+                if (architect == null)
+                    return BadRequest(new { success = false, message = "Architect not found." });
+
+                architect.IsPro = true;
+                architect.SubscriptionPlan = "Pro";
+                architect.SubscriptionStartDate = DateTime.UtcNow;
+                architect.SubscriptionEndDate = DateTime.UtcNow.AddMonths(1);
+
+                await _context.SaveChangesAsync();
+
+                return Ok(new { success = true, message = "Pro Subscription activated successfully." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+    
+        [HttpPost("DowngradeArchitectPlan")]
+        public async Task<IActionResult> DowngradeArchitectPlan([FromBody] ArchitectSubscriptionRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(request.ArchitectId))
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "ArchitectId is required."
+                    });
+                }
+
+                // ✅ Find architect by ID
+                var architect = await _context.Users
+                    .FirstOrDefaultAsync(a => a.Id == request.ArchitectId);
+
+                if (architect == null)
+                {
+                    return NotFound(new
+                    {
+                        success = false,
+                        message = "Architect not found."
+                    });
+                }
+
+                // ✅ Set plan to Free
+                architect.IsPro = false;
+                architect.SubscriptionPlan = "Free";
+                architect.SubscriptionStartDate = null;
+                architect.SubscriptionEndDate = null;
+
+                await _context.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Successfully downgraded to Free Plan."
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "An error occurred.",
+                    error = ex.Message
+                });
+            }
+        }
+
+
+    }
+
+    public class ArchitectSubscriptionRequest
+    {
+        public string ArchitectId { get; set; } = "";
+    }
+
+    public class ArchitectSubscriptionCompleteRequest
+    {
+        public string ArchitectId { get; set; } = "";
+        // Optionally you may include sessionId or other metadata
+        public string? SessionId { get; set; }
     }
 
     public class MobileEditProfileRequest
