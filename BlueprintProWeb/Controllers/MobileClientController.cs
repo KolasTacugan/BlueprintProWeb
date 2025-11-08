@@ -501,7 +501,8 @@ namespace BlueprintProWeb.Controllers
                 if (string.IsNullOrWhiteSpace(clientId))
                     return BadRequest(new { success = false, message = "ClientId is required." });
 
-                var conversations = await context.Messages
+                // Step 1: Fetch in UTC (EF can translate this)
+                var conversationsRaw = await context.Messages
                     .Where(m => m.ClientId == clientId || m.ArchitectId == clientId)
                     .GroupBy(m => m.ArchitectId)
                     .Select(g => new
@@ -514,15 +515,29 @@ namespace BlueprintProWeb.Controllers
                         LastMessage = g.OrderByDescending(m => m.MessageDate)
                             .Select(m => m.MessageBody)
                             .FirstOrDefault(),
-                        LastMessageTime = g.Max(m => m.MessageDate),
+                        LastMessageTimeUtc = g.Max(m => m.MessageDate),
                         ProfileUrl = context.Users
                             .Where(u => u.Id == g.Key)
                             .Select(u => u.user_profilePhoto)
                             .FirstOrDefault(),
                         UnreadCount = g.Count(x => x.ArchitectId == g.Key && !x.IsRead)
                     })
-                    .OrderByDescending(x => x.LastMessageTime)
                     .ToListAsync();
+
+                // Step 2: Convert to Philippine Time after fetching
+                var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
+                var conversations = conversationsRaw
+                    .Select(c => new
+                    {
+                        c.ArchitectId,
+                        c.ArchitectName,
+                        c.LastMessage,
+                        LastMessageTime = TimeZoneInfo.ConvertTimeFromUtc(c.LastMessageTimeUtc, phTimeZone),
+                        c.ProfileUrl,
+                        c.UnreadCount
+                    })
+                    .OrderByDescending(x => x.LastMessageTime)
+                    .ToList();
 
                 return Ok(new { success = true, messages = conversations });
             }
@@ -542,7 +557,8 @@ namespace BlueprintProWeb.Controllers
                 if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(architectId))
                     return BadRequest(new { success = false, message = "ClientId and ArchitectId are required." });
 
-                var messages = await context.Messages
+                // Step 1: Get raw UTC messages from database (EF-safe)
+                var messagesRaw = await context.Messages
                     .Where(m =>
                         (m.ClientId == clientId && m.ArchitectId == architectId) ||
                         (m.ClientId == architectId && m.ArchitectId == clientId))
@@ -560,7 +576,21 @@ namespace BlueprintProWeb.Controllers
                     })
                     .ToListAsync();
 
-                // Mark unread messages as read for this client
+                // Step 2: Convert to Philippine Time after fetching
+                var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
+                var messages = messagesRaw.Select(m => new
+                {
+                    m.MessageId,
+                    m.ClientId,
+                    m.ArchitectId,
+                    m.SenderId,
+                    m.MessageBody,
+                    MessageDate = TimeZoneInfo.ConvertTimeFromUtc(m.MessageDate, phTimeZone),
+                    m.IsRead,
+                    m.AttachmentUrl
+                }).ToList();
+
+                // Step 3: Mark unread messages as read for this client
                 var unreadMessages = await context.Messages
                     .Where(m => m.ArchitectId == clientId && m.ClientId == architectId && !m.IsRead)
                     .ToListAsync();
@@ -571,6 +601,7 @@ namespace BlueprintProWeb.Controllers
                     await context.SaveChangesAsync();
                 }
 
+                // Step 4: Return PH-time adjusted messages
                 return Ok(new { success = true, messages });
             }
             catch (Exception ex)
@@ -578,6 +609,7 @@ namespace BlueprintProWeb.Controllers
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }
+
 
         [HttpGet("AllMatches")]
         [AllowAnonymous]

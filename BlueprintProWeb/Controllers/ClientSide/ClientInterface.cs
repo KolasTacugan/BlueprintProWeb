@@ -536,6 +536,9 @@ namespace BlueprintProWeb.Controllers.ClientSide
             if (currentUser == null)
                 return Unauthorized();
 
+            // Timezone (Philippines = UTC+8)
+            var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
+
             // ✅ 1. Load all matches for this client
             var matches = await context.Matches
                 .Where(m => m.ClientId == currentUser.Id && m.MatchStatus == "Approved")
@@ -546,8 +549,8 @@ namespace BlueprintProWeb.Controllers.ClientSide
                     ClientId = m.ClientId,
                     ArchitectId = m.ArchitectId,
                     ArchitectName = m.Architect.user_fname + " " + m.Architect.user_lname,
-                    ArchitectEmail = m.Architect.Email,              // make sure your User entity has Email
-                    ArchitectPhone = m.Architect.PhoneNumber,        // make sure your User entity has PhoneNumber
+                    ArchitectEmail = m.Architect.Email,
+                    ArchitectPhone = m.Architect.PhoneNumber,
                     MatchStatus = m.MatchStatus,
                     MatchDate = m.MatchDate,
                     ArchitectProfileUrl = string.IsNullOrEmpty(m.Architect.user_profilePhoto)
@@ -566,7 +569,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 {
                     ArchitectId = g.Key,
                     ArchitectName = g.First().Architect.user_fname + " " + g.First().Architect.user_lname,
-                    LastMessageTime = g.Max(x => x.MessageDate),
+                    LastMessageTime = TimeZoneInfo.ConvertTimeFromUtc(g.Max(x => x.MessageDate), phTimeZone),
                     Messages = new List<MessageViewModel>(),
                     UnreadCount = g.Count(x => x.SenderId != currentUser.Id && !x.IsRead),
                     ArchitectProfileUrl = string.IsNullOrEmpty(g.First().Architect.user_profilePhoto)
@@ -598,6 +601,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 if (unreadMessages.Any())
                     await context.SaveChangesAsync();
 
+                // convert messages to PH time
                 var vmMessages = messages.Select(m => new MessageViewModel
                 {
                     MessageId = m.MessageId.ToString(),
@@ -605,7 +609,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
                     ArchitectId = m.ArchitectId,
                     SenderId = m.SenderId,
                     MessageBody = m.MessageBody,
-                    MessageDate = m.MessageDate,
+                    MessageDate = TimeZoneInfo.ConvertTimeFromUtc(m.MessageDate, phTimeZone),
                     IsRead = m.IsRead,
                     IsDeleted = m.IsDeleted,
                     AttachmentUrl = m.AttachmentUrl,
@@ -624,7 +628,8 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 {
                     ArchitectId = architectId,
                     ArchitectName = matchInfo?.ArchitectName ?? "Unknown",
-                    LastMessageTime = vmMessages.LastOrDefault()?.MessageDate ?? DateTime.UtcNow,
+                    LastMessageTime = vmMessages.LastOrDefault()?.MessageDate
+                        ?? TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, phTimeZone),
                     Messages = vmMessages,
                     ArchitectProfileUrl = matchInfo?.ArchitectProfileUrl ?? "/images/default-profile.png"
                 };
@@ -652,6 +657,10 @@ namespace BlueprintProWeb.Controllers.ClientSide
             if (string.IsNullOrWhiteSpace(messageBody))
                 return RedirectToAction("Messages", new { architectId });
 
+            // Timezone (Philippines)
+            var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
+
+            // store in UTC
             var message = new Message
             {
                 MessageId = Guid.NewGuid(),
@@ -666,13 +675,13 @@ namespace BlueprintProWeb.Controllers.ClientSide
             context.Messages.Add(message);
             await context.SaveChangesAsync();
 
-            // ✅ Optional SignalR broadcast
+            // ✅ SignalR broadcast (show PH time in chat)
             await _hubContext.Clients.User(architectId).SendAsync("ReceiveMessage", new
             {
                 SenderId = currentUser.Id,
                 SenderName = currentUser.user_fname + " " + currentUser.user_lname,
                 MessageBody = messageBody,
-                MessageDate = DateTime.UtcNow.ToString("g"),
+                MessageDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, phTimeZone).ToString("g"),
                 SenderProfilePhoto = string.IsNullOrEmpty(currentUser.user_profilePhoto)
                     ? "/images/default-profile.png"
                     : currentUser.user_profilePhoto
@@ -680,6 +689,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
 
             return RedirectToAction("Messages", new { architectId });
         }
+
 
         [HttpGet]
         public IActionResult ProjectTracker(int id)

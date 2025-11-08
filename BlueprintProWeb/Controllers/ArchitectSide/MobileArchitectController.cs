@@ -319,7 +319,8 @@ namespace BlueprintProWeb.Controllers
                 if (string.IsNullOrWhiteSpace(architectId))
                     return BadRequest(new { success = false, message = "ArchitectId is required." });
 
-                var conversations = await context.Messages
+                // Step 1: Fetch raw UTC conversations
+                var rawConversations = await context.Messages
                     .Where(m => m.ArchitectId == architectId || m.ClientId == architectId)
                     .GroupBy(m => m.ClientId)
                     .Select(g => new
@@ -339,9 +340,24 @@ namespace BlueprintProWeb.Controllers
                             .FirstOrDefault(),
                         UnreadCount = g.Count(x => x.ClientId == g.Key && !x.IsRead)
                     })
-                    .OrderByDescending(x => x.LastMessageTime)
                     .ToListAsync();
 
+                // Step 2: Convert timestamps to Philippine time
+                var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
+                var conversations = rawConversations
+                    .Select(c => new
+                    {
+                        c.ClientId,
+                        c.ClientName,
+                        c.LastMessage,
+                        LastMessageTime = TimeZoneInfo.ConvertTimeFromUtc(c.LastMessageTime, phTimeZone),
+                        c.ProfileUrl,
+                        c.UnreadCount
+                    })
+                    .OrderByDescending(x => x.LastMessageTime)
+                    .ToList();
+
+                // Step 3: Return adjusted list
                 return Ok(new { success = true, messages = conversations });
             }
             catch (Exception ex)
@@ -349,7 +365,6 @@ namespace BlueprintProWeb.Controllers
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }
-
 
         [HttpGet("ArchitectMatches")]
         [AllowAnonymous]
@@ -393,8 +408,8 @@ namespace BlueprintProWeb.Controllers
                 if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(architectId))
                     return BadRequest(new { success = false, message = "ClientId and ArchitectId are required." });
 
-                // ✅ Fetch all messages between architect and client
-                var messages = await context.Messages
+                // Step 1: Fetch raw UTC messages
+                var messagesRaw = await context.Messages
                     .Where(m =>
                         (m.ClientId == clientId && m.ArchitectId == architectId) ||
                         (m.ClientId == architectId && m.ArchitectId == clientId))
@@ -412,12 +427,26 @@ namespace BlueprintProWeb.Controllers
                     })
                     .ToListAsync();
 
-                // ✅ Mark unread messages as read for this architect
+                // Step 2: Convert to Philippine time
+                var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
+                var messages = messagesRaw.Select(m => new
+                {
+                    m.MessageId,
+                    m.ClientId,
+                    m.ArchitectId,
+                    m.SenderId,
+                    m.MessageBody,
+                    MessageDate = TimeZoneInfo.ConvertTimeFromUtc(m.MessageDate, phTimeZone),
+                    m.IsRead,
+                    m.AttachmentUrl
+                }).ToList();
+
+                // Step 3: Mark unread client-sent messages as read
                 var unreadMessages = await context.Messages
                     .Where(m =>
                         m.ArchitectId == architectId &&
                         m.ClientId == clientId &&
-                        m.SenderId == clientId &&  // only mark those sent by the client
+                        m.SenderId == clientId &&  // mark only those from client
                         !m.IsRead)
                     .ToListAsync();
 
@@ -427,6 +456,7 @@ namespace BlueprintProWeb.Controllers
                     await context.SaveChangesAsync();
                 }
 
+                // Step 4: Return PH-time adjusted messages
                 return Ok(new { success = true, messages });
             }
             catch (Exception ex)
@@ -434,6 +464,7 @@ namespace BlueprintProWeb.Controllers
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }
+
         [HttpPost("Architect/SendMessage")]
         [AllowAnonymous] // or [Authorize] if you use auth later
         public async Task<IActionResult> SendMessageFromArchitect([FromBody] SendMessageRequest request)

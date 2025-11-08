@@ -500,6 +500,9 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             if (currentUser == null)
                 return Unauthorized();
 
+            // ✅ Define PH time zone
+            var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
+
             // ✅ 1. Load all matches for this architect
             var matches = await context.Matches
                 .Where(m => m.ArchitectId == currentUser.Id && m.MatchStatus == "Approved")
@@ -514,7 +517,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                     ClientPhone = m.Client.PhoneNumber,
                     ArchitectName = currentUser.user_fname + " " + currentUser.user_lname,
                     MatchStatus = m.MatchStatus,
-                    MatchDate = m.MatchDate,
+                    MatchDate = TimeZoneInfo.ConvertTimeFromUtc(m.MatchDate, phTimeZone),
                     ClientProfileUrl = string.IsNullOrEmpty(m.Client.user_profilePhoto)
                         ? "/images/default-profile.png"
                         : m.Client.user_profilePhoto
@@ -531,7 +534,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 {
                     ClientId = g.Key,
                     ClientName = g.First().Client.user_fname + " " + g.First().Client.user_lname,
-                    LastMessageTime = g.Max(x => x.MessageDate),
+                    LastMessageTime = TimeZoneInfo.ConvertTimeFromUtc(g.Max(x => x.MessageDate), phTimeZone),
                     Messages = new List<MessageViewModel>(),
                     UnreadCount = g.Count(x => x.SenderId != currentUser.Id && !x.IsRead),
                     ClientProfileUrl = string.IsNullOrEmpty(g.First().Client.user_profilePhoto)
@@ -563,7 +566,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 if (unreadMessages.Any())
                     await context.SaveChangesAsync();
 
-                // ✅ Build message view models (with profile photos)
+                // ✅ Build message view models with PH time conversion
                 var vmMessages = messages.Select(m => new MessageViewModel
                 {
                     MessageId = m.MessageId.ToString(),
@@ -571,7 +574,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                     ArchitectId = m.ArchitectId,
                     SenderId = m.SenderId,
                     MessageBody = m.MessageBody,
-                    MessageDate = m.MessageDate,
+                    MessageDate = TimeZoneInfo.ConvertTimeFromUtc(m.MessageDate, phTimeZone),
                     IsRead = m.IsRead,
                     IsDeleted = m.IsDeleted,
                     AttachmentUrl = m.AttachmentUrl,
@@ -592,7 +595,9 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 {
                     ClientId = clientId,
                     ClientName = matches.FirstOrDefault(m => m.ClientId == clientId)?.ClientName ?? "Unknown",
-                    LastMessageTime = vmMessages.LastOrDefault()?.MessageDate ?? DateTime.UtcNow,
+                    LastMessageTime = TimeZoneInfo.ConvertTimeFromUtc(
+                        vmMessages.LastOrDefault()?.MessageDate ?? DateTime.UtcNow,
+                        phTimeZone),
                     Messages = vmMessages,
                     ClientProfileUrl = matchPhoto
                 };
@@ -602,14 +607,15 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             var vm = new ChatPageViewModel
             {
                 Matches = matches,
-                Conversations = conversations.OrderByDescending(c => c.LastMessageTime).ToList(),
+                Conversations = conversations
+                    .OrderByDescending(c => TimeZoneInfo.ConvertTimeFromUtc(c.LastMessageTime, phTimeZone))
+                    .ToList(),
                 ActiveChat = activeChat
             };
 
             return View(vm);
         }
 
-        // ✅ POST: Send a message
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SendMessage(string clientId, string messageBody)
@@ -628,12 +634,16 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 ArchitectId = currentUser.Id,
                 SenderId = currentUser.Id,
                 MessageBody = messageBody,
-                MessageDate = DateTime.UtcNow,
+                MessageDate = DateTime.UtcNow, // stored in UTC
                 IsRead = false
             };
 
             context.Messages.Add(message);
             await context.SaveChangesAsync();
+
+            // ✅ Define PH time for sending SignalR
+            var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
+            var phTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, phTimeZone);
 
             // ✅ Optional real-time update via SignalR
             await _hubContext.Clients.User(clientId).SendAsync("ReceiveMessage", new
@@ -641,7 +651,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 SenderId = currentUser.Id,
                 SenderName = currentUser.user_fname + " " + currentUser.user_lname,
                 MessageBody = messageBody,
-                MessageDate = DateTime.UtcNow.ToString("g"),
+                MessageDate = phTime.ToString("g"),
                 SenderProfilePhoto = string.IsNullOrEmpty(currentUser.user_profilePhoto)
                     ? "/images/default-profile.png"
                     : currentUser.user_profilePhoto
@@ -649,6 +659,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
 
             return RedirectToAction("Messages", new { clientId });
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
