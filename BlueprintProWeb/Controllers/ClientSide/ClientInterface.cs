@@ -99,22 +99,28 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 })
                 .ToListAsync();
 
-            // Current/most recent project - get the raw data first
+            // Current/most recent project - get the raw data first with ProjectTracker
             var currentProjectRaw = await context.Projects
                 .Where(p => p.user_clientId == userId)
                 .Include(p => p.Architect)
                 .OrderByDescending(p => p.project_startDate)
                 .FirstOrDefaultAsync();
 
-            // Calculate project overview after data is retrieved
+            // Calculate project overview with actual ProjectTracker data
             ProjectOverview? currentProject = null;
             if (currentProjectRaw != null)
             {
+                // Get the actual ProjectTracker status
+                var projectTracker = await context.ProjectTrackers
+                    .FirstOrDefaultAsync(pt => pt.project_Id == currentProjectRaw.project_Id);
+
+                var actualStatus = projectTracker?.projectTrack_Status ?? currentProjectRaw.project_Status;
+                
                 currentProject = new ProjectOverview
                 {
                     ProjectTitle = currentProjectRaw.project_Title,
-                    Status = currentProjectRaw.project_Status,
-                    ProgressPercentage = CalculateProjectProgress(currentProjectRaw.project_Status), // Now safe to call
+                    Status = actualStatus,
+                    ProgressPercentage = CalculateProjectProgressFromTracker(actualStatus, currentProjectRaw.project_Status),
                     StartDate = currentProjectRaw.project_startDate,
                     ArchitectName = $"{currentProjectRaw.Architect.user_fname} {currentProjectRaw.Architect.user_lname}"
                 };
@@ -131,6 +137,22 @@ namespace BlueprintProWeb.Controllers.ClientSide
             };
 
             return View(dashboardViewModel);
+        }
+
+        private int CalculateProjectProgressFromTracker(string trackerStatus, string projectStatus)
+        {
+            // If project is finished, show 100%
+            if (projectStatus?.ToLower() == "finished")
+                return 100;
+                
+            // Calculate progress based on actual ProjectTracker status
+            return trackerStatus?.ToLower() switch
+            {
+                "review" => 33,           // Review phase = 33%
+                "compliance" => 66,       // Compliance phase = 66%
+                "finalization" => 90,     // Finalization phase = 90%
+                _ => CalculateProjectProgress(projectStatus) // Fallback to old method
+            };
         }
 
         private int CalculateProjectProgress(string status)

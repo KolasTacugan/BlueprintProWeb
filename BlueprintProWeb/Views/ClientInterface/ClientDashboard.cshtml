@@ -1,4 +1,4 @@
-﻿@model BlueprintProWeb.ViewModels.ClientDashboardViewModel
+@model BlueprintProWeb.ViewModels.ClientDashboardViewModel
 @{
     ViewData["Title"] = "ClientDashboard";
     Layout = "~/Views/Shared/_ClientSharedLayout.cshtml";
@@ -181,9 +181,11 @@
             border-radius: 12px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             border: none;
-            min-width: 280px; /* Slightly smaller */
-            max-width: 350px;
-            flex: 1 1 280px;
+            /* Match the exact width of one stat card - calculated as (100% - 2 gaps) / 3 */
+            width: calc((100% - 2.5rem) / 3); /* 2.5rem = 2 * 1.25rem gaps */
+            min-width: calc((100% - 2.5rem) / 3);
+            max-width: calc((100% - 2.5rem) / 3);
+            flex: none; /* Remove flex grow/shrink to maintain exact width */
             padding: 1.25rem; /* Reduced padding */
             display: flex;
             flex-direction: column;
@@ -363,6 +365,65 @@
             text-align: center;
         }
 
+        /* Enhanced Progress Circle Styling */
+        .progress-circle {
+            position: relative;
+        }
+
+        .progress-chart {
+            width: 120px;
+            height: 120px;
+            filter: drop-shadow(0 4px 8px rgba(52, 78, 173, 0.2));
+        }
+
+        .progress-indicator {
+            transition: stroke-dashoffset 0.8s ease-in-out;
+        }
+
+        .progress-text {
+            font-size: 1.1rem;
+            font-weight: 700;
+            fill: #344EAD;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .progress-label {
+            color: #344EAD;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        /* Message icon styling */
+        .message-icon-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px; /* Made larger like header */
+            height: 32px;
+            border: none;
+            background: #F1F7F9;
+            border-radius: 6px; /* Slightly larger radius */
+            color: #071744; /* Match header color */
+            font-size: 1.1rem; /* Larger icon */
+            transition: all 0.2s ease;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .message-icon-btn:hover {
+            background: #344EAD;
+            color: white;
+            transform: scale(1.05);
+            text-decoration: none;
+        }
+
+        .matches-table th:last-child,
+        .matches-table td:last-child {
+            text-align: center;
+            width: 80px; /* Made wider for better spacing */
+            padding: 0.75rem 1rem;
+        }
+
         /* Responsive adjustments */
         @@media (max-width: 1200px) {
             .dashboard-content-row {
@@ -383,6 +444,10 @@
             .overview-circle {
                 flex: 0 0 auto;
                 min-width: 120px;
+            }
+
+            .progress-circle {
+                min-width: 140px;
             }
         }
 
@@ -418,6 +483,20 @@
             .circle-chart {
                 width: 80px; /* Even smaller on mobile */
                 height: 80px;
+            }
+
+            .progress-chart {
+                width: 100px;
+                height: 100px;
+            }
+
+            .progress-text {
+                font-size: 0.9rem;
+            }
+
+            .progress-circle {
+                grid-column: 1 / -1;
+                justify-self: center;
             }
         }
     </style>
@@ -495,6 +574,7 @@
                     <tr>
                         <th>Architect Name</th>
                         <th>Type</th>
+                        <th>Message</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -505,13 +585,20 @@
                             <tr>
                                 <td>@match.ArchitectName</td>
                                 <td>@match.ArchitectSpecialty</td>
+                                <td>
+                                    <a href="/ClientInterface/Messages?architectId=@match.ArchitectId" 
+                                       class="message-icon-btn" 
+                                       title="Send message to @match.ArchitectName">
+                                        <span class="material-symbols-rounded">chat_bubble</span>
+                                    </a>
+                                </td>
                             </tr>
                         }
                     }
                     else
                     {
                         <tr>
-                            <td colspan="2" class="text-center text-muted">No matches found</td>
+                            <td colspan="3" class="text-center text-muted">No matches found</td>
                         </tr>
                     }
                 </tbody>
@@ -568,35 +655,26 @@
             <div class="overview-circle">
                 <svg width="100" height="100" class="circle-chart">
                     <circle cx="50" cy="50" r="42" fill="none" stroke="#E2E8F0" stroke-width="6"></circle>
-                    @if (Model.CurrentProject.ProgressPercentage >= 25)
+                    @if (Model.CurrentProject.ProgressPercentage >= 33)
                     {
                         <circle cx="50" cy="50" r="42" fill="none" stroke="#344EAD" stroke-width="6"
                                 stroke-dasharray="264" stroke-dashoffset="0"
                                 style="transform: rotate(-90deg); transform-origin: 50px 50px;"></circle>
                     }
                 </svg>
-                <div class="circle-label">Planning @(Model.CurrentProject.ProgressPercentage >= 25 ? "✓" : "")</div>
+                <div class="circle-label">Review @(Model.CurrentProject.ProgressPercentage >= 33 ? "?" : "")</div>
             </div>
             <div class="overview-circle">
                 <svg width="100" height="100" class="circle-chart">
                     <circle cx="50" cy="50" r="42" fill="none" stroke="#E2E8F0" stroke-width="6"></circle>
-                    @if (Model.CurrentProject.ProgressPercentage >= 50)
+                    @if (Model.CurrentProject.ProgressPercentage >= 66)
                     {
                         <circle cx="50" cy="50" r="42" fill="none" stroke="#344EAD" stroke-width="6"
                                 stroke-dasharray="264" stroke-dashoffset="0"
                                 style="transform: rotate(-90deg); transform-origin: 50px 50px;"></circle>
                     }
                 </svg>
-                <div class="circle-label">Designing @(Model.CurrentProject.ProgressPercentage >= 50 ? "✓" : "")</div>
-            </div>
-            <div class="overview-circle">
-                <svg width="100" height="100" class="circle-chart">
-                    <circle cx="50" cy="50" r="42" fill="none" stroke="#E2E8F0" stroke-width="6"></circle>
-                    <circle cx="50" cy="50" r="42" fill="none" stroke="#344EAD" stroke-width="6"
-                            stroke-dasharray="264" stroke-dashoffset="@(264 - (Model.CurrentProject.ProgressPercentage * 264 / 100))"
-                            style="transform: rotate(-90deg); transform-origin: 50px 50px;"></circle>
-                </svg>
-                <div class="circle-label">Development (@Model.CurrentProject.ProgressPercentage%)</div>
+                <div class="circle-label">Compliance @(Model.CurrentProject.ProgressPercentage >= 66 ? "?" : "")</div>
             </div>
             <div class="overview-circle">
                 <svg width="100" height="100" class="circle-chart">
@@ -608,7 +686,24 @@
                                 style="transform: rotate(-90deg); transform-origin: 50px 50px;"></circle>
                     }
                 </svg>
-                <div class="circle-label">Testing @(Model.CurrentProject.ProgressPercentage >= 90 ? "✓" : "🕒")</div>
+                <div class="circle-label">Finalization @(Model.CurrentProject.ProgressPercentage >= 90 ? "?" : "")</div>
+            </div>
+            <div class="overview-circle progress-circle">
+                <svg width="120" height="120" class="circle-chart progress-chart">
+                    <defs>
+                        <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#344EAD;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#2563EB;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="60" cy="60" r="50" fill="none" stroke="#E2E8F0" stroke-width="8"></circle>
+                    <circle cx="60" cy="60" r="50" fill="none" stroke="url(#progressGradient)" stroke-width="8"
+                            stroke-dasharray="314" stroke-dashoffset="@(314 - (Model.CurrentProject.ProgressPercentage * 314 / 100))"
+                            style="transform: rotate(-90deg); transform-origin: 60px 60px; stroke-linecap: round;"
+                            class="progress-indicator"></circle>
+                    <text x="60" y="65" text-anchor="middle" class="progress-text">@Model.CurrentProject.ProgressPercentage%</text>
+                </svg>
+                <div class="circle-label progress-label">Overall Progress</div>
             </div>
         </div>
     }

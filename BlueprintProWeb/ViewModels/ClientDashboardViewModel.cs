@@ -14,6 +14,7 @@ namespace BlueprintProWeb.ViewModels
 
     public class MatchSummary
     {
+        public string ArchitectId { get; set; } // Added for messaging
         public string ArchitectName { get; set; }
         public string ArchitectSpecialty { get; set; }
         public string Status { get; set; }

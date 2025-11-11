@@ -14,6 +14,7 @@ namespace BlueprintProWeb.ViewModels
 
     public class ClientMatchSummary
     {
+        public string ClientId { get; set; } // Added for messaging
         public string ClientName { get; set; }
         public string ClientNeeds { get; set; }
         public string Status { get; set; }
