@@ -1,6 +1,7 @@
 ﻿using BlueprintProWeb.Data;
 using BlueprintProWeb.Hubs;
 using BlueprintProWeb.Models;
+using BlueprintProWeb.ViewModels;
 using iText.Commons.Actions.Contexts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
@@ -791,6 +792,57 @@ namespace BlueprintProWeb.Controllers
             return Ok(new { success = true });
         }
 
+        // 📱 Edit Blueprint (Mobile)
+        [HttpPost("EditBlueprint")]
+        public async Task<IActionResult> EditBlueprint([FromForm] MobileEditBlueprintViewModel vm)
+        {
+            var blueprint = context.Blueprints.Find(vm.blueprintId);
+            if (blueprint == null)
+                return NotFound();
+
+            if (!string.IsNullOrWhiteSpace(vm.blueprintName))
+                blueprint.blueprintName = vm.blueprintName;
+
+            if (vm.blueprintPrice.HasValue)
+                blueprint.blueprintPrice = vm.blueprintPrice.Value;
+
+            if (!string.IsNullOrWhiteSpace(vm.blueprintStyle))
+                blueprint.blueprintStyle = vm.blueprintStyle;
+
+            if (!string.IsNullOrWhiteSpace(vm.blueprintDescription))
+            {
+                blueprint.blueprintDescription = vm.blueprintDescription;
+            }
+
+            if (vm.BlueprintImage != null)
+            {
+                string oldFileName = blueprint.blueprintImage;
+                string newFile = UploadMobileFile(vm.BlueprintImage, oldFileName);
+                blueprint.blueprintImage = newFile;
+            }
+
+            context.SaveChanges();
+            return Ok(new { success = true, message = "Blueprint updated successfully." });
+        }
+
+        [HttpDelete("DeleteBlueprint/{blueprintId}")]
+        public async Task<IActionResult> DeleteBlueprint(int blueprintId)
+        {
+            var blueprint = await context.Blueprints.FindAsync(blueprintId);
+            if (blueprint == null)
+                return NotFound(new { success = false, message = "Blueprint not found." });
+
+            if (!string.IsNullOrEmpty(blueprint.blueprintImage))
+            {
+                var path = Path.Combine(env.WebRootPath, "images", blueprint.blueprintImage);
+                if (System.IO.File.Exists(path))
+                    System.IO.File.Delete(path);
+            }
+
+            context.Blueprints.Remove(blueprint);
+            await context.SaveChangesAsync();
+            return Ok(new { success = true, message = "Blueprint deleted successfully." });
+        }
 
     }
 }
