@@ -1,6 +1,7 @@
 ﻿using BlueprintProWeb.Data;
 using BlueprintProWeb.Hubs;
 using BlueprintProWeb.Models;
+using BlueprintProWeb.ViewModels;
 using iText.Commons.Actions.Contexts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
@@ -319,7 +320,8 @@ namespace BlueprintProWeb.Controllers
                 if (string.IsNullOrWhiteSpace(architectId))
                     return BadRequest(new { success = false, message = "ArchitectId is required." });
 
-                var conversations = await context.Messages
+                // Step 1: Fetch raw UTC conversations
+                var rawConversations = await context.Messages
                     .Where(m => m.ArchitectId == architectId || m.ClientId == architectId)
                     .GroupBy(m => m.ClientId)
                     .Select(g => new
@@ -339,9 +341,24 @@ namespace BlueprintProWeb.Controllers
                             .FirstOrDefault(),
                         UnreadCount = g.Count(x => x.ClientId == g.Key && !x.IsRead)
                     })
-                    .OrderByDescending(x => x.LastMessageTime)
                     .ToListAsync();
 
+                // Step 2: Convert timestamps to Philippine time
+                var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
+                var conversations = rawConversations
+                    .Select(c => new
+                    {
+                        c.ClientId,
+                        c.ClientName,
+                        c.LastMessage,
+                        LastMessageTime = TimeZoneInfo.ConvertTimeFromUtc(c.LastMessageTime, phTimeZone),
+                        c.ProfileUrl,
+                        c.UnreadCount
+                    })
+                    .OrderByDescending(x => x.LastMessageTime)
+                    .ToList();
+
+                // Step 3: Return adjusted list
                 return Ok(new { success = true, messages = conversations });
             }
             catch (Exception ex)
@@ -349,7 +366,6 @@ namespace BlueprintProWeb.Controllers
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }
-
 
         [HttpGet("ArchitectMatches")]
         [AllowAnonymous]
@@ -393,8 +409,8 @@ namespace BlueprintProWeb.Controllers
                 if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(architectId))
                     return BadRequest(new { success = false, message = "ClientId and ArchitectId are required." });
 
-                // ✅ Fetch all messages between architect and client
-                var messages = await context.Messages
+                // Step 1: Fetch raw UTC messages
+                var messagesRaw = await context.Messages
                     .Where(m =>
                         (m.ClientId == clientId && m.ArchitectId == architectId) ||
                         (m.ClientId == architectId && m.ArchitectId == clientId))
@@ -412,12 +428,26 @@ namespace BlueprintProWeb.Controllers
                     })
                     .ToListAsync();
 
-                // ✅ Mark unread messages as read for this architect
+                // Step 2: Convert to Philippine time
+                var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
+                var messages = messagesRaw.Select(m => new
+                {
+                    m.MessageId,
+                    m.ClientId,
+                    m.ArchitectId,
+                    m.SenderId,
+                    m.MessageBody,
+                    MessageDate = TimeZoneInfo.ConvertTimeFromUtc(m.MessageDate, phTimeZone),
+                    m.IsRead,
+                    m.AttachmentUrl
+                }).ToList();
+
+                // Step 3: Mark unread client-sent messages as read
                 var unreadMessages = await context.Messages
                     .Where(m =>
                         m.ArchitectId == architectId &&
                         m.ClientId == clientId &&
-                        m.SenderId == clientId &&  // only mark those sent by the client
+                        m.SenderId == clientId &&  // mark only those from client
                         !m.IsRead)
                     .ToListAsync();
 
@@ -427,6 +457,7 @@ namespace BlueprintProWeb.Controllers
                     await context.SaveChangesAsync();
                 }
 
+                // Step 4: Return PH-time adjusted messages
                 return Ok(new { success = true, messages });
             }
             catch (Exception ex)
@@ -434,6 +465,7 @@ namespace BlueprintProWeb.Controllers
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }
+
         [HttpPost("Architect/SendMessage")]
         [AllowAnonymous] // or [Authorize] if you use auth later
         public async Task<IActionResult> SendMessageFromArchitect([FromBody] SendMessageRequest request)
@@ -760,5 +792,56 @@ namespace BlueprintProWeb.Controllers
             return Ok(new { success = true });
         }
 
+        // 📱 Edit Blueprint (Mobile)
+        [HttpPost("EditBlueprint")]
+        public async Task<IActionResult> EditBlueprint([FromForm] MobileEditBlueprintViewModel vm)
+        {
+            var blueprint = context.Blueprints.Find(vm.blueprintId);
+            if (blueprint == null)
+                return NotFound();
+
+            if (!string.IsNullOrWhiteSpace(vm.blueprintName))
+                blueprint.blueprintName = vm.blueprintName;
+
+            if (vm.blueprintPrice.HasValue)
+                blueprint.blueprintPrice = vm.blueprintPrice.Value;
+
+            if (!string.IsNullOrWhiteSpace(vm.blueprintStyle))
+                blueprint.blueprintStyle = vm.blueprintStyle;
+
+            if (!string.IsNullOrWhiteSpace(vm.blueprintDescription))
+            {
+                blueprint.blueprintDescription = vm.blueprintDescription;
+            }
+
+            if (vm.BlueprintImage != null)
+            {
+                string oldFileName = blueprint.blueprintImage;
+                string newFile = UploadMobileFile(vm.BlueprintImage, oldFileName);
+                blueprint.blueprintImage = newFile;
+            }
+
+            context.SaveChanges();
+            return Ok(new { success = true, message = "Blueprint updated successfully." });
+        }
+
+        [HttpDelete("DeleteBlueprint/{blueprintId}")]
+        public async Task<IActionResult> DeleteBlueprint(int blueprintId)
+        {
+            var blueprint = await context.Blueprints.FindAsync(blueprintId);
+            if (blueprint == null)
+                return NotFound(new { success = false, message = "Blueprint not found." });
+
+            if (!string.IsNullOrEmpty(blueprint.blueprintImage))
+            {
+                var path = Path.Combine(env.WebRootPath, "images", blueprint.blueprintImage);
+                if (System.IO.File.Exists(path))
+                    System.IO.File.Delete(path);
+            }
+
+            context.Blueprints.Remove(blueprint);
+            await context.SaveChangesAsync();
+            return Ok(new { success = true, message = "Blueprint deleted successfully." });
+        }
     }
 }
