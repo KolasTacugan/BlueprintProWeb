@@ -828,7 +828,12 @@
         </div>
 
         <div class="side-buttons">
-            <button class="card @(Model.IsPro ? "subscription-card-pro" : "")" onclick="openSubscriptionModal()">Subscription</button>
+            <button class="card @(Model.IsPro ? "subscription-card-pro" : "")"
+        title="@(Model.Role == "Client" ? "Subscription is only available for architects" : "")"
+        onclick="@(Model.Role == "Client" ? "return false;" : "openSubscriptionModal()")"
+        @(Model.Role == "Client" ? "disabled style=\"opacity:0.5; cursor:not-allowed;\"" : "")>
+    Subscription
+</button>
         </div>
     </div>
 
