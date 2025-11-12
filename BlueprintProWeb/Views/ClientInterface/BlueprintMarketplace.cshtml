@@ -813,6 +813,13 @@
         box-shadow: 0 2px 8px rgba(52, 78, 173, 0.2);
     }
 
+    .disabled-cart-btn {
+        background-color: #ccc !important;
+        color: #555 !important;
+        cursor: not-allowed !important;
+    }
+
+
     .cart-checkout-btn:hover:not(:disabled) {
         background: linear-gradient(135deg, #2563EB 0%, #344EAD 100%);
         transform: translateY(-1px);
@@ -1624,9 +1631,28 @@
             savedEmpty.style.display = savedItems.length === 0 ? 'block' : 'none';
             renderCartItems();
             renderSavedItems();
+
+            // 💾 Save to local storage
             localStorage.setItem(`blueprintCart_${userId}`, JSON.stringify(cart));
             localStorage.setItem(`blueprintSaved_${userId}`, JSON.stringify(savedItems));
-        }
+
+            // 🛒 Disable Add to Cart buttons for already added items
+            document.querySelectorAll('.add-to-cart').forEach(btn => {
+                const id = parseInt(btn.dataset.id);
+                const inCart = cart.some(item => parseInt(item.id) === id);
+
+                if (inCart) {
+                    btn.disabled = true;
+                    btn.innerHTML = `<i class="fas fa-check"></i> Item Added`;
+                    btn.classList.add('disabled-cart-btn');
+                } else {
+                    btn.disabled = false;
+                    btn.innerHTML = `<i class="fas fa-cart-plus"></i> Add to Cart`;
+                    btn.classList.remove('disabled-cart-btn');
+                }
+        });
+}
+
 
         function renderCartItems() {
             cartItems.innerHTML = '';
