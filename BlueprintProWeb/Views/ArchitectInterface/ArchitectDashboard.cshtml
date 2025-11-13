@@ -135,18 +135,27 @@
             color: #344EAD;
         }
 
+        /* Updated matches-link to be a button */
         .matches-link {
-            color: #344EAD;
-            font-size: 0.8rem; /* Smaller text */
-            font-weight: 500;
-            text-decoration: underline;
-            padding: 0.4rem 0.8rem; /* Reduced padding */
-            border-radius: 6px;
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            color: white;
+            font-size: 0.75rem; /* Smaller text */
+            font-weight: 600;
+            text-decoration: none;
+            padding: 0.5rem 1rem; /* Button-like padding */
+            border-radius: 8px;
+            border: none;
             transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(52, 78, 173, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .matches-link:hover {
-            background-color: #F1F7F9;
+            background: linear-gradient(135deg, #2563EB 0%, #1d4ed8 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(52, 78, 173, 0.3);
+            color: white;
             text-decoration: none;
         }
 
@@ -168,12 +177,46 @@
             text-align: left;
         }
 
+        /* Adjust column widths for better layout */
+        .matches-table th:first-child,
+        .matches-table td:first-child {
+            width: 35%; /* Client Name column */
+        }
+
+        .matches-table th:nth-child(2),
+        .matches-table td:nth-child(2) {
+            width: 30%; /* Looking for column */
+        }
+
+        .matches-table th:last-child,
+        .matches-table td:last-child {
+            width: 35%; /* Message column - wider */
+            text-align: center;
+            padding: 0.75rem 1rem;
+        }
+
         .matches-table td {
             background: #F1F7F9;
             color: #2d3748; /* Darker text */
             font-size: 0.8rem; /* Smaller text */
             border: none;
             padding: 0.75rem 1rem; /* Reduced padding */
+        }
+
+        /* Clickable client name styling */
+        .client-name-link {
+            color: #344EAD;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border-radius: 4px;
+            padding: 0.2rem 0.4rem;
+        }
+
+        .client-name-link:hover {
+            background: rgba(52, 78, 173, 0.1);
+            color: #2563EB;
+            text-decoration: none;
         }
 
         .dashboard-blueprints {
@@ -219,17 +262,25 @@
         }
 
         .blueprint-link {
-            color: #344EAD;
-            font-size: 0.8rem; /* Smaller text */
-            font-weight: 500;
-            text-decoration: underline;
-            padding: 0.4rem 0.8rem; /* Reduced padding */
-            border-radius: 6px;
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            color: white;
+            font-size: 0.7rem; /* Smaller text */
+            font-weight: 600;
+            text-decoration: none;
+            padding: 0.4rem 0.8rem; /* Button-like padding */
+            border-radius: 8px;
+            border: none;
             transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(52, 78, 173, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .blueprint-link:hover {
-            background-color: #F1F7F9;
+            background: linear-gradient(135deg, #2563EB 0%, #1d4ed8 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(52, 78, 173, 0.3);
+            color: white;
             text-decoration: none;
         }
 
@@ -333,6 +384,7 @@
             height: 100%;
         }
 
+        /* Project Overview circles - Enhanced for proper progress visualization */
         .overview-circles {
             display: flex;
             justify-content: space-between;
@@ -344,6 +396,16 @@
             flex-direction: column;
             align-items: center;
             flex: 1;
+        }
+
+        .phase-circle {
+            width: 110px; /* Slightly larger for better visibility */
+            height: 110px;
+            margin-bottom: 0.75rem; /* Reduced spacing */
+        }
+
+        .phase-progress-indicator {
+            transition: stroke-dashoffset 0.8s ease-in-out;
         }
 
         .circle-chart {
@@ -362,6 +424,13 @@
             color: #2d3748; /* Darker text */
             font-size: 0.8rem; /* Smaller text */
             font-weight: 500;
+            text-align: center;
+        }
+
+        .phase-label {
+            color: #2d3748; /* Darker text */
+            font-size: 0.8rem; /* Smaller text */
+            font-weight: 600;
             text-align: center;
         }
 
@@ -564,13 +633,6 @@
             text-decoration: none;
         }
 
-        .matches-table th:last-child,
-        .matches-table td:last-child {
-            text-align: center;
-            width: 80px; /* Made wider for better spacing */
-            padding: 0.75rem 1rem;
-        }
-
         /* Responsive adjustments */
         @@media (max-width: 1200px) {
             .dashboard-content-row {
@@ -595,6 +657,22 @@
 
             .progress-circle {
                 min-width: 140px;
+            }
+
+            .phase-circle {
+                width: 100px;
+                height: 100px;
+            }
+
+            .phase-circle circle {
+                r: 38;
+                cx: 50;
+                cy: 50;
+            }
+
+            .phase-circle text {
+                x: 50;
+                y: 55;
             }
 
             .project-details-section {
@@ -630,6 +708,23 @@
                 display: grid;
                 grid-template-columns: repeat(2, 1fr);
                 gap: 0.75rem; /* Tighter on mobile */
+            }
+
+            .phase-circle {
+                width: 85px; /* Even smaller on mobile */
+                height: 85px;
+            }
+
+            .phase-circle circle {
+                r: 32;
+                cx: 42.5;
+                cy: 42.5;
+            }
+
+            .phase-circle text {
+                x: 42.5;
+                y: 47;
+                font-size: 0.8rem;
             }
 
             .circle-chart {
@@ -761,7 +856,13 @@
                         @foreach (var match in Model.RecentMatches)
                         {
                             <tr>
-                                <td>@match.ClientName</td>
+                                <td>
+                                    <a href="/ArchitectInterface/Messages?clientId=@match.ClientId" 
+                                       class="client-name-link"
+                                       title="Chat with @match.ClientName">
+                                        @match.ClientName
+                                    </a>
+                                </td>
                                 <td>@match.ClientNeeds</td>
                                 <td>
                                     <a href="/ArchitectInterface/Messages?clientId=@match.ClientId" 
@@ -832,41 +933,78 @@
 
         <div class="overview-circles">
             <div class="overview-circle">
-                <svg width="100" height="100" class="circle-chart">
-                    <circle cx="50" cy="50" r="42" fill="none" stroke="#E2E8F0" stroke-width="6"></circle>
-                    @if (Model.CurrentProject.ProgressPercentage >= 33)
-                    {
-                        <circle cx="50" cy="50" r="42" fill="none" stroke="#344EAD" stroke-width="6"
-                                stroke-dasharray="264" stroke-dashoffset="0"
-                                style="transform: rotate(-90deg); transform-origin: 50px 50px;"></circle>
-                    }
+                @{
+                    var reviewProgress = Model.CurrentProject.ProgressPercentage >= 33 ? 100 : 
+                                       Model.CurrentProject.ProgressPercentage < 33 && Model.CurrentProject.ProgressPercentage > 0 ? 
+                                       (Model.CurrentProject.ProgressPercentage * 100 / 33) : 0;
+                    var reviewCircumference = 2 * Math.PI * 42; // 2?r where r = 42
+                    var reviewOffset = reviewCircumference - (reviewProgress * reviewCircumference / 100);
+                }
+                <svg width="110" height="110" class="phase-circle">
+                    <defs>
+                        <linearGradient id="reviewGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#344EAD;stop-opacity:0.8" />
+                            <stop offset="100%" style="stop-color:#2563EB;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="55" cy="55" r="42" fill="none" stroke="#E2E8F0" stroke-width="10"></circle>
+                    <circle cx="55" cy="55" r="42" fill="none" stroke="url(#reviewGradient)" stroke-width="10"
+                            stroke-dasharray="@reviewCircumference" stroke-dashoffset="@reviewOffset"
+                            style="transform: rotate(-90deg); transform-origin: 55px 55px; stroke-linecap: round;"
+                            class="phase-progress-indicator"></circle>
+                    <text x="55" y="60" text-anchor="middle" class="progress-text" style="font-size: 0.9rem;">@((int)reviewProgress)%</text>
                 </svg>
-                <div class="circle-label">Review @(Model.CurrentProject.ProgressPercentage >= 33 ? "?" : "")</div>
+                <div class="phase-label">Review</div>
             </div>
+            
             <div class="overview-circle">
-                <svg width="100" height="100" class="circle-chart">
-                    <circle cx="50" cy="50" r="42" fill="none" stroke="#E2E8F0" stroke-width="6"></circle>
-                    @if (Model.CurrentProject.ProgressPercentage >= 66)
-                    {
-                        <circle cx="50" cy="50" r="42" fill="none" stroke="#344EAD" stroke-width="6"
-                                stroke-dasharray="264" stroke-dashoffset="0"
-                                style="transform: rotate(-90deg); transform-origin: 50px 50px;"></circle>
-                    }
+                @{
+                    var complianceProgress = Model.CurrentProject.ProgressPercentage >= 66 ? 100 : 
+                                           Model.CurrentProject.ProgressPercentage >= 33 && Model.CurrentProject.ProgressPercentage < 66 ? 
+                                           ((Model.CurrentProject.ProgressPercentage - 33) * 100 / 33) : 0;
+                    var complianceOffset = reviewCircumference - (complianceProgress * reviewCircumference / 100);
+                }
+                <svg width="110" height="110" class="phase-circle">
+                    <defs>
+                        <linearGradient id="complianceGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#2563EB;stop-opacity:0.8" />
+                            <stop offset="100%" style="stop-color:#344EAD;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="55" cy="55" r="42" fill="none" stroke="#E2E8F0" stroke-width="10"></circle>
+                    <circle cx="55" cy="55" r="42" fill="none" stroke="url(#complianceGradient)" stroke-width="10"
+                            stroke-dasharray="@reviewCircumference" stroke-dashoffset="@complianceOffset"
+                            style="transform: rotate(-90deg); transform-origin: 55px 55px; stroke-linecap: round;"
+                            class="phase-progress-indicator"></circle>
+                    <text x="55" y="60" text-anchor="middle" class="progress-text" style="font-size: 0.9rem;">@((int)complianceProgress)%</text>
                 </svg>
-                <div class="circle-label">Compliance @(Model.CurrentProject.ProgressPercentage >= 66 ? "?" : "")</div>
+                <div class="phase-label">Compliance</div>
             </div>
+            
             <div class="overview-circle">
-                <svg width="100" height="100" class="circle-chart">
-                    <circle cx="50" cy="50" r="42" fill="none" stroke="#E2E8F0" stroke-width="6"></circle>
-                    @if (Model.CurrentProject.ProgressPercentage >= 90)
-                    {
-                        <circle cx="50" cy="50" r="42" fill="none" stroke="#344EAD" stroke-width="6"
-                                stroke-dasharray="264" stroke-dashoffset="0"
-                                style="transform: rotate(-90deg); transform-origin: 50px 50px;"></circle>
-                    }
+                @{
+                    var finalizationProgress = Model.CurrentProject.ProgressPercentage >= 90 ? 100 : 
+                                             Model.CurrentProject.ProgressPercentage >= 66 && Model.CurrentProject.ProgressPercentage < 90 ? 
+                                             ((Model.CurrentProject.ProgressPercentage - 66) * 100 / 24) : 0;
+                    var finalizationOffset = reviewCircumference - (finalizationProgress * reviewCircumference / 100);
+                }
+                <svg width="110" height="110" class="phase-circle">
+                    <defs>
+                        <linearGradient id="finalizationGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#344EAD;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#2563EB;stop-opacity:0.8" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="55" cy="55" r="42" fill="none" stroke="#E2E8F0" stroke-width="10"></circle>
+                    <circle cx="55" cy="55" r="42" fill="none" stroke="url(#finalizationGradient)" stroke-width="10"
+                            stroke-dasharray="@reviewCircumference" stroke-dashoffset="@finalizationOffset"
+                            style="transform: rotate(-90deg); transform-origin: 55px 55px; stroke-linecap: round;"
+                            class="phase-progress-indicator"></circle>
+                    <text x="55" y="60" text-anchor="middle" class="progress-text" style="font-size: 0.9rem;">@((int)finalizationProgress)%</text>
                 </svg>
-                <div class="circle-label">Finalization @(Model.CurrentProject.ProgressPercentage >= 90 ? "?" : "")</div>
+                <div class="phase-label">Finalization</div>
             </div>
+            
             <div class="overview-circle progress-circle">
                 <svg width="120" height="120" class="circle-chart progress-chart">
                     <defs>
@@ -875,8 +1013,8 @@
                             <stop offset="100%" style="stop-color:#2563EB;stop-opacity:1" />
                         </linearGradient>
                     </defs>
-                    <circle cx="60" cy="60" r="50" fill="none" stroke="#E2E8F0" stroke-width="8"></circle>
-                    <circle cx="60" cy="60" r="50" fill="none" stroke="url(#progressGradient)" stroke-width="8"
+                    <circle cx="60" cy="60" r="50" fill="none" stroke="#E2E8F0" stroke-width="10"></circle>
+                    <circle cx="60" cy="60" r="50" fill="none" stroke="url(#progressGradient)" stroke-width="10"
                             stroke-dasharray="314" stroke-dashoffset="@(314 - (Model.CurrentProject.ProgressPercentage * 314 / 100))"
                             style="transform: rotate(-90deg); transform-origin: 60px 60px; stroke-linecap: round;"
                             class="progress-indicator"></circle>

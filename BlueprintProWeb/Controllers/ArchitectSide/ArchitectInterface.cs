@@ -41,7 +41,6 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             _hubContext = hubContext;
             _stripeSettings = stripeSettings.Value;
             _imageService = imageService;
-
         }
 
         public async Task<IActionResult> ArchitectDashboard()
@@ -179,6 +178,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
 
             return View(blueprints);
         }
+        
         public async Task<IActionResult> Projects()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -245,6 +245,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
         {
             return View();
         }
+        
         [HttpPost]
         public async Task<IActionResult> AddProjectBlueprints(BlueprintViewModel vm)
         {
@@ -302,7 +303,6 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             context.Notifications.Add(notif);
             await context.SaveChangesAsync();
 
-
             return RedirectToAction("Projects");
         }
 
@@ -321,7 +321,6 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             }
             return fileName;
         }
-
 
         private string UploadFile(BlueprintViewModel vm, string? oldFileName = null)
         {
@@ -373,7 +372,6 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             }
             return fileName;
         }
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -468,23 +466,36 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             public bool Approve { get; set; }
         }
 
-        public IActionResult PendingMatches()
+        public async Task<IActionResult> Matches()
         {
             var currentUserId = _userManager.GetUserId(User);
 
-            var pending = context.Matches
-                .Where(m => m.ArchitectId == currentUserId && m.MatchStatus == "Pending")
+            // Get all matches for this architect
+            var allMatches = await context.Matches
+                .Where(m => m.ArchitectId == currentUserId)
+                .Include(m => m.Client)
                 .Select(m => new MatchViewModel
                 {
                     MatchId = m.MatchId,
                     ClientId = m.ClientId,
                     ClientName = m.Client.user_fname + " " + m.Client.user_lname,
                     MatchDate = m.MatchDate,
-                    MatchStatus = m.MatchStatus
+                    MatchStatus = m.MatchStatus,
+                    ClientProfileUrl = string.IsNullOrEmpty(m.Client.user_profilePhoto)
+                        ? "/images/profile.jpg"
+                        : m.Client.user_profilePhoto,
+                    ClientEmail = m.Client.Email,
+                    ClientPhone = m.Client.PhoneNumber
                 })
-                .ToList();
+                .ToListAsync();
 
-            return View(pending);
+            return View(allMatches);
+        }
+
+        public IActionResult PendingMatches()
+        {
+            // Redirect to the main Matches page since PendingMatches is deprecated
+            return RedirectToAction("Matches");
         }
 
         [HttpGet]
@@ -512,7 +523,6 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 profilePhoto = profilePhoto
             });
         }
-
 
         // GET: ArchitectInterface/Messages
         [HttpGet]
@@ -682,7 +692,6 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             return RedirectToAction("Messages", new { clientId });
         }
 
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult CreateCheckoutSession()
@@ -776,15 +785,12 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             return RedirectToAction("Profile", "Account");
         }
 
-
-
         [Authorize]
         public IActionResult Cancel()
         {
             TempData["ErrorMessage"] = "Payment was canceled. You have not been charged.";
             return RedirectToAction("ArchitectDashboard");
         }
-
 
         [HttpPost]
         [Authorize]
@@ -935,7 +941,6 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             context.Notifications.Add(notif);
             await context.SaveChangesAsync();
 
-
             return RedirectToAction("ProjectTracker", new { id = project.blueprint_Id });
         }
 
@@ -1052,7 +1057,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 {
                     user_Id = project.user_clientId,
                     notification_Title = "Project Completed",
-                    notification_Message = $"Your project '{project.project_Title}' has been marked as finished by architect {project.Architect?.user_fname} {project.Architect?.user_lname}.", // 👈 Added architect name if available
+                    notification_Message = $"Your project '{project.project_Title}' has been marked as finished by architect {project.Architect?.user_fname} {project.Architect?.user_lname}.",
                     notification_Date = DateTime.Now,
                     notification_isRead = false
                 };
