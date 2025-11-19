@@ -37,11 +37,21 @@
         }
 
         .dashboard-greeting {
-            color: #1a202c; /* Much darker text for better visibility */
-            font-weight: 600;
-            font-size: 1.75rem; /* Slightly smaller for professional look */
-            margin-bottom: 1.5rem; /* Reduced spacing */
+            color: #1a202c;
+            margin-bottom: 1.5rem;
             padding-top: 0;
+        }
+
+        .greeting-text {
+            font-weight: 600;
+            font-size: 1.75rem;
+        }
+
+        .greeting-subtitle {
+            font-size: 1rem;
+            font-weight: 400;
+            color: #718096; /* Lighter gray for subtitle */
+            margin-top: 0.5rem;
         }
 
         .dashboard-greeting .text-primary {
@@ -632,7 +642,12 @@
 }
 
 <div class="dashboard-greeting mb-4">
-    Welcome, <span class="text-primary">@ViewData["UserFirstName"]</span>!
+    <div class="greeting-text">
+        Welcome, <span class="text-primary">@ViewData["UserFirstName"]</span>!
+    </div>
+    <div class="greeting-subtitle">
+        Your overview—stay on top of things.
+    </div>
 </div>
 
 <!-- First Row: Stats Cards Only -->
