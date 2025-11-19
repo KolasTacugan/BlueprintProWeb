@@ -1,504 +1,856 @@
-﻿@{
+@model BlueprintProWeb.ViewModels.ClientDashboardViewModel
+@{
     ViewData["Title"] = "ClientDashboard";
     Layout = "~/Views/Shared/_ClientSharedLayout.cshtml";
 }
 
 @section Styles {
     <style>
-        html, body {
-            height: 100%;
-            min-height: 100%;
+        /* Restore the background image */
+        body::before {
+            background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
+            opacity: 0.1 !important;
         }
 
+        /* Clean background matching the image with subtle pattern */
         body {
-            background: #f6f7fa url('/images/dashboard-bg.jpg') no-repeat center center fixed;
-            background-size: cover;
-            min-height: 100vh;
-            height: 100%;
-            overflow-y: auto;
+            background: #F1F7F9 !important;
+            overflow-y: auto !important;
+            height: auto !important;
         }
 
-        .dashboard-content-wrapper {
-            position: relative;
-            z-index: 10;
-            background: transparent;
-            min-height: 100vh;
-            width: 100%;
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2.5rem 1.5rem 2.5rem 1.5rem;
-            /* Add a little margin for separation from the page edge */
-            margin-top: 2rem;
-            margin-bottom: 2rem;
+        /* Main content positioning that responds to sidebar state */
+        main.container {
+            margin-left: 300px; /* Default for expanded sidebar */
+            margin-top: 90px; /* Account for navbar */
+            padding: 1.5rem; /* Reduced from 2rem for tighter packing */
+            padding-top: 4rem; /* Maintain top padding */
+            max-width: calc(100% - 320px);
+            transition: margin-left 0.4s ease, max-width 0.4s ease; /* Smooth transition */
+        }
+
+        /* When sidebar is collapsed, adjust main content */
+        .sidebar.collapsed ~ * main.container,
+        body:has(.sidebar.collapsed) main.container {
+            margin-left: 110px; /* Account for collapsed sidebar (85px + margins) */
+            max-width: calc(100% - 130px);
         }
 
         .dashboard-greeting {
-            color: #091635;
-            font-weight: 700;
-            font-size: 2rem;
-            margin-bottom: 2rem;
+            color: #1a202c; /* Much darker text for better visibility */
+            font-weight: 600;
+            font-size: 1.75rem; /* Slightly smaller for professional look */
+            margin-bottom: 1.5rem; /* Reduced spacing */
+            padding-top: 0;
         }
 
         .dashboard-greeting .text-primary {
-            color: #0D3C80 !important;
+            color: #344EAD !important;
         }
 
-        .dashboard-row {
+        /* First row - just stats cards */
+        .dashboard-stats-row {
             display: flex;
-            gap: 2rem;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .dashboard-stats {
-            display: flex;
-            gap: 2rem;
-            flex: 2 1 0;
-            min-width: 0;
+            gap: 1.25rem; /* Slightly reduced gap */
+            margin-bottom: 1.25rem; /* Tighter spacing */
         }
 
         .stat-card {
-            background: #fff;
-            border-radius: 14px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            border: 1px solid #DEE2E6;
-            flex: 1 1 0;
-            min-width: 180px;
-            padding: 1.5rem 1rem;
+            background: #FFFFFF;
+            border-radius: 12px; /* Slightly smaller radius */
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: none;
+            flex: 1;
+            padding: 1.5rem 1.25rem; /* Reduced padding for tighter look */
             display: flex;
             flex-direction: column;
             align-items: flex-start;
             justify-content: center;
-            min-height: 110px;
+            min-height: 100px; /* Reduced height */
+            transition: all 0.2s ease;
         }
 
-        .stat-card .stat-icon {
-            font-size: 1.5rem;
-            color: #0D3C80;
-            margin-bottom: 0.5rem;
+        .stat-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
         }
 
         .stat-card .stat-value {
-            color: #0D3C80;
-            font-size: 2rem;
+            color: #344EAD;
+            font-size: 2.25rem; /* Slightly smaller */
             font-weight: 700;
             margin-bottom: 0.25rem;
+            line-height: 1;
         }
 
         .stat-card .stat-label {
-            color: #091635;
-            font-size: 1.1rem;
-            font-weight: 700;
+            color: #1a202c; /* Much darker text */
+            font-size: 0.9rem; /* Slightly smaller */
+            font-weight: 600;
+        }
+
+        /* Second row - matches and blueprint card side by side with gap */
+        .dashboard-content-row {
+            display: flex;
+            gap: 1.5rem; /* Add proper gap between cards */
+            margin-bottom: 1.25rem; /* Tighter spacing */
+            align-items: stretch;
+        }
+
+        .dashboard-matches {
+            background: #FFFFFF;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: none;
+            padding: 1.25rem; /* Reduced padding */
+            flex: 2 1 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .matches-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.25rem; /* Reduced spacing */
+        }
+
+        .matches-title {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem; /* Slightly tighter */
+            color: #1a202c; /* Much darker text */
+            font-weight: 600;
+            font-size: 1rem; /* Slightly smaller */
+        }
+
+        .matches-icon {
+            width: 28px; /* Slightly smaller */
+            height: 28px;
+            background: #F1F7F9;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #344EAD;
+        }
+
+        /* Updated matches-link to be a button */
+        .matches-link {
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            color: white;
+            font-size: 0.75rem; /* Smaller text */
+            font-weight: 600;
+            text-decoration: none;
+            padding: 0.5rem 1rem; /* Button-like padding */
+            border-radius: 8px;
+            border: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(52, 78, 173, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .matches-link:hover {
+            background: linear-gradient(135deg, #2563EB 0%, #1d4ed8 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(52, 78, 173, 0.3);
+            color: white;
+            text-decoration: none;
+        }
+
+        .matches-table {
+            width: 100%;
+            background: #F1F7F9;
+            border-radius: 10px;
+            overflow: hidden;
+            flex: 1;
+        }
+
+        .matches-table th {
+            background: #F1F7F9;
+            color: #1a202c; /* Much darker text */
+            font-weight: 600;
+            font-size: 0.8rem; /* Smaller text */
+            border: none;
+            padding: 0.75rem 1rem; /* Reduced padding */
+            text-align: left;
+        }
+
+        /* Adjust column widths for better layout */
+        .matches-table th:first-child,
+        .matches-table td:first-child {
+            width: 35%; /* Architect Name column */
+        }
+
+        .matches-table th:nth-child(2),
+        .matches-table td:nth-child(2) {
+            width: 30%; /* Type column */
+        }
+
+        .matches-table th:last-child,
+        .matches-table td:last-child {
+            width: 35%; /* Message column - wider */
+            text-align: center;
+            padding: 0.75rem 1rem;
+        }
+
+        .matches-table td {
+            background: #F1F7F9;
+            color: #2d3748; /* Darker text */
+            font-size: 0.8rem; /* Smaller text */
+            border: none;
+            padding: 0.75rem 1rem; /* Reduced padding */
+        }
+
+        /* Clickable architect name styling */
+        .architect-name-link {
+            color: #344EAD;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border-radius: 4px;
+            padding: 0.2rem 0.4rem;
+        }
+
+        .architect-name-link:hover {
+            background: rgba(52, 78, 173, 0.1);
+            color: #2563EB;
+            text-decoration: none;
         }
 
         .dashboard-blueprints {
-            background: #fff;
-            border-radius: 14px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            border: 1px solid #DEE2E6;
-            min-width: 260px;
-            max-width: 320px;
-            flex: 1 1 260px;
-            padding: 1.5rem 1rem;
+            background: #FFFFFF;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: none;
+            /* Match the exact width of one stat card - calculated as (100% - 2 gaps) / 3 */
+            width: calc((100% - 2.5rem) / 3); /* 2.5rem = 2 * 1.25rem gaps */
+            min-width: calc((100% - 2.5rem) / 3);
+            max-width: calc((100% - 2.5rem) / 3);
+            flex: none; /* Remove flex grow/shrink to maintain exact width */
+            padding: 1.25rem; /* Reduced padding */
             display: flex;
             flex-direction: column;
-            justify-content: flex-start;
         }
 
-        .dashboard-blueprints .blueprint-header {
+        .blueprint-header-section {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            font-weight: 700;
-            color: #091635;
-            margin-bottom: 0.5rem;
+            justify-content: space-between;
+            margin-bottom: 1.25rem; /* Reduced spacing */
         }
 
-        .dashboard-blueprints .blueprint-header i {
-            background: #DEE2E6;
-            color: #0D3C80;
-            border-radius: 6px;
-            padding: 0.3rem 0.5rem;
-            font-size: 1.1rem;
-        }
-
-        .dashboard-blueprints .blueprint-link {
-            margin-left: auto;
-            font-size: 0.98rem;
-            color: #0D3C80;
-            font-weight: 600;
-            text-decoration: underline;
-        }
-
-        .dashboard-blueprints .blueprint-table {
-            background: #F8FAFC;
-            border-radius: 8px;
-            padding: 0.75rem 1rem;
-            margin-top: 0.5rem;
-            font-size: 1rem;
-        }
-
-        .dashboard-blueprints .blueprint-table th {
-            font-size: 1rem;
-            font-weight: 700;
-            color: #091635;
-            border: none;
-            background: transparent;
-            padding: 0 0 0.25rem 0;
-        }
-
-        .dashboard-blueprints .blueprint-table td {
-            border: none;
-            padding: 0.15rem 0;
-            color: #091635;
-        }   
-
-        .dashboard-section {
-            background: #fff;
-            border-radius: 14px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            border: 1px solid #DEE2E6;
-            padding: 1.5rem 1.5rem 1.2rem 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .dashboard-section .section-header {
+        .blueprint-title {
+            display: flex;
             align-items: center;
-            gap: 0.5rem;
-            font-weight: 700;
-            color: #091635;
-            font-size: 1.25rem;
-            margin-bottom: 1rem;
-        }
-
-        .dashboard-section .section-header i {
-            background: #DEE2E6;
-            color: #0D3C80;
-            border-radius: 6px;
-            padding: 0.3rem 0.5rem;
-            font-size: 1.1rem;
-        }
-
-        .dashboard-section .section-link {
-            margin-left: auto;
-            font-size: 0.98rem;
-            color: #0D3C80;
+            gap: 0.6rem; /* Slightly tighter */
+            color: #1a202c; /* Much darker text */
             font-weight: 600;
-            text-decoration: underline;
+            font-size: 1rem; /* Slightly smaller */
         }
 
-        .dashboard-matches-table {
-            width: 100%;
+        .blueprint-icon {
+            width: 28px; /* Slightly smaller */
+            height: 28px;
+            background: #F1F7F9;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #344EAD;
+        }
+
+        .blueprint-link {
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            color: white;
+            font-size: 0.7rem; /* Smaller text */
+            font-weight: 600;
+            text-decoration: none;
+            padding: 0.4rem 0.8rem; /* Button-like padding */
             border-radius: 8px;
-            overflow: hidden;
+            border: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(52, 78, 173, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .blueprint-link:hover {
+            background: linear-gradient(135deg, #2563EB 0%, #1d4ed8 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(52, 78, 173, 0.3);
+            color: white;
+            text-decoration: none;
+        }
+
+        .blueprint-content {
+            color: #4a5568; /* Darker text */
+            font-size: 0.8rem; /* Smaller text */
+            margin-bottom: 0.75rem; /* Reduced spacing */
+        }
+
+        .blueprint-list {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem; /* Tighter spacing */
+        }
+
+        .blueprint-item {
+            color: #2d3748; /* Much darker text */
+            font-size: 0.8rem; /* Smaller text */
+            padding: 0.6rem 0.8rem; /* Reduced padding */
             background: #F8FAFC;
-            margin-bottom: 0;
+            border-radius: 6px;
+            border-left: 3px solid #344EAD;
         }
 
-        .dashboard-matches-table th {
-            background: #DEE2E6;
-            color: #091635;
-            font-weight: 700;
-            font-size: 1rem;
-            border: none;
-            padding: 0.75rem 1rem;
-        }
-
-        .dashboard-matches-table td {
-            background: #fff;
-            color: #091635;
-            font-size: 1rem;
-            border: none;
-            padding: 0.7rem 1rem;
-        }
-
-        .dashboard-matches-table tr:not(:last-child) td {
-            border-bottom: 1px solid #DEE2E6;
-        }
-
+        /* Project Overview section */
         .dashboard-overview {
-            background: #fff;
-            border-radius: 14px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            border: 1px solid #DEE2E6;
-            padding: 1.5rem 1.5rem 1.2rem 1.5rem;
+            background: #FFFFFF;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: none;
+            padding: 1.25rem; /* Reduced padding */
         }
 
         .overview-header {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            font-weight: 700;
-            color: #091635;
-            font-size: 1.25rem;
-            margin-bottom: 1rem;
+            gap: 0.6rem; /* Slightly tighter */
+            color: #1a202c; /* Much darker text */
+            font-weight: 600;
+            font-size: 1rem; /* Slightly smaller */
+            margin-bottom: 1.25rem; /* Reduced spacing */
         }
 
-        .overview-header i {
-            background: #DEE2E6;
-            color: #0D3C80;
+        .overview-icon {
+            width: 28px; /* Slightly smaller */
+            height: 28px;
+            background: #F1F7F9;
             border-radius: 6px;
-            padding: 0.3rem 0.5rem;
-            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #344EAD;
         }
 
         .overview-controls {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 1.2rem;
+            gap: 0.6rem; /* Tighter spacing */
+            margin-bottom: 1.5rem; /* Reduced spacing */
         }
 
-        .overview-controls .badge {
-            background: #0D3C80;
-            color: #fff;
-            border-radius: 12px;
-            font-size: 1rem;
-            padding: 0.3rem 1rem;
-            font-weight: 600;
+        .project-badge {
+            background: #344EAD;
+            color: #FFFFFF;
+            border-radius: 16px;
+            font-size: 0.8rem; /* Smaller text */
+            padding: 0.4rem 0.8rem; /* Reduced padding */
+            font-weight: 500;
         }
 
-        .overview-controls .btn {
-            background: #DEE2E6;
-            color: #0D3C80;
+        .nav-btn {
+            background: #F1F7F9;
+            color: #344EAD;
             border: none;
-            border-radius: 50%;
-            width: 2rem;
+            border-radius: 6px;
+            width: 2rem; /* Slightly smaller */
             height: 2rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1rem;
-            padding: 0;
+            font-size: 0.8rem; /* Smaller */
+            transition: all 0.2s ease;
         }
 
-        .overview-controls .progress {
+        .nav-btn:hover {
+            background: #E2E8F0;
+        }
+
+        .project-progress {
             flex: 1;
-            height: 5px;
-            background: #DEE2E6;
+            height: 5px; /* Slightly thinner */
+            background: #E2E8F0;
             border-radius: 3px;
-            margin-left: 1rem;
-            margin-right: 1rem;
+            margin: 0 0.75rem; /* Reduced margins */
         }
 
-        .overview-controls .progress-bar {
-            background: #0D3C80;
+        .project-progress-bar {
+            background: #344EAD;
             border-radius: 3px;
+            height: 100%;
         }
 
+        /* Project Overview circles - Enhanced for proper progress visualization */
         .overview-circles {
             display: flex;
             justify-content: space-between;
-            gap: 1.5rem;
-            flex-wrap: wrap;
+            gap: 1.25rem; /* Slightly reduced */
         }
 
         .overview-circle {
-            flex: 1 1 0;
-            min-width: 120px;
-            max-width: 180px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-bottom: 1rem;
+            flex: 1;
+        }
+
+        .phase-circle {
+            width: 110px; /* Slightly larger for better visibility */
+            height: 110px;
+            margin-bottom: 0.75rem; /* Reduced spacing */
+        }
+
+        .phase-progress-indicator {
+            transition: stroke-dashoffset 0.8s ease-in-out;
         }
 
         .circle-chart {
-            width: 110px;
-            height: 110px;
-            margin-bottom: 0.5rem;
+            width: 100px; /* Smaller circles */
+            height: 100px;
+            margin-bottom: 0.75rem; /* Reduced spacing */
         }
 
         .circle-chart text {
-            font-size: 1.2rem;
+            font-size: 0.9rem; /* Smaller text */
             font-weight: 700;
-            fill: #091635;
+            fill: #1a202c; /* Much darker text */
         }
 
+        .circle-label {
+            color: #2d3748; /* Darker text */
+            font-size: 0.8rem; /* Smaller text */
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .phase-label {
+            color: #2d3748; /* Darker text */
+            font-size: 0.8rem; /* Smaller text */
+            font-weight: 600;
+            text-align: center;
+        }
+
+        /* Enhanced Progress Circle Styling */
+        .progress-circle {
+            position: relative;
+        }
+
+        .progress-chart {
+            width: 120px;
+            height: 120px;
+            filter: drop-shadow(0 4px 8px rgba(52, 78, 173, 0.2));
+        }
+
+        .progress-indicator {
+            transition: stroke-dashoffset 0.8s ease-in-out;
+        }
+
+        .progress-text {
+            font-size: 1.1rem;
+            font-weight: 700;
+            fill: #344EAD;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .progress-label {
+            color: #344EAD;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        /* Message icon styling */
+        .message-icon-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px; /* Made larger like header */
+            height: 32px;
+            border: none;
+            background: #F1F7F9;
+            border-radius: 6px; /* Slightly larger radius */
+            color: #071744; /* Match header color */
+            font-size: 1.1rem; /* Larger icon */
+            transition: all 0.2s ease;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .message-icon-btn:hover {
+            background: #344EAD;
+            color: white;
+            transform: scale(1.05);
+            text-decoration: none;
+        }
+
+        /* Responsive adjustments */
         @@media (max-width: 1200px) {
-            .dashboard-content-wrapper {
-                padding: 1.5rem 0.5rem;
-            }
-
-            .dashboard-row {
+            .dashboard-content-row {
                 flex-direction: column;
-                gap: 1.5rem;
+                gap: 1.25rem;
             }
 
-            .dashboard-stats {
-                flex-direction: row;
+            .dashboard-stats-row {
                 gap: 1rem;
             }
 
-            .dashboard-blueprints {
-                max-width: 100%;
+            .overview-circles {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 1rem;
+            }
+
+            .overview-circle {
+                flex: 0 0 auto;
+                min-width: 120px;
+            }
+
+            .progress-circle {
+                min-width: 140px;
+            }
+
+            .phase-circle {
+                width: 100px;
+                height: 100px;
+            }
+
+            .phase-circle circle {
+                r: 38;
+                cx: 50;
+                cy: 50;
+            }
+
+            .phase-circle text {
+                x: 50;
+                y: 55;
             }
         }
 
         @@media (max-width: 767.98px) {
-            .dashboard-content-wrapper {
-                padding: 0.5rem 0.1rem;
-                margin-top: 0.5rem;
-                margin-bottom: 0.5rem;
-                border-radius: 10px;
+            main.container {
+                margin-left: 0 !important;
+                margin-top: 75px;
+                max-width: 100% !important;
+                padding: 1rem; /* Maintain compact padding on mobile */
+                padding-top: 2rem;
             }
 
-            .dashboard-main {
-                padding: 0.5rem 0 !important;
+            .dashboard-greeting {
+                font-size: 1.4rem; /* Smaller on mobile */
             }
 
-            .dashboard-row, .dashboard-stats, .overview-circles {
+            .dashboard-stats-row {
+                flex-direction: column;
+                gap: 0.75rem; /* Tighter on mobile */
+            }
+
+            .dashboard-content-row {
                 flex-direction: column;
                 gap: 1rem;
             }
 
-            .dashboard-blueprints, .stat-card, .dashboard-section, .dashboard-overview {
-                padding: 1rem !important;
+            .overview-circles {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem; /* Tighter on mobile */
+            }
+
+            .phase-circle {
+                width: 85px; /* Even smaller on mobile */
+                height: 85px;
+            }
+
+            .phase-circle circle {
+                r: 32;
+                cx: 42.5;
+                cy: 42.5;
+            }
+
+            .phase-circle text {
+                x: 42.5;
+                y: 47;
+                font-size: 0.8rem;
             }
 
             .circle-chart {
-                width: 80px;
+                width: 80px; /* Even smaller on mobile */
                 height: 80px;
+            }
+
+            .progress-chart {
+                width: 100px;
+                height: 100px;
+            }
+
+            .progress-text {
+                font-size: 0.9rem;
+            }
+
+            .progress-circle {
+                grid-column: 1 / -1;
+                justify-self: center;
             }
         }
     </style>
 }
 
+@section Scripts {
+    <script>
+        // Listen for sidebar toggle and adjust main content accordingly
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarToggler = document.querySelector('.sidebar-toggler');
+            const mainContent = document.querySelector('main.container');
+            
+            function adjustMainContent() {
+                if (sidebar && mainContent) {
+                    if (sidebar.classList.contains('collapsed')) {
+                        mainContent.style.marginLeft = '110px';
+                        mainContent.style.maxWidth = 'calc(100% - 130px)';
+                    } else {
+                        mainContent.style.marginLeft = '300px';
+                        mainContent.style.maxWidth = 'calc(100% - 320px)';
+                    }
+                }
+            }
+            
+            // Adjust on page load
+            adjustMainContent();
+            
+            // Listen for sidebar toggle
+            if (sidebarToggler) {
+                sidebarToggler.addEventListener('click', function() {
+                    // Wait for the sidebar transition to start
+                    setTimeout(adjustMainContent, 50);
+                });
+            }
+        });
+    </script>
+}
 
-<div class="dashboard-content-wrapper">
-    <div class="dashboard-main">
-        <div class="container-fluid" style="max-width: 1300px;">
-            <div class="dashboard-greeting mb-4 pt-4">
-                Welcome, <span class="text-primary">@ViewData["UserFirstName"]</span>!
-            </div>
+<div class="dashboard-greeting mb-4">
+    Welcome, <span class="text-primary">@ViewData["UserFirstName"]</span>!
+</div>
 
-            <div class="dashboard-row">
-                <div class="dashboard-stats">
-                    <div class="stat-card">
-                        <span class="stat-icon"><i class="fas fa-users"></i></span>
-                        <span class="stat-value">3</span>
-                        <span class="stat-label">Total Matches</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-icon"><i class="fas fa-shopping-cart"></i></span>
-                        <span class="stat-value">1</span>
-                        <span class="stat-label">Total Purchase</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-icon"><i class="fas fa-folder-open"></i></span>
-                        <span class="stat-value">1</span>
-                        <span class="stat-label">Total Projects</span>
-                    </div>
-                </div>
-                <div class="dashboard-blueprints ms-auto">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <div class="blueprint-header">
-                            <i class="fas fa-file-alt"></i> Blueprints
-                        </div>
-                        <a href="/ClientInterface/BlueprintMarketplace" class="blueprint-link">Go to Marketplace</a>
-                    </div>
-                    <div class="blueprint-table mt-2">
-                        <table class="w-100">
-                            <thead>
-                                <tr>
-                                    <th>Blueprint Purchased</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>1. White House Design</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+<!-- First Row: Stats Cards Only -->
+<div class="dashboard-stats-row">
+    <div class="stat-card">
+        <span class="stat-value">@Model.TotalMatches</span>
+        <span class="stat-label">Total Matches</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value">@Model.TotalPurchases</span>
+        <span class="stat-label">Total Purchase</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value">@Model.TotalProjects</span>
+        <span class="stat-label">Total Projects</span>
+    </div>
+</div>
 
-            <div class="dashboard-row" style="gap:0;">
-                <div class="dashboard-section" style="flex:2 1 0; margin-right:2rem;">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <div class="section-header">
-                            <i class="fas fa-users"></i> Matches
-                        </div>
-                        <a href="/ClientInterface/Matches" class="section-link">Find an Architect</a>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="dashboard-matches-table">
-                            <thead>
-                                <tr>
-                                    <th>Architect Name</th>
-                                    <th>Type</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Clark Moore</td>
-                                    <td>Residential Architecture</td>
-                                </tr>
-                                <tr>
-                                    <td>Vanessa Kang</td>
-                                    <td>Commercial Architecture</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+<!-- Second Row: Matches Section and Blueprint Card Side by Side -->
+<div class="dashboard-content-row">
+    <div class="dashboard-matches">
+        <div class="matches-header">
+            <div class="matches-title">
+                <div class="matches-icon">
+                    <span class="material-symbols-rounded">handshake</span>
                 </div>
+                Matches
             </div>
-
-            <div class="dashboard-overview mt-3">
-                <div class="overview-header mb-2">
-                    <i class="fas fa-chart-pie"></i> Project Overview
-                </div>
-                <div class="overview-controls mb-3">
-                    <span class="badge">White H..</span>
-                    <button class="btn"><i class="fas fa-chevron-left"></i></button>
-                    <button class="btn"><i class="fas fa-chevron-right"></i></button>
-                    <div class="progress flex-grow-1 mx-2">
-                        <div class="progress-bar" style="width: 60%"></div>
-                    </div>
-                </div>
-                <div class="overview-circles">
-                    <div class="overview-circle">
-                        <svg width="110" height="110" class="circle-chart">
-                            <circle cx="55" cy="55" r="48" fill="none" stroke="#DEE2E6" stroke-width="8"></circle>
-                            <circle cx="55" cy="55" r="48" fill="none" stroke="#0D3C80" stroke-width="8"
-                                    stroke-dasharray="301.59" stroke-dashoffset="0"
-                                    style="transform: rotate(-90deg); transform-origin: 55px 55px;"></circle>
-                            <text x="55" y="62" text-anchor="middle">100%</text>
-                        </svg>
-                        <div>Planning</div>
-                    </div>
-                    <div class="overview-circle">
-                        <svg width="110" height="110" class="circle-chart">
-                            <circle cx="55" cy="55" r="48" fill="none" stroke="#DEE2E6" stroke-width="8"></circle>
-                            <circle cx="55" cy="55" r="48" fill="none" stroke="#0D3C80" stroke-width="8"
-                                    stroke-dasharray="301.59" stroke-dashoffset="0"
-                                    style="transform: rotate(-90deg); transform-origin: 55px 55px;"></circle>
-                            <text x="55" y="62" text-anchor="middle">100%</text>
-                        </svg>
-                        <div>Designing</div>
-                    </div>
-                    <div class="overview-circle">
-                        <svg width="110" height="110" class="circle-chart">
-                            <circle cx="55" cy="55" r="48" fill="none" stroke="#DEE2E6" stroke-width="8"></circle>
-                            <circle cx="55" cy="55" r="48" fill="none" stroke="#0D3C80" stroke-width="8"
-                                    stroke-dasharray="301.59" stroke-dashoffset="100"
-                                    style="transform: rotate(-90deg); transform-origin: 55px 55px;"></circle>
-                            <text x="55" y="62" text-anchor="middle">67%</text>
-                        </svg>
-                        <div>Development</div>
-                    </div>
-                    <div class="overview-circle">
-                        <svg width="110" height="110" class="circle-chart">
-                            <circle cx="55" cy="55" r="48" fill="none" stroke="#DEE2E6" stroke-width="8"></circle>
-                            <text x="55" y="62" text-anchor="middle" fill="#DEE2E6">
-                                <tspan font-size="2rem"><i class="fas fa-clock"></i></tspan>
-                            </text>
-                        </svg>
-                        <div>Testing</div>
-                    </div>
-                </div>
-            </div>
+            <a href="/ClientInterface/Matches" class="matches-link">Find an Architect</a>
+        </div>
+        <div class="table-responsive">
+            <table class="matches-table">
+                <thead>
+                    <tr>
+                        <th>Architect Name</th>
+                        <th>Type</th>
+                        <th>Message</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.RecentMatches.Any())
+                    {
+                        @foreach (var match in Model.RecentMatches)
+                        {
+                            <tr>
+                                <td>
+                                    <a href="/ClientInterface/Messages?architectId=@match.ArchitectId" 
+                                       class="architect-name-link"
+                                       title="Chat with @match.ArchitectName">
+                                        @match.ArchitectName
+                                    </a>
+                                </td>
+                                <td>@match.ArchitectSpecialty</td>
+                                <td>
+                                    <a href="/ClientInterface/Messages?architectId=@match.ArchitectId" 
+                                       class="message-icon-btn" 
+                                       title="Send message to @match.ArchitectName">
+                                        <span class="material-symbols-rounded">chat_bubble</span>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="3" class="text-center text-muted">No matches found</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
     </div>
+
+    <div class="dashboard-blueprints">
+        <div class="blueprint-header-section">
+            <div class="blueprint-title">
+                <div class="blueprint-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                Blueprints
+            </div>
+            <a href="/ClientInterface/BlueprintMarketplace" class="blueprint-link">Go to Marketplace</a>
+        </div>
+        <div class="blueprint-content">Blueprint Purchased</div>
+        <div class="blueprint-list">
+            @if (Model.RecentPurchases.Any())
+            {
+                @foreach (var purchase in Model.RecentPurchases.Take(3))
+                {
+                    <div class="blueprint-item">@purchase.BlueprintName</div>
+                }
+            }
+            else
+            {
+                <div class="blueprint-item text-muted">No blueprints purchased yet</div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Third Row: Project Overview -->
+<div class="dashboard-overview">
+    <div class="overview-header">
+        <div class="overview-icon">
+            <i class="fas fa-chart-pie"></i>
+        </div>
+        Project Overview
+    </div>
+    @if (Model.CurrentProject != null)
+    {
+        <div class="overview-controls">
+            <span class="project-badge">@(Model.CurrentProject.ProjectTitle.Length > 8 ? Model.CurrentProject.ProjectTitle.Substring(0, 8) + ".." : Model.CurrentProject.ProjectTitle)</span>
+            <button class="nav-btn"><i class="fas fa-chevron-left"></i></button>
+            <button class="nav-btn"><i class="fas fa-chevron-right"></i></button>
+            <div class="project-progress">
+                <div class="project-progress-bar" style="width: @(Model.CurrentProject.ProgressPercentage)%"></div>
+            </div>
+        </div>
+        <div class="overview-circles">
+            <div class="overview-circle">
+                @{
+
+                    var reviewProgress = Model.CurrentProject.ProgressPercentage >= 33 ? 100 : 
+                                       Model.CurrentProject.ProgressPercentage < 33 && Model.CurrentProject.ProgressPercentage > 0 ? 
+                                       (Model.CurrentProject.ProgressPercentage * 100 / 33) : 0;
+                    var reviewCircumference = 2 * Math.PI * 42; // 2?r where r = 42
+                    var reviewOffset = reviewCircumference - (reviewProgress * reviewCircumference / 100);
+                }
+                <svg width="110" height="110" class="phase-circle">
+                    <defs>
+                        <linearGradient id="reviewGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#344EAD;stop-opacity:0.8" />
+                            <stop offset="100%" style="stop-color:#2563EB;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="55" cy="55" r="42" fill="none" stroke="#E2E8F0" stroke-width="10"></circle>
+                    <circle cx="55" cy="55" r="42" fill="none" stroke="url(#reviewGradient)" stroke-width="10"
+                            stroke-dasharray="@reviewCircumference" stroke-dashoffset="@reviewOffset"
+                            style="transform: rotate(-90deg); transform-origin: 55px 55px; stroke-linecap: round;"
+                            class="phase-progress-indicator"></circle>
+                    <text x="55" y="60" text-anchor="middle" class="progress-text" style="font-size: 0.9rem;">@((int)reviewProgress)%</text>
+                </svg>
+                <div class="phase-label">Review</div>
+            </div>
+            
+            <div class="overview-circle">
+                @{
+                    var complianceProgress = Model.CurrentProject.ProgressPercentage >= 66 ? 100 : 
+                                           Model.CurrentProject.ProgressPercentage >= 33 && Model.CurrentProject.ProgressPercentage < 66 ? 
+                                           ((Model.CurrentProject.ProgressPercentage - 33) * 100 / 33) : 0;
+                    var complianceOffset = reviewCircumference - (complianceProgress * reviewCircumference / 100);
+                }
+                <svg width="110" height="110" class="phase-circle">
+                    <defs>
+                        <linearGradient id="complianceGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#2563EB;stop-opacity:0.8" />
+                            <stop offset="100%" style="stop-color:#344EAD;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="55" cy="55" r="42" fill="none" stroke="#E2E8F0" stroke-width="10"></circle>
+                    <circle cx="55" cy="55" r="42" fill="none" stroke="url(#complianceGradient)" stroke-width="10"
+                            stroke-dasharray="@reviewCircumference" stroke-dashoffset="@complianceOffset"
+                            style="transform: rotate(-90deg); transform-origin: 55px 55px; stroke-linecap: round;"
+                            class="phase-progress-indicator"></circle>
+                    <text x="55" y="60" text-anchor="middle" class="progress-text" style="font-size: 0.9rem;">@((int)complianceProgress)%</text>
+                </svg>
+                <div class="phase-label">Compliance</div>
+            </div>
+            
+            <div class="overview-circle">
+                @{
+                    var finalizationProgress = Model.CurrentProject.ProgressPercentage >= 90 ? 100 : 
+                                             Model.CurrentProject.ProgressPercentage >= 66 && Model.CurrentProject.ProgressPercentage < 90 ? 
+                                             ((Model.CurrentProject.ProgressPercentage - 66) * 100 / 24) : 0;
+                    var finalizationOffset = reviewCircumference - (finalizationProgress * reviewCircumference / 100);
+                }
+                <svg width="110" height="110" class="phase-circle">
+                    <defs>
+                        <linearGradient id="finalizationGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#344EAD;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#2563EB;stop-opacity:0.8" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="55" cy="55" r="42" fill="none" stroke="#E2E8F0" stroke-width="10"></circle>
+                    <circle cx="55" cy="55" r="42" fill="none" stroke="url(#finalizationGradient)" stroke-width="10"
+                            stroke-dasharray="@reviewCircumference" stroke-dashoffset="@finalizationOffset"
+                            style="transform: rotate(-90deg); transform-origin: 55px 55px; stroke-linecap: round;"
+                            class="phase-progress-indicator"></circle>
+                    <text x="55" y="60" text-anchor="middle" class="progress-text" style="font-size: 0.9rem;">@((int)finalizationProgress)%</text>
+                </svg>
+                <div class="phase-label">Finalization</div>
+            </div>
+            
+            <div class="overview-circle progress-circle">
+                <svg width="120" height="120" class="circle-chart progress-chart">
+                    <defs>
+                        <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#344EAD;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#2563EB;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="60" cy="60" r="50" fill="none" stroke="#E2E8F0" stroke-width="10"></circle>
+                    <circle cx="60" cy="60" r="50" fill="none" stroke="url(#progressGradient)" stroke-width="10"
+                            stroke-dasharray="314" stroke-dashoffset="@(314 - (Model.CurrentProject.ProgressPercentage * 314 / 100))"
+                            style="transform: rotate(-90deg); transform-origin: 60px 60px; stroke-linecap: round;"
+                            class="progress-indicator"></circle>
+                    <text x="60" y="65" text-anchor="middle" class="progress-text">@Model.CurrentProject.ProgressPercentage%</text>
+                </svg>
+                <div class="circle-label progress-label">Overall Progress</div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="text-center text-muted py-4">
+            <p>No active projects yet</p>
+            <a href="/ClientInterface/Matches" class="btn btn-primary btn-sm">Find an Architect</a>
+        </div>
+    }
 </div>

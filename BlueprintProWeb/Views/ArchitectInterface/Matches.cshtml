@@ -1,0 +1,695 @@
+@model IEnumerable<BlueprintProWeb.ViewModels.MatchViewModel>
+
+@{
+    ViewData["Title"] = "My Matches";
+    Layout = "~/Views/Shared/_ArchitectSharedLayout.cshtml";
+}
+
+@section Styles {
+    <style>
+        /* Override shared layout background for matches page */
+        body::before {
+            background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
+            opacity: 0.1 !important;
+        }
+
+        /* Ensure scrollable page with consistent background */
+        body {
+            background: #F1F7F9 !important;
+            overflow-y: auto !important;
+            height: auto !important;
+            font-family: 'Raleway', sans-serif !important;
+        }
+
+        /* Main content positioning that responds to sidebar state */
+        main.container {
+            margin-left: 300px;
+            margin-top: 90px;
+            padding: 1.5rem;
+            padding-top: 4rem;
+            max-width: calc(100% - 320px);
+            transition: margin-left 0.4s ease, max-width 0.4s ease;
+        }
+
+        /* When sidebar is collapsed, adjust main content */
+        .sidebar.collapsed ~ * main.container,
+        body:has(.sidebar.collapsed) main.container {
+            margin-left: 110px;
+            max-width: calc(100% - 130px);
+        }
+
+        /* Page Header Styling */
+        .matches-page-header {
+            margin-bottom: 2rem;
+        }
+
+        .matches-page-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #1a202c;
+            margin: 0;
+            font-family: 'Raleway', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .matches-page-title i {
+            color: #344EAD;
+            font-size: 1.5rem;
+        }
+
+        /* Two-column layout */
+        .matches-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            height: 75vh;
+        }
+
+        /* Panel Styling */
+        .matches-panel {
+            background: #FFFFFF;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(52, 78, 173, 0.05);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(52, 78, 173, 0.1);
+            background: linear-gradient(135deg, rgba(52, 78, 173, 0.05) 0%, rgba(37, 99, 235, 0.02) 100%);
+        }
+
+        .pending-panel-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(52, 78, 173, 0.1);
+            background: linear-gradient(135deg, rgba(255, 171, 0, 0.05) 0%, rgba(245, 158, 11, 0.02) 100%);
+        }
+
+        .panel-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1a202c;
+            margin: 0;
+            font-family: 'Raleway', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .panel-title i {
+            color: #344EAD;
+        }
+
+        .pending-panel-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1a202c;
+            margin: 0;
+            font-family: 'Raleway', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .pending-panel-title i {
+            color: #F59E0B;
+        }
+
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+
+        /* Match Card Styling */
+        .match-card {
+            background: #FFFFFF;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(52, 78, 173, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .match-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .match-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(52, 78, 173, 0.15);
+            border-color: rgba(52, 78, 173, 0.1);
+        }
+
+        .match-card:hover::before {
+            opacity: 1;
+        }
+
+        .match-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .client-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: 2px solid rgba(52, 78, 173, 0.1);
+            object-fit: cover;
+        }
+
+        .client-info {
+            flex: 1;
+        }
+
+        .client-name {
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 0.25rem;
+            font-size: 1rem;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .client-name a {
+            color: #344EAD;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .client-name a:hover {
+            color: #2563EB;
+        }
+
+        .match-details {
+            color: #64748B;
+            font-size: 0.85rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .match-status {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .match-status.pending {
+            background: rgba(245, 158, 11, 0.1);
+            color: #D97706;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .match-status.approved {
+            background: rgba(16, 185, 129, 0.1);
+            color: #059669;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .match-status.declined {
+            background: rgba(239, 68, 68, 0.1);
+            color: #DC2626;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        /* Action Buttons for Pending Matches */
+        .match-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .btn-accept {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+            font-weight: 600;
+            font-family: 'Raleway', sans-serif;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .btn-accept:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            color: white;
+        }
+
+        .btn-decline {
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+            font-weight: 600;
+            font-family: 'Raleway', sans-serif;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .btn-decline:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+            color: white;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: #64748B;
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            color: #CBD5E1;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 0.5rem;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .empty-state-subtitle {
+            font-size: 0.9rem;
+            color: #64748B;
+            line-height: 1.5;
+        }
+
+        /* Enhanced Modal Styling */
+        .modal-content {
+            border-radius: 16px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            color: white;
+            border-radius: 16px 16px 0 0;
+            border-bottom: none;
+            padding: 1.5rem;
+        }
+
+        .modal-title {
+            font-weight: 600;
+            font-family: 'Raleway', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-close {
+            filter: invert(1);
+        }
+
+        .modal-body {
+            padding: 2rem;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .modal-footer {
+            border-top: 1px solid rgba(52, 78, 173, 0.1);
+            padding: 1.5rem 2rem;
+        }
+
+        .modal-btn {
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            font-family: 'Raleway', sans-serif;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(52, 78, 173, 0.2);
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(52, 78, 173, 0.3);
+            color: white;
+        }
+
+        /** Profile Card in Modal **/
+        .profile-main-card {
+            background: #F8FAFC;
+            border-radius: 12px;
+            border: 1px solid rgba(52, 78, 173, 0.1);
+        }
+
+        /* Responsive Design */
+        @@media (max-width: 768px) {
+            main.container {
+                margin-left: 0 !important;
+                margin-top: 75px;
+                max-width: 100% !important;
+                padding: 1rem;
+                padding-top: 2rem;
+            }
+
+            .matches-layout {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .matches-panel:last-child {
+                margin-top: 2rem;
+            }
+
+            .match-card {
+                padding: 1rem;
+            }
+
+            .match-header {
+                gap: 0.75rem;
+            }
+
+            .client-avatar {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        /* Custom scrollbars */
+        .panel-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .panel-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .panel-content::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 3px;
+        }
+
+        .panel-content::-webkit-scrollbar-thumb:hover {
+            background: #94A3B8;
+        }
+    </style>
+}
+
+<div>
+    <div class="matches-page-header">
+        <h2 class="matches-page-title">
+            <i class="fas fa-handshake"></i>
+            My Matches
+        </h2>
+    </div>
+
+    <div class="matches-layout">
+        <!-- Left Panel - All Matches -->
+        <div class="matches-panel">
+            <div class="panel-header">
+                <h3 class="panel-title">
+                    <i class="fas fa-users"></i>
+                    All Matches
+                </h3>
+            </div>
+            <div class="panel-content">
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var match in Model.OrderByDescending(m => m.MatchDate))
+                    {
+                        <div class="match-card">
+                            <div class="match-header">
+                                <img src="@(string.IsNullOrEmpty(match.ClientProfileUrl) ? "/images/profile.jpg" : match.ClientProfileUrl)"
+                                     alt="@match.ClientName"
+                                     class="client-avatar">
+                                <div class="client-info">
+                                    <div class="client-name">
+                                        <a href="#" class="client-profile-link" data-client-id="@match.ClientId">
+                                            @match.ClientName
+                                        </a>
+                                    </div>
+                                    <div class="match-details">
+                                        Requested: @match.MatchDate.ToString("MMM dd, yyyy")
+                                    </div>
+                                </div>
+                                <div class="match-status @match.MatchStatus.ToLower()">
+                                    @match.MatchStatus
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-handshake"></i>
+                        </div>
+                        <div class="empty-state-title">No Matches Yet</div>
+                        <div class="empty-state-subtitle">
+                            You haven't received any match requests yet.<br>
+                            When clients find your profile and request to match, they will appear here.
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Right Panel - Pending Matches -->
+        <div class="matches-panel">
+            <div class="pending-panel-header">
+                <h3 class="pending-panel-title">
+                    <i class="fas fa-clock"></i>
+                    Pending Matches
+                </h3>
+            </div>
+            <div class="panel-content">
+                @{
+                    var pendingMatches = Model?.Where(m => m.MatchStatus == "Pending").ToList() ?? new List<BlueprintProWeb.ViewModels.MatchViewModel>();
+                }
+                @if (pendingMatches.Any())
+                {
+                    @foreach (var pending in pendingMatches.OrderByDescending(m => m.MatchDate))
+                    {
+                        <div class="match-card">
+                            <div class="match-header">
+                                <img src="@(string.IsNullOrEmpty(pending.ClientProfileUrl) ? "/images/profile.jpg" : pending.ClientProfileUrl)"
+                                     alt="@pending.ClientName"
+                                     class="client-avatar">
+                                <div class="client-info">
+                                    <div class="client-name">
+                                        <a href="#" class="client-profile-link" data-client-id="@pending.ClientId">
+                                            @pending.ClientName
+                                        </a>
+                                    </div>
+                                    <div class="match-details">
+                                        Requested: @pending.MatchDate.ToString("MMM dd, yyyy")
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="match-actions">
+                                <button class="btn-accept respond-btn"
+                                        data-id="@pending.MatchId"
+                                        data-approve="true">
+                                    APPROVED
+                                </button>
+                                <button class="btn-decline respond-btn"
+                                        data-id="@pending.MatchId"
+                                        data-approve="false">
+                                    DECLINE
+                                </button>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="empty-state-title">No Pending Matches</div>
+                        <div class="empty-state-subtitle">
+                            All match requests have been responded to.
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Match Result Modal -->
+<div class="modal fade" id="matchResultModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="matchResultTitle">Match Result</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="matchResultMessage">
+                <!-- Message goes here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="modal-btn" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Client Profile Modal -->
+<div class="modal fade" id="clientProfileModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user"></i>
+                    Client Profile
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="profile-container">
+                    <div class="profile-main-card p-3">
+                        <div class="profile-info d-flex align-items-center gap-3 mb-3">
+                            <div class="avatar">
+                                <img src="~/images/profile.jpg" alt="Avatar" style="width:64px;height:64px;border-radius:50%;">
+                            </div>
+                            <div class="user-details">
+                                <h3 id="clientProfileName" class="client-name mb-1 fw-bold"></h3>
+                                <div id="clientProfileEmail" class="text-muted"></div>
+                                <div id="clientProfilePhone" class="text-muted"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Listen for sidebar toggle and adjust main content accordingly
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarToggler = document.querySelector('.sidebar-toggler');
+            const mainContent = document.querySelector('main.container');
+
+            function adjustMainContent() {
+                if (sidebar && mainContent) {
+                    if (sidebar.classList.contains('collapsed')) {
+                        mainContent.style.marginLeft = '110px';
+                        mainContent.style.maxWidth = 'calc(100% - 130px)';
+                    } else {
+                        mainContent.style.marginLeft = '300px';
+                        mainContent.style.maxWidth = 'calc(100% - 320px)';
+                    }
+                }
+            }
+
+            adjustMainContent();
+
+            if (sidebarToggler) {
+                sidebarToggler.addEventListener('click', function () {
+                    setTimeout(adjustMainContent, 50);
+                });
+            }
+
+            const resultModalEl = document.getElementById("matchResultModal");
+            const resultModal = new bootstrap.Modal(resultModalEl);
+
+            document.querySelectorAll('.respond-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const matchId = this.dataset.id;
+                    const approve = this.dataset.approve === "true";
+
+                    fetch('/ArchitectInterface/RespondMatch', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                        },
+                        body: JSON.stringify({ matchId, approve })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById("matchResultTitle").innerText = "? Success";
+                            document.getElementById("matchResultMessage").innerText = `Match ${data.status}`;
+                        } else {
+                            document.getElementById("matchResultTitle").innerText = "? Error";
+                            document.getElementById("matchResultMessage").innerText = "Failed to update match.";
+                        }
+
+                        resultModal.show();
+                        if (data.success) {
+                            resultModalEl.addEventListener("hidden.bs.modal", () => {
+                                location.reload();
+                            }, { once: true });
+                        }
+                    })
+                    .catch(() => {
+                        document.getElementById("matchResultTitle").innerText = "? Error";
+                        document.getElementById("matchResultMessage").innerText = "Error responding to match.";
+                        resultModal.show();
+                    });
+                });
+            });
+
+            const clientProfileModal = new bootstrap.Modal(document.getElementById('clientProfileModal'));
+
+            document.querySelectorAll('.client-profile-link').forEach(link => {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    const clientId = this.dataset.clientId;
+
+                    fetch(`/ArchitectInterface/GetClientProfile?clientId=${clientId}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                document.getElementById("clientProfileName").innerText = data.name;
+                                document.getElementById("clientProfileEmail").innerText = data.email || "No email provided";
+                                document.getElementById("clientProfilePhone").innerText = data.phone || "No phone provided";
+
+                                clientProfileModal.show();
+                            } else {
+                                alert("? " + data.message);
+                            }
+                        })
+                        .catch(() => alert("? Failed to load client profile."));
+                });
+            });
+        });
+    </script>
+}

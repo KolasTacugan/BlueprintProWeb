@@ -1,183 +1,468 @@
 ﻿@model BlueprintProWeb.ViewModels.BlueprintViewModel
 
 @{
-    ViewData["Title"] = "ArchitectDashboard";
+    ViewData["Title"] = "Add Blueprints";
     Layout = "~/Views/Shared/_ArchitectSharedLayout.cshtml";
 }
 
 @section Styles {
     <style>
-        .blueprint-title {
-            position: relative;
-            top: 80px;
-            left: 200px;
-            font-weight: 700;
+        /* Override shared layout background for add blueprints page */
+        body::before {
+            background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
+            opacity: 0.1 !important;
         }
 
-        .add-bp {
-            position: relative;
-            color: #fff;
-            background: #071744;
-            transition: 0.2s ease;
+        /* Ensure scrollable page with consistent background */
+        body {
+            background: #F1F7F9 !important;
+            overflow-y: auto !important;
+            height: auto !important;
+            font-family: 'Raleway', sans-serif !important;
         }
 
-        .add-bp:hover {
-            background: #fff;
-            color: #071744;
-            border-color: #071744;
+        /* Main content positioning that responds to sidebar state */
+        main.container {
+            margin-left: 300px;
+            margin-top: 90px;
+            padding: 1.5rem;
+            padding-top: 4rem;
+            max-width: calc(100% - 320px);
+            width: calc(100% - 320px); /* Ensure full width utilization */
+            transition: margin-left 0.4s ease, max-width 0.4s ease, width 0.4s ease;
         }
 
-        .blueprint-inputs {
-            position: relative;
-            top: 80px;
-            left: 200px;
+        /* When sidebar is collapsed, adjust main content */
+        .sidebar.collapsed ~ * main.container,
+        body:has(.sidebar.collapsed) main.container {
+            margin-left: 110px;
+            max-width: calc(100% - 130px);
+            width: calc(100% - 130px);
         }
 
+        /* Page Header Styling */
+        .add-blueprints-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(52, 78, 173, 0.1);
+        }
+
+        .add-blueprints-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #1a202c;
+            margin: 0;
+            font-family: 'Raleway', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .add-blueprints-title i {
+            color: #344EAD;
+            font-size: 1.5rem;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Category Tabs Styling */
+        .category-tabs-container {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 0.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(52, 78, 173, 0.1);
+            width: 100%;
+        }
+
+        .nav-tabs {
+            border: none;
+            gap: 0.25rem;
+        }
+
+        .nav-tabs .nav-item .nav-link {
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.25rem;
+            color: #64748B;
+            font-weight: 600;
+            font-family: 'Raleway', sans-serif;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            background: transparent;
+        }
+
+        .nav-tabs .nav-item .nav-link:hover {
+            background: rgba(52, 78, 173, 0.05);
+            color: #344EAD;
+            border-color: transparent;
+        }
+
+        .nav-tabs .nav-item .nav-link.active {
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 2px 8px rgba(52, 78, 173, 0.2);
+        }
+
+        /* Form Container - Full width utilization */
+        .form-container {
+            background: #FFFFFF;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(52, 78, 173, 0.05);
+            padding: 2.5rem;
+            width: 100%; /* Full width */
+            max-width: none; /* Remove max-width constraint */
+        }
+
+        /* Two-column grid layout within the form */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem; /* Increased gap for better spacing */
+            margin-bottom: 1.5rem;
+        }
+
+        .form-grid-full {
+            grid-column: 1 / -1;
+        }
+
+        /* Form Styling */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .control-label {
+            font-weight: 600;
+            color: #1a202c;
+            font-family: 'Raleway', sans-serif;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .form-control {
+            border: 2px solid #E2E8F0;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-family: 'Raleway', sans-serif;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            background: #FFFFFF;
+            width: 100%;
+        }
+
+        .form-control:focus {
+            border-color: #344EAD;
+            box-shadow: 0 0 0 3px rgba(52, 78, 173, 0.1);
+            outline: none;
+        }
+
+        .form-control:hover {
+            border-color: #CBD5E0;
+        }
+
+        /* Textarea specific styling */
         .bp-desc {
             height: 120px;
             resize: vertical;
             word-wrap: break-word;
         }
+
+        /* Submit Button Styling */
+        .add-bp {
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 0.875rem 1.5rem;
+            font-weight: 600;
+            font-family: 'Raleway', sans-serif;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: 0 2px 8px rgba(52, 78, 173, 0.2);
+        }
+
+        .add-bp:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(52, 78, 173, 0.3);
+            background: linear-gradient(135deg, #2563EB 0%, #344EAD 100%);
+            color: white;
+        }
+
+        .add-bp:active {
+            transform: translateY(0);
+        }
+
+        /* Validation message styling */
+        .text-danger {
+            color: #E53E3E;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-top: 0.25rem;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        /* File input custom styling */
+        input[type="file"] {
+            border: 2px dashed #E2E8F0;
+            background: #F8FAFC;
+            padding: 1rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        input[type="file"]:hover {
+            border-color: #344EAD;
+            background: rgba(52, 78, 173, 0.02);
+        }
+
+        /* Select dropdown styling */
+        select.form-control {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+        }
+
+        /* Tab content styling */
+        .tab-content {
+            background: transparent;
+            width: 100%;
+        }
+
+        .tab-pane {
+            background: transparent;
+            width: 100%;
+        }
+
+        /* Responsive adjustments */
+        @@media (max-width: 1200px) {
+            .form-grid {
+                gap: 2rem;
+            }
+        }
+
+        @@media (max-width: 992px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+
+        @@media (max-width: 768px) {
+            main.container {
+                margin-left: 0 !important;
+                margin-top: 75px;
+                max-width: 100% !important;
+                width: 100% !important;
+                padding: 1rem;
+                padding-top: 2rem;
+            }
+
+            .add-blueprints-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .form-container {
+                padding: 1.5rem;
+            }
+
+            .add-blueprints-title {
+                font-size: 1.4rem;
+            }
+
+            .form-grid {
+                gap: 0.5rem;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .form-container {
+                padding: 1rem;
+            }
+
+            .add-blueprints-title {
+                font-size: 1.25rem;
+            }
+        }
     </style>
 }
 
+<div>
+    <div class="add-blueprints-header">
+        <h2 class="add-blueprints-title">
+            <i class="fas fa-plus-circle"></i>
+            Add Blueprints
+        </h2>
+    </div>
 
-
-<div class="blueprint-inputs row">
-    <div class="col-md-4">
-        <!-- Tabs Navigation -->
+    <div class="category-tabs-container">
         <ul class="nav nav-tabs" id="blueprintTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="marketplace-tab"
                         data-bs-toggle="tab" data-bs-target="#marketplace"
                         type="button" role="tab" aria-controls="marketplace" aria-selected="true">
-                    For Marketplace
+                    <i class="fas fa-store me-2"></i>For Marketplace
                 </button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="project-tab"
                         data-bs-toggle="tab" data-bs-target="#project"
                         type="button" role="tab" aria-controls="project" aria-selected="false">
-                    For Project
+                    <i class="fas fa-project-diagram me-2"></i>For Project
                 </button>
             </li>
         </ul>
+    </div>
 
-        <!-- Tabs Content -->
-        <div class="tab-content mt-3" id="blueprintTabsContent">
+    <!-- Tabs Content -->
+    <div class="tab-content" id="blueprintTabsContent">
 
-            <!-- Marketplace Form -->
-            <div class="tab-pane fade show active" id="marketplace" role="tabpanel" aria-labelledby="marketplace-tab">
+        <!-- Marketplace Form -->
+        <div class="tab-pane fade show active" id="marketplace" role="tabpanel" aria-labelledby="marketplace-tab">
+            <div class="form-container">
                 <form asp-action="AddBlueprints" method="post" enctype="multipart/form-data">
                     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-                    <div class="form-group mb-3">
-                        <label asp-for="BlueprintImage" class="control-label">Blueprint</label>
-                        <input asp-for="BlueprintImage" type="file" class="form-control" required />
-                        <span asp-validation-for="BlueprintImage" class="text-danger"></span>
-                    </div>
+                    <div class="form-grid">
+                        <!-- Left Column -->
+                        <div>
+                            <div class="form-group">
+                                <label asp-for="BlueprintImage" class="control-label">Blueprint</label>
+                                <input asp-for="BlueprintImage" type="file" class="form-control" required />
+                                <span asp-validation-for="BlueprintImage" class="text-danger"></span>
+                            </div>
 
-                    <div class="form-group mb-3">
-                        <label asp-for="blueprintName" class="control-label">Blueprint Name</label>
-                        <input asp-for="blueprintName" class="form-control" />
-                        <span asp-validation-for="blueprintName" class="text-danger"></span>
-                    </div>
+                            <div class="form-group">
+                                <label asp-for="blueprintName" class="control-label">Blueprint Name</label>
+                                <input asp-for="blueprintName" class="form-control" />
+                                <span asp-validation-for="blueprintName" class="text-danger"></span>
+                            </div>
 
-                    <div class="form-group mb-3">
-                        <label asp-for="blueprintPrice" class="control-label">Price (in Pesos)</label>
-                        <input asp-for="blueprintPrice" class="form-control" />
-                        <span asp-validation-for="blueprintPrice" class="text-danger"></span>
-                    </div>
+                            <div class="form-group">
+                                <label asp-for="blueprintPrice" class="control-label">Price (in Pesos)</label>
+                                <input asp-for="blueprintPrice" class="form-control" />
+                                <span asp-validation-for="blueprintPrice" class="text-danger"></span>
+                            </div>
+                        </div>
 
-                    <div class="form-group mb-3">
-                        <label asp-for="blueprintDescription" class="control-label">Description</label>
-                        <textarea asp-for="blueprintDescription" class="bp-desc form-control"></textarea>
-                        <span asp-validation-for="blueprintDescription" class="text-danger"></span>
-                    </div>
+                        <!-- Right Column -->
+                        <div>
+                            <div class="form-group">
+                                <label asp-for="blueprintDescription" class="control-label">Description</label>
+                                <textarea asp-for="blueprintDescription" class="bp-desc form-control"></textarea>
+                                <span asp-validation-for="blueprintDescription" class="text-danger"></span>
+                            </div>
 
-                    <div class="form-group mb-3">
-                        <label asp-for="blueprintStyle" class="control-label">Style</label>
-                        <select asp-for="blueprintStyle" class="form-control">
-                            <option value="Modern">Modern</option>
-                            <option value="Traditional">Traditional</option>
-                            <option value="Contemporary">Contemporary</option>
-                            <option value="Minimalist">Minimalist</option>
-                        </select>
-                        <span asp-validation-for="blueprintStyle" class="text-danger"></span>
+                            <div class="form-group">
+                                <label asp-for="blueprintStyle" class="control-label">Style</label>
+                                <select asp-for="blueprintStyle" class="form-control">
+                                    <option value="Modern">Modern</option>
+                                    <option value="Traditional">Traditional</option>
+                                    <option value="Contemporary">Contemporary</option>
+                                    <option value="Minimalist">Minimalist</option>
+                                </select>
+                                <span asp-validation-for="blueprintStyle" class="text-danger"></span>
+                            </div>
+                        </div>
                     </div>
 
                     <input type="hidden" asp-for="blueprintIsForSale" value="true" />
-                    <div class="form-group mb-3">
-                        <input type="submit" value="Upload to Marketplace" class="add-bp btn" />
+                    <div class="form-group form-grid-full">
+                        <button type="submit" class="add-bp">
+                            <i class="fas fa-upload"></i>
+                            Upload to Marketplace
+                        </button>
                     </div>
                 </form>
             </div>
+        </div>
 
-            <!-- Project Form -->
-            <div class="tab-pane fade" id="project" role="tabpanel" aria-labelledby="project-tab">
+        <!-- Project Form -->
+        <div class="tab-pane fade" id="project" role="tabpanel" aria-labelledby="project-tab">
+            <div class="form-container">
                 <form asp-action="AddProjectBlueprints" method="post" enctype="multipart/form-data">
                     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-                    <!-- Blueprint Upload -->
-                    <div class="form-group mb-3">
-                        <label asp-for="BlueprintImage" class="control-label">Blueprint</label>
-                        <input asp-for="BlueprintImage" type="file" class="form-control" required />
-                        <span asp-validation-for="BlueprintImage" class="text-danger"></span>
-                    </div>
+                    <div class="form-grid">
+                        <!-- Left Column -->
+                        <div>
+                            <div class="form-group">
+                                <label asp-for="BlueprintImage" class="control-label">Blueprint</label>
+                                <input asp-for="BlueprintImage" type="file" class="form-control" required />
+                                <span asp-validation-for="BlueprintImage" class="text-danger"></span>
+                            </div>
 
-                    <!-- Project Name -->
-                    <div class="form-group mb-3">
-                        <label asp-for="blueprintName" class="control-label">Project Name</label>
-                        <input asp-for="blueprintName" class="form-control" />
-                        <span asp-validation-for="blueprintName" class="text-danger"></span>
-                    </div>
+                            <div class="form-group">
+                                <label asp-for="blueprintName" class="control-label">Project Name</label>
+                                <input asp-for="blueprintName" class="form-control" />
+                                <span asp-validation-for="blueprintName" class="text-danger"></span>
+                            </div>
 
-                    <!-- Project Budget -->
-                    <div class="form-group mb-3">
-                        <label asp-for="blueprintPrice" class="control-label">Budget (in Pesos)</label>
-                        <input asp-for="blueprintPrice" class="form-control" />
-                        <span asp-validation-for="blueprintPrice" class="text-danger"></span>
-                    </div>
+                            <div class="form-group">
+                                <label asp-for="blueprintPrice" class="control-label">Budget (in Pesos)</label>
+                                <input asp-for="blueprintPrice" class="form-control" />
+                                <span asp-validation-for="blueprintPrice" class="text-danger"></span>
+                            </div>
+                        </div>
 
-                    <!-- Client Dropdown -->
-                    <div class="form-group mb-3">
-                        <label for="clientDropdown" class="control-label">Select Client</label>
-                        <select asp-for="clentId" class="form-control" id="clientDropdown">
-                            <option value="">-- Select Client --</option>
-                            @foreach (var client in Model.Clients)
-                            {
-                                <option value="@client.Value">@client.Text</option>
-                            }
-                        </select>
-                        <span asp-validation-for="clentId" class="text-danger"></span>
-                    </div>
+                        <!-- Right Column -->
+                        <div>
+                            <div class="form-group">
+                                <label for="clientDropdown" class="control-label">Select Client</label>
+                                <select asp-for="clentId" class="form-control" id="clientDropdown">
+                                    <option value="">-- Select Client --</option>
+                                    @foreach (var client in Model.Clients)
+                                    {
+                                        <option value="@client.Value">@client.Text</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="clentId" class="text-danger"></span>
+                            </div>
 
+                            <div class="form-group">
+                                <label asp-for="blueprintDescription" class="control-label">Project Description</label>
+                                <textarea asp-for="blueprintDescription" class="bp-desc form-control"></textarea>
+                                <span asp-validation-for="blueprintDescription" class="text-danger"></span>
+                            </div>
 
-                    <!-- Project Description -->
-                    <div class="form-group mb-3">
-                        <label asp-for="blueprintDescription" class="control-label">Project Description</label>
-                        <textarea asp-for="blueprintDescription" class="bp-desc form-control"></textarea>
-                        <span asp-validation-for="blueprintDescription" class="text-danger"></span>
-                    </div>
-
-                    <!-- Project Due Date -->
-                    <div class="form-group mb-3">
-                        <label asp-for="projectTrack_dueDate" class="control-label">Project Due Date</label>
-                        <input asp-for="projectTrack_dueDate" type="date" class="form-control" />
-                        <span asp-validation-for="projectTrack_dueDate" class="text-danger"></span>
+                            <div class="form-group">
+                                <label asp-for="projectTrack_dueDate" class="control-label">Project Due Date</label>
+                                <input asp-for="projectTrack_dueDate" type="date" class="form-control" />
+                                <span asp-validation-for="projectTrack_dueDate" class="text-danger"></span>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Hidden Fields -->
                     <input type="hidden" asp-for="blueprintIsForSale" value="false" />
                     <input type="hidden" asp-for="blueprintStyle" value="###" />
 
-                    <div class="form-group mb-3">
-                        <input type="submit" value="Upload for Project" class="add-bp btn" />
+                    <div class="form-group form-grid-full">
+                        <button type="submit" class="add-bp">
+                            <i class="fas fa-project-diagram"></i>
+                            Upload for Project
+                        </button>
                     </div>
                 </form>
             </div>
-
-
         </div>
     </div>
 </div>
@@ -187,4 +472,38 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Listen for sidebar toggle and adjust main content accordingly
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarToggler = document.querySelector('.sidebar-toggler');
+            const mainContent = document.querySelector('main.container');
+            
+            function adjustMainContent() {
+                if (sidebar && mainContent) {
+                    if (sidebar.classList.contains('collapsed')) {
+                        mainContent.style.marginLeft = '110px';
+                        mainContent.style.maxWidth = 'calc(100% - 130px)';
+                        mainContent.style.width = 'calc(100% - 130px)';
+                    } else {
+                        mainContent.style.marginLeft = '300px';
+                        mainContent.style.maxWidth = 'calc(100% - 320px)';
+                        mainContent.style.width = 'calc(100% - 320px)';
+                    }
+                }
+            }
+            
+            // Adjust on page load
+            adjustMainContent();
+            
+            // Listen for sidebar toggle
+            if (sidebarToggler) {
+                sidebarToggler.addEventListener('click', function() {
+                    // Wait for the sidebar transition to start
+                    setTimeout(adjustMainContent, 50);
+                });
+            }
+        });
+    </script>
 }
