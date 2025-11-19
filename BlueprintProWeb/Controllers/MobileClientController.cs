@@ -501,7 +501,9 @@ namespace BlueprintProWeb.Controllers
                 if (string.IsNullOrWhiteSpace(clientId))
                     return BadRequest(new { success = false, message = "ClientId is required." });
 
-                // Step 1: Fetch in UTC (EF can translate this)
+                var baseUrl = $"{Request.Scheme}://{Request.Host}";
+
+                // Step 1: Fetch messages grouped by ArchitectId
                 var conversationsRaw = await context.Messages
                     .Where(m => m.ClientId == clientId || m.ArchitectId == clientId)
                     .GroupBy(m => m.ArchitectId)
@@ -524,7 +526,7 @@ namespace BlueprintProWeb.Controllers
                     })
                     .ToListAsync();
 
-                // Step 2: Convert to Philippine Time after fetching
+                // Step 2: Convert profile URLs and Philippine Time
                 var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
                 var conversations = conversationsRaw
                     .Select(c => new
@@ -533,7 +535,9 @@ namespace BlueprintProWeb.Controllers
                         c.ArchitectName,
                         c.LastMessage,
                         LastMessageTime = TimeZoneInfo.ConvertTimeFromUtc(c.LastMessageTimeUtc, phTimeZone),
-                        c.ProfileUrl,
+                        ProfileUrl = string.IsNullOrEmpty(c.ProfileUrl)
+                            ? null
+                            : $"{baseUrl}/images/profiles/{Path.GetFileName(c.ProfileUrl)}",
                         c.UnreadCount
                     })
                     .OrderByDescending(x => x.LastMessageTime)
@@ -619,7 +623,7 @@ namespace BlueprintProWeb.Controllers
             {
                 if (string.IsNullOrWhiteSpace(clientId))
                     return BadRequest(new { success = false, message = "ClientId is required." });
-
+                var baseUrl = $"{Request.Scheme}://{Request.Host}";
                 var matches = await context.Matches
                     .Where(m => m.ClientId == clientId)
                     .Include(m => m.Architect)
@@ -631,9 +635,10 @@ namespace BlueprintProWeb.Controllers
                         ArchitectLocation = m.Architect.user_Location,
                         ArchitectStyle = m.Architect.user_Style,
                         ArchitectBudget = m.Architect.user_Budget,
-                        ArchitectPhoto = m.Architect.user_profilePhoto,
+                        ArchitectPhoto = string.IsNullOrEmpty(m.Architect.user_profilePhoto)
+                            ? null
+                            : $"{baseUrl}/images/profiles/{Path.GetFileName(m.Architect.user_profilePhoto)}",
                         MatchStatus = "Matched"
-                      
                     })
                     .ToListAsync();
 
