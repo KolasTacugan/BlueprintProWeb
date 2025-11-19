@@ -843,5 +843,121 @@ namespace BlueprintProWeb.Controllers
             await context.SaveChangesAsync();
             return Ok(new { success = true, message = "Blueprint deleted successfully." });
         }
+
+        [HttpGet("DeletedProjects")]
+        public async Task<IActionResult> MobileDeletedProjects([FromQuery] string architectId)
+        {
+            if (string.IsNullOrEmpty(architectId))
+                return BadRequest("ArchitectId is required.");
+
+            var deleted = await context.Projects
+                .Where(p => p.user_architectId == architectId && p.project_Status == "Deleted")
+                .Include(p => p.Client)
+                .ToListAsync();
+
+            var result = deleted.Select(p => new
+            {
+                p.project_Id,
+                p.project_Title,
+                clientName = p.Client != null ? $"{p.Client.user_fname} {p.Client.user_lname}" : "N/A",
+                deletedDate = p.project_endDate?.ToString() ?? DateTime.UtcNow.ToString()
+            });
+
+            return Ok(result);
+        }
+
+        [HttpPost("DeleteProject")]
+        public async Task<IActionResult> MobileDeleteProject([FromForm] string id)
+        {
+            var project = await context.Projects
+                .FirstOrDefaultAsync(p => p.project_Id == id);
+
+            if (project == null)
+                return NotFound();
+
+            project.project_Status = "Deleted";
+            await context.SaveChangesAsync();
+
+            var notif = new Notification
+            {
+                user_Id = project.user_clientId,
+                notification_Title = "Project Deleted",
+                notification_Message = $"Your project '{project.project_Title}' has been removed by the architect.",
+                notification_Date = DateTime.Now,
+                notification_isRead = false
+            };
+
+            context.Notifications.Add(notif);
+            await context.SaveChangesAsync();
+
+            return Ok(new { success = true, message = "Project deleted successfully." });
+        }
+
+        [HttpPost("RestoreProject")]
+        public async Task<IActionResult> MobileRestoreProject([FromForm] string id)
+        {
+            var project = await context.Projects
+                .FirstOrDefaultAsync(p => p.project_Id == id);
+
+            if (project == null)
+                return NotFound();
+
+            project.project_Status = "Ongoing";
+            await context.SaveChangesAsync();
+
+            var notif = new Notification
+            {
+                user_Id = project.user_clientId,
+                notification_Title = "Project Restored",
+                notification_Message = $"Your project '{project.project_Title}' has been restored.",
+                notification_Date = DateTime.Now,
+                notification_isRead = false
+            };
+
+            context.Notifications.Add(notif);
+            await context.SaveChangesAsync();
+
+            return Ok(new { success = true, message = "Project restored successfully." });
+        }
+
+        [HttpPost("PermanentlyDeleteProject")]
+        public async Task<IActionResult> MobilePermanentlyDeleteProject([FromForm] string id)
+        {
+            var project = await context.Projects
+                .Include(p => p.Blueprint)
+                .FirstOrDefaultAsync(p => p.project_Id == id);
+
+            if (project == null)
+                return NotFound();
+
+            // Load tracker & children
+            var tracker = await context.ProjectTrackers
+                .Include(t => t.Compliance)
+                .Include(t => t.ProjectFiles)
+                .FirstOrDefaultAsync(t => t.project_Id == id);
+
+            if (tracker != null)
+            {
+                if (tracker.Compliance != null)
+                    context.Compliances.Remove(tracker.Compliance);
+
+                if (tracker.ProjectFiles.Any())
+                    context.ProjectFiles.RemoveRange(tracker.ProjectFiles);
+
+                context.ProjectTrackers.Remove(tracker);
+            }
+
+            // delete blueprint?
+            var blueprint = await context.Blueprints
+                .FirstOrDefaultAsync(b => b.blueprintId == project.blueprint_Id);
+
+            if (blueprint != null)
+                context.Blueprints.Remove(blueprint);
+
+            context.Projects.Remove(project);
+            await context.SaveChangesAsync();
+
+            return Ok(new { success = true, message = "Project permanently deleted." });
+        }
     }
 }
