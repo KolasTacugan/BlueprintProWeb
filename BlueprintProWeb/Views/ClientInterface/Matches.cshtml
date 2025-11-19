@@ -257,6 +257,32 @@
             justify-content: center;
         }
 
+        .results-subtitle {
+            font-size: 1rem;
+            font-weight: 400;
+            color: #718096;
+            margin-top: 0.5rem;
+            margin-left: 2.2rem; /* Aligns with title text after icon */
+        }
+
+        .results-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+
+        .results-title-icon {
+            color: #344EAD;
+            font-size: 1.5rem;
+            width: 28px;
+            height: 28px;
+            background: rgba(52, 78, 173, 0.1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         .results-content {
             flex: 1;
             overflow-y: auto;
@@ -551,6 +577,9 @@
                     </div>
                     Architect Matches
                 </h4>
+                <div class="results-subtitle">
+                    Find architects that match your requirements
+                </div>
             </div>
             <div class="results-content" id="architectResults">
                 <div id="resultsContainer" class="row g-3">
