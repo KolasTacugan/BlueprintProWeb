@@ -180,12 +180,18 @@ namespace BlueprintProWeb.Controllers
         [HttpGet("profile/{userId}")]
         public async Task<IActionResult> GetProfile(string userId)
         {
-            if (string.IsNullOrEmpty(userId))
-                return BadRequest(new { message = "User ID is required", success = false, statusCode = 400 });
-
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
                 return NotFound(new { message = "User not found", success = false, statusCode = 404 });
+
+            // ✅ Build full URL for profile photo
+            string? profilePhotoUrl = null;
+            if (!string.IsNullOrEmpty(user.user_profilePhoto))
+            {
+                var host = Request.Host.Host == "localhost" ? "10.0.2.2" : Request.Host.Host;
+                var baseUrl = $"{Request.Scheme}://{host}:{Request.Host.Port}";
+                profilePhotoUrl = $"{baseUrl}/images/profiles/{Path.GetFileName(user.user_profilePhoto)}";
+            }
 
             var model = new
             {
@@ -194,7 +200,7 @@ namespace BlueprintProWeb.Controllers
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
                 Role = user.user_role,
-                ProfilePhoto = user.user_profilePhoto,
+                ProfilePhoto = profilePhotoUrl,
                 LicenseNo = user.user_licenseNo,
                 Style = user.user_Style,
                 Specialization = user.user_Specialization,
@@ -202,7 +208,7 @@ namespace BlueprintProWeb.Controllers
                 Budget = user.user_Budget,
                 CredentialsFilePath = user.user_CredentialsFile,
                 PortfolioText = user.PortfolioText ?? "",
-                IsPro = user.IsProActive // Computed subscription property
+                IsPro = user.IsProActive
             };
 
             return Ok(new
@@ -213,6 +219,7 @@ namespace BlueprintProWeb.Controllers
                 data = model
             });
         }
+
 
         // ✅ UPDATE PROFILE (Mobile)
 
@@ -226,6 +233,15 @@ namespace BlueprintProWeb.Controllers
             if (user == null)
                 return NotFound(new { message = "User not found", success = false, statusCode = 404 });
 
+            // ✅ Build proper URL for ProfilePhoto
+            string profilePhotoUrl = null;
+            if (!string.IsNullOrEmpty(user.user_profilePhoto))
+            {
+                var host = Request.Host.Host == "localhost" ? "10.0.2.2" : Request.Host.Host;
+                var port = Request.Host.Port ?? 5000; // fallback port if not set
+                profilePhotoUrl = $"{Request.Scheme}://{host}:{port}/images/profiles/{Path.GetFileName(user.user_profilePhoto)}";
+            }
+
             var data = new
             {
                 Id = user.Id,
@@ -234,7 +250,7 @@ namespace BlueprintProWeb.Controllers
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
                 Role = user.user_role,
-                ProfilePhoto = user.user_profilePhoto?.Replace("~", ""),
+                ProfilePhoto = profilePhotoUrl,
                 LicenseNo = user.user_licenseNo,
                 Style = user.user_Style,
                 Specialization = user.user_Specialization,
@@ -252,6 +268,7 @@ namespace BlueprintProWeb.Controllers
                 data
             });
         }
+
 
         [HttpPost("edit-profile")]
         [Consumes("multipart/form-data")]
