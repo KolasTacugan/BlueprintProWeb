@@ -1384,7 +1384,7 @@
                 </div>
             </div>
 
-            <div id="savedTab" class="tab-content">
+            <div id="savedTab" class="tab-content" style="display: none;">
                 <div id="savedItems"></div>
                 <div id="savedEmpty" class="cart-empty">
                     <div class="cart-empty-icon"><i class="fas fa-bookmark"></i></div>
@@ -1596,10 +1596,9 @@
                     }
                 });
 
-                // --- Cart + Saved Items ---
+                // --- Cart Items ---
                 const userId = "@User.Identity.Name"; // unique per logged-in user
                 let cart = JSON.parse(localStorage.getItem(`blueprintCart_${userId}`)) || [];
-                let savedItems = JSON.parse(localStorage.getItem(`blueprintSaved_${userId}`)) || [];
 
 
                 const cartModal = document.getElementById('cartModal');
@@ -1607,13 +1606,10 @@
                 const cartCloseBtn = document.getElementById('cartCloseBtn');
                 const cartCount = document.getElementById('cartCount');
                 const cartTabCount = document.getElementById('cartTabCount');
-                const savedTabCount = document.getElementById('savedTabCount');
                 const cartTotal = document.getElementById('cartTotal');
                 const checkoutBtn = document.getElementById('checkoutBtn');
                 const cartItems = document.getElementById('cartItems');
-                const savedItemsDiv = document.getElementById('savedItems');
                 const cartEmpty = document.getElementById('cartEmpty');
-                const savedEmpty = document.getElementById('savedEmpty');
 
                 const checkoutModal = document.getElementById('checkoutModal');
                 const checkoutCancelBtn = document.getElementById('checkoutCancelBtn');
@@ -1650,18 +1646,14 @@
                 function updateCartDisplay() {
                     cartCount.textContent = cart.length;
                     cartTabCount.textContent = cart.length;
-                    savedTabCount.textContent = savedItems.length;
                     const total = cart.reduce((sum, item) => sum + parseFloat(item.price), 0);
                     cartTotal.textContent = formatNumber(total.toFixed(2));
                     checkoutBtn.disabled = cart.length === 0;
                     cartEmpty.style.display = cart.length === 0 ? 'block' : 'none';
-                    savedEmpty.style.display = savedItems.length === 0 ? 'block' : 'none';
                     renderCartItems();
-                    renderSavedItems();
 
                     // ?? Save to local storage
                     localStorage.setItem(`blueprintCart_${userId}`, JSON.stringify(cart));
-                    localStorage.setItem(`blueprintSaved_${userId}`, JSON.stringify(savedItems));
 
                     // ?? Disable Add to Cart buttons for already added items
                     document.querySelectorAll('.add-to-cart').forEach(btn => {
@@ -1702,29 +1694,7 @@
                     });
                 }
 
-                function renderSavedItems() {
-                    savedItemsDiv.innerHTML = '';
-                    savedItems.forEach((item, index) => {
-                        const savedItem = document.createElement('div');
-                        savedItem.innerHTML = `
-                            <div class="cart-item-container">
-                                <img src="/images/${item.image}" class="cart-item-image" alt="${item.name}">
-                                <div class="cart-item-details">
-                                    <div class="cart-item-name">${item.name}</div>
-                                    <div class="cart-item-price">?${formatNumber(parseFloat(item.price).toFixed(2))}</div>
-                                </div>
-                                <div class="cart-item-actions">
-                                    <button class="cart-action-btn" onclick="moveToCart(${index})">
-                                        <i class="fas fa-shopping-cart me-1"></i>Move to Cart
-                                    </button>
-                                    <button class="cart-action-btn remove-btn" onclick="removeFromSaved(${index})">
-                                        <i class="fas fa-trash me-1"></i>Remove
-                                    </button>
-                                </div>
-                            </div>`;
-                        savedItemsDiv.appendChild(savedItem);
-                    });
-                }
+
 
                 async function addToCart(blueprintId, quantity = 1) {
                     try {
@@ -1793,9 +1763,7 @@
                     }
                 }
 
-                function saveForLater(index) { savedItems.push(cart[index]); cart.splice(index, 1); updateCartDisplay(); }
-                function moveToCart(index) { cart.push(savedItems[index]); savedItems.splice(index, 1); updateCartDisplay(); }
-                function removeFromSaved(index) { savedItems.splice(index, 1); updateCartDisplay(); }
+
 
                 cartBtn.addEventListener('click', e => { e.preventDefault(); cartModal.style.display='block'; });
                 cartCloseBtn.addEventListener('click', () => { cartModal.style.display='none'; });
@@ -1855,10 +1823,8 @@
                         const data = await response.json();
                         if (data.success) {
                             localStorage.removeItem(`blueprintCart_${userId}`);
-                            localStorage.removeItem(`blueprintSaved_${userId}`);
 
                             cart = [];
-                            savedItems = [];
                             updateCartDisplay();
                             alert("? Purchase completed! Cart cleared.");
                         }
