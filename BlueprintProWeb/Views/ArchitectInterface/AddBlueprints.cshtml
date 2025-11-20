@@ -71,6 +71,13 @@
             justify-content: center;
         }
 
+        .add-blueprints-subtitle {
+            font-size: 1rem;
+            color: #4A5568;
+            margin-top: 0.25rem;
+            font-family: 'Raleway', sans-serif;
+        }
+
         /* Category Tabs Styling */
         .category-tabs-container {
             background: #FFFFFF;
@@ -280,6 +287,19 @@
                 align-items: stretch;
             }
 
+            .add-blueprints-title-section {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .add-blueprints-subtitle {
+                font-size: 1rem;
+                font-weight: 400;
+                color: #718096;
+                margin-top: 0.5rem;
+                margin-left: 2.2rem; /* Aligns with title text after icon */
+            }
+
             .form-container {
                 padding: 1.5rem;
             }
@@ -307,10 +327,15 @@
 
 <div>
     <div class="add-blueprints-header">
-        <h2 class="add-blueprints-title">
-            <i class="fas fa-plus-circle"></i>
-            Add Blueprints
-        </h2>
+        <div class="add-blueprints-title-section">
+            <h2 class="add-blueprints-title">
+                <i class="fas fa-plus-circle"></i>
+                Add Blueprints
+            </h2>
+            <div class="add-blueprints-subtitle">
+                Upload new blueprints to expand your portfolio
+            </div>
+        </div>
     </div>
 
     <div class="category-tabs-container">

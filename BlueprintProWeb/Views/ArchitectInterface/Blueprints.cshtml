@@ -48,6 +48,11 @@
             border-bottom: 1px solid rgba(52, 78, 173, 0.1);
         }
 
+        .blueprints-title-section {
+            display: flex;
+            flex-direction: column;
+        }
+
         .blueprints-title {
             font-size: 1.75rem; /* Match dashboard-greeting size exactly */
             font-weight: 600; /* Match dashboard weight */
@@ -67,6 +72,14 @@
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+
+        .blueprints-subtitle {
+            font-size: 1rem;
+            font-weight: 400;
+            color: #718096;
+            margin-top: 0.5rem;
+            margin-left: 2.2rem; /* Aligns with title text after icon */
         }
 
         /* Add Blueprint Button Styling */
@@ -349,10 +362,15 @@
 
 <div>
     <div class="blueprints-header">
-        <h2 class="blueprints-title">
-            <i class="fas fa-drafting-compass"></i>
-            My Blueprints
-        </h2>
+        <div class="blueprints-title-section">
+            <h2 class="blueprints-title">
+                <i class="fas fa-drafting-compass"></i>
+                My Blueprints
+            </h2>
+            <div class="blueprints-subtitle">
+                Manage your uploaded blueprint portfolio
+            </div>
+        </div>
         <a class="add-blueprint-button" asp-controller="ArchitectInterface" asp-action="AddBlueprints">
             <i class="fas fa-plus"></i>
             Add Blueprint

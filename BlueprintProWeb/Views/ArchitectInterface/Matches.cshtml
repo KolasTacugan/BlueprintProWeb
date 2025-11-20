@@ -38,35 +38,6 @@
             max-width: calc(100% - 130px);
         }
 
-        /* Page Header Styling */
-        .matches-page-header {
-            margin-bottom: 2rem;
-        }
-
-        .matches-page-title {
-            font-size: 1.75rem;
-            font-weight: 600;
-            color: #1a202c;
-            margin: 0;
-            font-family: 'Raleway', sans-serif;
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-        }
-
-            .matches-page-title i {
-                color: #344EAD;
-                font-size: 1.5rem;
-            }
-
-        .matches-page-subtitle {
-            font-size: 1rem;
-            font-weight: 400;
-            color: #718096;
-            margin-top: 0.5rem;
-            margin-left: 2.2rem; /* Aligns with title text after icon */
-        }
-
         /* Two-column layout */
         .matches-layout {
             display: grid;
@@ -111,6 +82,14 @@
 
         .panel-title i {
             color: #344EAD;
+        }
+
+        .panel-subtitle {
+            font-size: 1rem;
+            font-weight: 400;
+            color: #718096;
+            margin-top: 0.5rem;
+            margin-bottom: 0;
         }
 
         .pending-panel-title {
@@ -431,129 +410,120 @@
     </style>
 }
 
-<div>
-    <div class="matches-page-header">
-        <h2 class="matches-page-title">
-            <i class="fas fa-handshake"></i>
-            My Matches
-        </h2>
-        <div class="matches-page-subtitle">
-            View and manage your client matches
+<div class="matches-layout">
+    <!-- Left Panel - All Matches -->
+    <div class="matches-panel">
+        <div class="panel-header">
+            <h3 class="panel-title">
+                <i class="fas fa-users"></i>
+                All Matches
+            </h3>
+            <div class="panel-subtitle">
+                View and manage your client matches
+            </div>
+        </div>
+        <div class="panel-content">
+            @if (Model != null && Model.Any())
+            {
+                @foreach (var match in Model.OrderByDescending(m => m.MatchDate))
+                {
+                    <div class="match-card">
+                        <div class="match-header">
+                            <img src="@(string.IsNullOrEmpty(match.ClientProfileUrl) ? "/images/profile.jpg" : match.ClientProfileUrl)"
+                                 alt="@match.ClientName"
+                                 class="client-avatar">
+                            <div class="client-info">
+                                <div class="client-name">
+                                    <a href="#" class="client-profile-link" data-client-id="@match.ClientId">
+                                        @match.ClientName
+                                    </a>
+                                </div>
+                                <div class="match-details">
+                                    Requested: @match.MatchDate.ToString("MMM dd, yyyy")
+                                </div>
+                            </div>
+                            <div class="match-status @match.MatchStatus.ToLower()">
+                                @match.MatchStatus
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <div class="empty-state-title">No Matches Yet</div>
+                    <div class="empty-state-subtitle">
+                        You haven't received any match requests yet.<br>
+                        When clients find your profile and request to match, they will appear here.
+                    </div>
+                </div>
+            }
         </div>
     </div>
 
-    <div class="matches-layout">
-        <!-- Left Panel - All Matches -->
-        <div class="matches-panel">
-            <div class="panel-header">
-                <h3 class="panel-title">
-                    <i class="fas fa-users"></i>
-                    All Matches
-                </h3>
-            </div>
-            <div class="panel-content">
-                @if (Model != null && Model.Any())
-                {
-                    @foreach (var match in Model.OrderByDescending(m => m.MatchDate))
-                    {
-                        <div class="match-card">
-                            <div class="match-header">
-                                <img src="@(string.IsNullOrEmpty(match.ClientProfileUrl) ? "/images/profile.jpg" : match.ClientProfileUrl)"
-                                     alt="@match.ClientName"
-                                     class="client-avatar">
-                                <div class="client-info">
-                                    <div class="client-name">
-                                        <a href="#" class="client-profile-link" data-client-id="@match.ClientId">
-                                            @match.ClientName
-                                        </a>
-                                    </div>
-                                    <div class="match-details">
-                                        Requested: @match.MatchDate.ToString("MMM dd, yyyy")
-                                    </div>
-                                </div>
-                                <div class="match-status @match.MatchStatus.ToLower()">
-                                    @match.MatchStatus
-                                </div>
-                            </div>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <div class="empty-state">
-                        <div class="empty-state-icon">
-                            <i class="fas fa-handshake"></i>
-                        </div>
-                        <div class="empty-state-title">No Matches Yet</div>
-                        <div class="empty-state-subtitle">
-                            You haven't received any match requests yet.<br>
-                            When clients find your profile and request to match, they will appear here.
-                        </div>
-                    </div>
-                }
-            </div>
+    <!-- Right Panel - Pending Matches -->
+    <div class="matches-panel">
+        <div class="pending-panel-header">
+            <h3 class="pending-panel-title">
+                <i class="fas fa-clock"></i>
+                Pending Matches
+            </h3>
         </div>
-
-        <!-- Right Panel - Pending Matches -->
-        <div class="matches-panel">
-            <div class="pending-panel-header">
-                <h3 class="pending-panel-title">
-                    <i class="fas fa-clock"></i>
-                    Pending Matches
-                </h3>
-            </div>
-            <div class="panel-content">
-                @{
-                    var pendingMatches = Model?.Where(m => m.MatchStatus == "Pending").ToList() ?? new List<BlueprintProWeb.ViewModels.MatchViewModel>();
-                }
-                @if (pendingMatches.Any())
+        <div class="panel-content">
+            @{
+                var pendingMatches = Model?.Where(m => m.MatchStatus == "Pending").ToList() ?? new List<BlueprintProWeb.ViewModels.MatchViewModel>();
+            }
+            @if (pendingMatches.Any())
+            {
+                @foreach (var pending in pendingMatches.OrderByDescending(m => m.MatchDate))
                 {
-                    @foreach (var pending in pendingMatches.OrderByDescending(m => m.MatchDate))
-                    {
-                        <div class="match-card">
-                            <div class="match-header">
-                                <img src="@(string.IsNullOrEmpty(pending.ClientProfileUrl) ? "/images/profile.jpg" : pending.ClientProfileUrl)"
-                                     alt="@pending.ClientName"
-                                     class="client-avatar">
-                                <div class="client-info">
-                                    <div class="client-name">
-                                        <a href="#" class="client-profile-link" data-client-id="@pending.ClientId">
-                                            @pending.ClientName
-                                        </a>
-                                    </div>
-                                    <div class="match-details">
-                                        Requested: @pending.MatchDate.ToString("MMM dd, yyyy")
-                                    </div>
+                    <div class="match-card">
+                        <div class="match-header">
+                            <img src="@(string.IsNullOrEmpty(pending.ClientProfileUrl) ? "/images/profile.jpg" : pending.ClientProfileUrl)"
+                                 alt="@pending.ClientName"
+                                 class="client-avatar">
+                            <div class="client-info">
+                                <div class="client-name">
+                                    <a href="#" class="client-profile-link" data-client-id="@pending.ClientId">
+                                        @pending.ClientName
+                                    </a>
+                                </div>
+                                <div class="match-details">
+                                    Requested: @pending.MatchDate.ToString("MMM dd, yyyy")
                                 </div>
                             </div>
-                            <div class="match-actions">
-                                <button class="btn-accept respond-btn"
-                                        data-id="@pending.MatchId"
-                                        data-approve="true">
-                                    APPROVED
-                                </button>
-                                <button class="btn-decline respond-btn"
-                                        data-id="@pending.MatchId"
-                                        data-approve="false">
-                                    DECLINE
-                                </button>
-                            </div>
                         </div>
-                    }
-                }
-                else
-                {
-                    <div class="empty-state">
-                        <div class="empty-state-icon">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <div class="empty-state-title">No Pending Matches</div>
-                        <div class="empty-state-subtitle">
-                            All match requests have been responded to.
+                        <div class="match-actions">
+                            <button class="btn-accept respond-btn"
+                                    data-id="@pending.MatchId"
+                                    data-approve="true">
+                                APPROVED
+                            </button>
+                            <button class="btn-decline respond-btn"
+                                    data-id="@pending.MatchId"
+                                    data-approve="false">
+                                DECLINE
+                            </button>
                         </div>
                     </div>
                 }
-            </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="empty-state-title">No Pending Matches</div>
+                    <div class="empty-state-subtitle">
+                        All match requests have been responded to.
+                    </div>
+                </div>
+            }
         </div>
     </div>
 </div>
