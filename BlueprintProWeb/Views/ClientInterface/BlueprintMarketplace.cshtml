@@ -46,25 +46,41 @@
         border-bottom: 1px solid rgba(52, 78, 173, 0.1);
     }
 
+    .marketplace-title-section {
+        display: flex;
+        flex-direction: column;
+    }
+
     .marketplace-title {
-        font-size: 1.75rem; /* Match dashboard-greeting size exactly */
-        font-weight: 600; /* Match dashboard weight */
+        font-size: 1.75rem;
+        font-weight: 600;
         color: #1a202c;
         margin: 0;
         font-family: 'Raleway', sans-serif;
         display: flex;
         align-items: center;
-        gap: 0.6rem; /* Match dashboard gap */
+        gap: 0.6rem;
     }
 
-    .marketplace-title i {
-        color: #344EAD;
-        font-size: 1.5rem; /* Slightly smaller than title */
-        width: 28px; /* Match dashboard icon size */
-        height: 28px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        .marketplace-title i {
+            color: #344EAD;
+            font-size: 1.5rem;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+    .marketplace-subtitle {
+        font-size: 1rem;
+        font-weight: 400;
+        color: #718096;
+        margin-top: 0.5rem;
+        margin-left: 2.2rem; /* Aligns with title text after icon */
+    }
+
+    tify-content: center;
     }
 
     /* Cart Button Styling */
@@ -1118,10 +1134,15 @@
 
 <div>
     <div class="marketplace-header">
-        <h2 class="marketplace-title">
-            <i class="fas fa-store"></i>
-            Blueprint Marketplace
-        </h2>
+        <div class="marketplace-title-section">
+            <h2 class="marketplace-title">
+                <i class="fas fa-store"></i>
+                Blueprint Marketplace
+            </h2>
+            <div class="marketplace-subtitle">
+                Browse and purchase professional blueprints
+            </div>
+        </div>
         <button id="cartBtn" class="cart-button">
             <i class="fas fa-shopping-cart"></i>
             Cart
