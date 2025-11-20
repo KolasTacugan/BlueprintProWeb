@@ -320,6 +320,8 @@ namespace BlueprintProWeb.Controllers
                 if (string.IsNullOrWhiteSpace(architectId))
                     return BadRequest(new { success = false, message = "ArchitectId is required." });
 
+                var baseUrl = $"{Request.Scheme}://{Request.Host}";
+
                 var rawConversations = await context.Messages
                     .Where(m => m.ArchitectId == architectId || m.ClientId == architectId)
                     .GroupBy(m => m.ClientId)
@@ -343,6 +345,7 @@ namespace BlueprintProWeb.Controllers
                     .ToListAsync();
 
                 var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
+
                 var conversations = rawConversations
                     .Select(c => new
                     {
@@ -350,7 +353,12 @@ namespace BlueprintProWeb.Controllers
                         c.ClientName,
                         c.LastMessage,
                         LastMessageTime = TimeZoneInfo.ConvertTimeFromUtc(c.LastMessageTimeUtc, phTimeZone),
-                        ProfileUrl = !string.IsNullOrEmpty(c.ProfileUrl) ? c.ProfileUrl.Replace("~", "https://yourdomain.com") : null,
+
+                        // FIXED PROFILE URL
+                        ProfileUrl = string.IsNullOrEmpty(c.ProfileUrl)
+                            ? null
+                            : $"{baseUrl}/images/profiles/{Path.GetFileName(c.ProfileUrl)}",
+
                         c.UnreadCount
                     })
                     .OrderByDescending(x => x.LastMessageTime)
@@ -365,6 +373,7 @@ namespace BlueprintProWeb.Controllers
         }
 
 
+
         [HttpGet("ArchitectMatches")]
         [AllowAnonymous]
         public async Task<IActionResult> GetAllMatchesForArchitect([FromQuery] string architectId)
@@ -373,6 +382,8 @@ namespace BlueprintProWeb.Controllers
             {
                 if (string.IsNullOrWhiteSpace(architectId))
                     return BadRequest(new { success = false, message = "ArchitectId is required." });
+
+                var baseUrl = $"{Request.Scheme}://{Request.Host}";
 
                 var matches = await context.Matches
                     .Where(m => m.ArchitectId == architectId)
@@ -385,9 +396,12 @@ namespace BlueprintProWeb.Controllers
                         ClientLocation = m.Client.user_Location,
                         ClientStyle = m.Client.user_Style,
                         ClientBudget = m.Client.user_Budget,
-                        ClientPhoto = !string.IsNullOrEmpty(m.Client.user_profilePhoto)
-                            ? m.Client.user_profilePhoto.Replace("~", "https://yourdomain.com")
-                            : null,
+
+                        // ✔ FIXED PROFILE PHOTO URL
+                        ClientPhoto = string.IsNullOrEmpty(m.Client.user_profilePhoto)
+                            ? null
+                            : $"{baseUrl}/images/profiles/{Path.GetFileName(m.Client.user_profilePhoto)}",
+
                         MatchStatus = "Matched"
                     })
                     .ToListAsync();
