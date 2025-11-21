@@ -74,6 +74,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 .Take(5)
                 .Select(m => new ClientMatchSummary
                 {
+                    ClientId = m.ClientId, // Added for messaging functionality
                     ClientName = $"{m.Client.user_fname} {m.Client.user_lname}",
                     ClientNeeds = m.Client.user_Style ?? "General Architecture",
                     Status = m.MatchStatus,
@@ -88,6 +89,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 .Take(5)
                 .Select(bp => new BlueprintUpload
                 {
+                    BlueprintId = bp.blueprintId, // Added for project tracker linking
                     BlueprintName = bp.blueprintName,
                     UploadDate = DateTime.UtcNow, // You might want to add an UploadDate field to Blueprint model
                     Price = bp.blueprintPrice,

@@ -23,6 +23,7 @@ namespace BlueprintProWeb.ViewModels
 
     public class BlueprintPurchase
     {
+        public int BlueprintId { get; set; } // Added for project tracker linking
         public string BlueprintName { get; set; }
         public DateTime PurchaseDate { get; set; }
         public decimal Price { get; set; }

@@ -79,6 +79,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 .Take(5)
                 .Select(m => new MatchSummary
                 {
+                    ArchitectId = m.ArchitectId, // Added for messaging functionality
                     ArchitectName = $"{m.Architect.user_fname} {m.Architect.user_lname}",
                     ArchitectSpecialty = m.Architect.user_Style ?? "General Architecture",
                     Status = m.MatchStatus,
@@ -93,6 +94,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 .Take(5)
                 .Select(bp => new BlueprintPurchase
                 {
+                    BlueprintId = bp.blueprintId, // Added for project tracker linking
                     BlueprintName = bp.blueprintName,
                     PurchaseDate = DateTime.UtcNow, // You might want to add a PurchaseDate field to Blueprint model
                     Price = bp.blueprintPrice

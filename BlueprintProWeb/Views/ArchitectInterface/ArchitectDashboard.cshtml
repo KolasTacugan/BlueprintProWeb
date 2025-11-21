@@ -316,6 +316,21 @@
             border-left: 3px solid #344EAD;
         }
 
+        /* Blueprint name link styling */
+        .blueprint-name-link {
+            color: #2d3748;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            display: block;
+            width: 100%;
+        }
+
+        .blueprint-name-link:hover {
+            color: #344EAD;
+            text-decoration: none;
+            transform: translateX(2px);
+        }
+
         /* Project Overview section */
         .dashboard-overview {
             background: #FFFFFF;
@@ -916,7 +931,13 @@
             {
                 @foreach (var upload in Model.RecentUploads.Take(3))
                 {
-                    <div class="blueprint-item">@upload.BlueprintName</div>
+                    <div class="blueprint-item">
+                        <a href="/ArchitectInterface/ProjectTracker/@upload.BlueprintId" 
+                           class="blueprint-name-link"
+                           title="View project details for @upload.BlueprintName">
+                            @upload.BlueprintName
+                        </a>
+                    </div>
                 }
             }
             else
