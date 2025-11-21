@@ -78,25 +78,40 @@ namespace BlueprintProWeb.Controllers
         {
             try
             {
-                // Fetch all blueprints marked as for sale
+                var baseUrl = $"{Request.Scheme}://{Request.Host}";
+
                 var availableBlueprints = context.Blueprints
                     .Where(bp => bp.blueprintIsForSale)
-                    .ToList(); // gets all properties
+                    .Select(bp => new
+                    {
+                        bp.blueprintId,
+                        bp.blueprintName,
+                        bp.blueprintPrice,
+                        bp.blueprintDescription,
+                        bp.blueprintIsForSale,
+                        bp.blueprintStyle,
 
-                // Prepare response including Stripe key
+                        // ⭐ If image is stored in /images/filename.jpg:
+                        blueprintImage = string.IsNullOrEmpty(bp.blueprintImage)
+                            ? null
+                            : $"{baseUrl}/images/{Path.GetFileName(bp.blueprintImage)}"
+                    })
+                    .ToList();
+
                 var response = new
                 {
                     StripePublishableKey = _stripeSettings.PublishableKey,
                     Blueprints = availableBlueprints
                 };
 
-                return Ok(response); // returns JSON
+                return Ok(response);
             }
             catch (Exception ex)
             {
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }
+
 
 
         // -------------------- CART --------------------
@@ -186,9 +201,11 @@ namespace BlueprintProWeb.Controllers
                 if (string.IsNullOrWhiteSpace(clientId))
                     return BadRequest(new { success = false, message = "ClientId is required." });
 
+                var baseUrl = $"{Request.Scheme}://{Request.Host}";
+
                 var cart = await context.Carts
                     .Include(c => c.Items)
-                        .ThenInclude(i => i.Blueprint) // ✅ Eager load the Blueprint
+                        .ThenInclude(i => i.Blueprint)
                     .Where(c => c.UserId == clientId)
                     .Select(c => new
                     {
@@ -198,7 +215,9 @@ namespace BlueprintProWeb.Controllers
                             i.CartItemId,
                             i.BlueprintId,
                             blueprintName = i.Blueprint.blueprintName,
-                            blueprintImage = i.Blueprint.blueprintImage,
+                            blueprintImage = string.IsNullOrEmpty(i.Blueprint.blueprintImage)
+                                ? null
+                                : $"{baseUrl}/images/{Path.GetFileName(i.Blueprint.blueprintImage)}",
                             blueprintPrice = i.Blueprint.blueprintPrice,
                             i.Quantity
                         }).ToList()
@@ -215,6 +234,8 @@ namespace BlueprintProWeb.Controllers
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }
+
+        
         [AllowAnonymous]
         [HttpPost("RemoveFromCart")]
         public async Task<IActionResult> RemoveFromCart([FromBody] RemoveCartRequest request)
