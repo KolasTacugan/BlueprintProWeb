@@ -715,10 +715,67 @@ namespace BlueprintProWeb.Controllers
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }
-    
 
-    // ✅ Request model for sending messages
-    public class SendMessageRequest
+        [HttpPost("SubmitRating")]
+        public IActionResult SubmitRating([FromForm] string projectId, [FromForm] int rating)
+        {
+            if (string.IsNullOrEmpty(projectId))
+                return BadRequest(new { success = false, message = "Project ID is required." });
+
+            // Find project
+            var project = context.Projects.FirstOrDefault(p => p.project_Id == projectId);
+            if (project == null)
+                return NotFound(new { success = false, message = "Project not found." });
+
+            // Find architect
+            var architect = context.Users.FirstOrDefault(u => u.Id == project.user_architectId);
+            if (architect == null)
+                return NotFound(new { success = false, message = "Architect not found." });
+
+            // Add rating
+            architect.user_Rating = (architect.user_Rating ?? 0) + rating;
+
+            // Mark project as rated
+            project.project_clientHasRated = true;
+
+            // Save database
+            context.SaveChanges();
+
+            return Ok(new
+            {
+                success = true,
+                message = "Rating submitted successfully."
+            });
+        }
+
+        [HttpGet("getClientProjects/{clientId}")]
+        public async Task<IActionResult> GetClientProjects(string clientId)
+        {
+            var projects = await context.Projects
+                .Where(p => p.user_clientId == clientId &&
+                           (p.project_Status == "Ongoing" || p.project_Status == "Finished"))
+                .Include(p => p.Blueprint)
+                .Include(p => p.Architect)
+                .Select(p => new
+                {
+                    p.project_Id,
+                    p.project_Title,
+                    p.project_Status,
+                    p.project_Budget,
+                    p.project_startDate,
+                    p.project_endDate,
+                    blueprint_Id = p.blueprint_Id,
+                    blueprint_Name = p.Blueprint.blueprintName,
+                    blueprint_ImageUrl = p.Blueprint.blueprintImage,
+                    architectName = p.Architect.user_fname + " " + p.Architect.user_lname
+                })
+                .ToListAsync();
+
+            return Ok(projects);
+        }
+
+        // ✅ Request model for sending messages
+        public class SendMessageRequest
     {
         public string ClientId { get; set; }
         public string ArchitectId { get; set; }
@@ -727,48 +784,61 @@ namespace BlueprintProWeb.Controllers
 }
 
         // -------------------- PROJECT TRACKER --------------------
-        [HttpGet("ProjectTracker/{id}")]
-        [AllowAnonymous]
-        public IActionResult GetProjectTracker(int id)
+        [HttpGet("ProjectTracker/{blueprintId}")]
+        public async Task<IActionResult> GetProjectTracker(int blueprintId)
         {
-            try
+            var tracker = await context.ProjectTrackers
+                .Include(pt => pt.Project)
+                    .ThenInclude(p => p.Architect)
+                .Include(pt => pt.Compliance)
+                .FirstOrDefaultAsync(pt => pt.Project.blueprint_Id == blueprintId);
+
+            if (tracker == null)
+                return NotFound();
+
+            var projectFiles = await context.ProjectFiles
+                .Where(f => f.project_Id == tracker.project_Id)
+                .OrderByDescending(f => f.projectFile_Version)
+                .ToListAsync();
+
+            var response = new
             {
-                var project = context.Projects.FirstOrDefault(p => p.blueprint_Id == id);
-                if (project == null) return NotFound();
+                projectTrack_Id = tracker.projectTrack_Id,
+                project_Id = tracker.project_Id,
 
-                var tracker = context.ProjectTrackers
-                    .Include(t => t.Compliance)
-                    .FirstOrDefault(t => t.project_Id == project.project_Id);
-                if (tracker == null) return NotFound();
+                // ✔ MATCH ANDROID EXACT FIELD NAMES
+                CurrentFileName = tracker.projectTrack_currentFileName,
+                CurrentFilePath = tracker.projectTrack_currentFilePath,
+                CurrentRevision = tracker.projectTrack_currentRevision,
+                Status = tracker.projectTrack_Status,
 
-                var history = context.ProjectFiles
-                    .Where(f => f.project_Id == project.project_Id)
-                    .OrderByDescending(f => f.projectFile_Version)
-                    .Select(f => new
-                    {
-                        f.projectFile_fileName,
-                        f.projectFile_Version,
-                        f.projectFile_uploadedDate
-                    })
-                    .ToList();
+                ArchitectName = tracker.Project?.Architect == null
+                    ? null
+                    : $"{tracker.Project.Architect.user_fname} {tracker.Project.Architect.user_lname}",
 
-                return Ok(new
+                IsRated = tracker.Project?.project_clientHasRated ?? false,
+
+                RevisionHistory = projectFiles.Select(f => new
                 {
-                    tracker.projectTrack_Id,
-                    tracker.project_Id,
-                    tracker.projectTrack_currentFileName,
-                    tracker.projectTrack_currentFilePath,
-                    tracker.projectTrack_currentRevision,
-                    tracker.projectTrack_Status,
-                    tracker.projectTrack_FinalizationNotes,
-                    Compliance = tracker.Compliance,
-                    RevisionHistory = history
-                });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { success = false, message = ex.Message });
-            }
+                    FileName = f.projectFile_fileName,
+                    Version = f.projectFile_Version,
+                    UploadedDate = f.projectFile_uploadedDate,
+                    FilePath = f.projectFile_Path
+                }).ToList(),
+
+                // ✔ SAFE DTO, NO EF ENTITIES
+                Compliance = tracker.Compliance == null ? null : new
+                {
+                    compliance_Id = tracker.Compliance.compliance_Id,
+                    compliance_Zoning = tracker.Compliance.compliance_Zoning,
+                    compliance_Others = tracker.Compliance.compliance_Others
+                },
+
+                FinalizationNotes = tracker.projectTrack_FinalizationNotes,
+                ProjectStatus = tracker.Project.project_Status
+            };
+
+            return Ok(response);
         }
 
         // -------------------- HELPERS --------------------
