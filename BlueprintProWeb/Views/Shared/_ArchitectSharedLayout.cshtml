@@ -47,6 +47,7 @@
             pointer-events: none;
         }
 
+
         .sidebar {
             width: 270px;
             position: fixed;
@@ -284,10 +285,10 @@
             transition: 0.3s ease;
         }
 
-        .logout-btn:hover {
-            background: #fff;
-            border-color: #d62828;
-        }
+            .logout-btn:hover {
+                background: #fff;
+                border-color: #d62828;
+            }
 
         #notificationPanel {
             max-height: 300px;
@@ -322,8 +323,6 @@
             visibility: hidden;
         }
 
-
-
     </style>
     @RenderSection("Styles", required: false)
 </head>
@@ -356,7 +355,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a asp-controller="ArchitectInterface" asp-action="PendingMatches" class="nav-link">
+                    <a asp-controller="ArchitectInterface" asp-action="Matches" class="nav-link">
                         <span class="nav-icon material-symbols-rounded">handshake</span>
                         <span class="nav-label">Matches</span>
                     </a>

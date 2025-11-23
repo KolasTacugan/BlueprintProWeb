@@ -841,7 +841,6 @@ namespace BlueprintProWeb.Controllers
             return Ok(response);
         }
 
-
         // -------------------- HELPERS --------------------
         private double CosineSimilarity(float[] v1, float[] v2)
         {

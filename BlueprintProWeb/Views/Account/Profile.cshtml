@@ -6,7 +6,8 @@
 
 @section Styles {
     <style>
-            @@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        @@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800&display=swap');
+        
         /* Override shared layout background for profile page */
         body::before {
             background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
@@ -17,25 +18,25 @@
         body {
             overflow-y: auto !important;
             height: auto !important;
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Raleway', sans-serif;
             margin: 0;
             min-height: 100vh;
         }
 
-        /* Main content positioning that responds to sidebar state - using main.container to match shared layout */
+        /* Main content positioning that responds to sidebar state */
         main.container {
             margin-left: 300px;
             margin-top: 90px;
             padding: 2rem;
             padding-top: 4rem;
-            max-width: calc(100% - 320px);
+            max-width: calc(100% - 420px);
             transition: margin-left 0.4s ease, max-width 0.4s ease;
         }
 
         /* When sidebar is collapsed, adjust main content */
         .sidebar.collapsed ~ * main.container,
         body:has(.sidebar.collapsed) main.container {
-            margin-left: 110px; /* Account for collapsed sidebar (85px + margins) */
+            margin-left: 110px;
             max-width: calc(100% - 130px);
         }
 
@@ -84,10 +85,10 @@
             position: relative;
         }
 
-            .page-header h2 {
-                color: #0D3C80;
-                font-weight: 700;
-            }
+        .page-header h2 {
+            color: #0D3C80;
+            font-weight: 700;
+        }
 
         /* Pro indicator next to name */
         .user-name-container {
@@ -108,21 +109,25 @@
         }
 
         .profile-section {
-            display: flex;
-            gap: 20px;
             margin-bottom: 30px;
         }
 
         .profile-card {
-            flex: 2;
             background: rgba(255, 255, 255, 0.85);
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0px 4px 12px rgba(13, 60, 128, 0.08);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0px 8px 25px rgba(13, 60, 128, 0.12);
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
             position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            transition: all 0.3s ease;
+        }
+
+        .profile-card:hover {
+            box-shadow: 0px 12px 35px rgba(13, 60, 128, 0.18);
+            transform: translateY(-2px);
         }
 
         /* Pro border for profile card */
@@ -133,150 +138,189 @@
 
         .avatar-container {
             position: relative;
-            width: 64px;
-            height: 64px;
+            width: 80px;
+            height: 80px;
         }
 
         .avatar {
-            width: 64px;
-            height: 64px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
             overflow: hidden;
-            border: 2px solid #EBF1FD;
+            border: 3px solid #EBF1FD;
             background: #f8f9fa;
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
             cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .avatar:hover {
+            border-color: #0D3C80;
+            transform: scale(1.05);
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-placeholder {
+            color: #0D3C80;
+            font-size: 28px;
+            font-weight: 700;
         }
 
         /* Pro user avatar styling */
         .avatar.pro-user {
             border: 3px solid #0D3C80;
-            box-shadow: 0 0 15px rgba(13, 60, 128, 0.3);
+            box-shadow: 0 0 20px rgba(13, 60, 128, 0.4);
+        }
+
+        .profile-info {
+            display: flex;
+            align-items: flex-start;
+            flex: 1;
+            gap: 20px;
         }
 
         .user-details {
             flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 8px;
         }
 
         .user-details h3 {
             margin: 0;
             color: #0D3C80;
-            font-weight: 600;
-            font-size: 1.1rem;
+            font-weight: 700;
+            font-size: 1.4rem;
         }
 
         .user-details .email,
         .user-details .phone {
-            font-size: 0.9rem;
-            color: #555;
+            font-size: 1rem;
+            color: #666;
+            font-weight: 500;
         }
 
-        .edit-btn {
-            background: #0D3C80;
-            color: white;
-            border: none;
-            padding: 8px 16px;
+        .user-details .role-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            color: #0D3C80;
+            padding: 3px 8px;
             border-radius: 8px;
-            cursor: pointer;
-            text-decoration: none;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(13, 60, 128, 0.2);
+            width: fit-content;
         }
 
-            .edit-btn:hover {
-                background: #0A2F66;
-                color: white;
-            }
-
-        .side-buttons {
-            flex: 1;
+        .action-buttons {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 15px;
+            align-items: flex-end;
         }
 
-            .side-buttons .card {
-                background: rgba(255, 255, 255, 0.85);
-                border-radius: 16px;
-                padding: 16px;
-                text-align: center;
-                cursor: pointer;
-                box-shadow: 0px 4px 12px rgba(13, 60, 128, 0.08);
-                text-decoration: none;
-                color: #0D3C80;
-                font-weight: 500;
-                transition: all 0.3s ease;
-                display: block;
-                border: none;
-                position: relative;
-            }
-
-                .side-buttons .card:hover {
-                    background: rgba(13, 60, 128, 0.1);
-                    transform: translateY(-2px);
-                    box-shadow: 0px 6px 16px rgba(13, 60, 128, 0.15);
-                    text-decoration: none;
-                    color: #0D3C80;
-                }
-
-        /* Pro subscription button styling */
-        .subscription-card-pro {
-            background: linear-gradient(135deg, rgba(13, 60, 128, 0.05), rgba(255, 255, 255, 0.9)) !important;
-            border: 2px solid #0D3C80 !important;
-        }
-
-        .subscription-card-pro::after {
-            content: "PRO";
-            position: absolute;
-            top: -1px;
-            right: -1px;
+        .edit-btn,
+        .subscription-btn {
             background: linear-gradient(135deg, #0D3C80, #1a5bb8);
             color: white;
-            padding: 2px 8px;
-            border-radius: 0 14px 0 12px;
-            font-size: 0.6rem;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            text-align: center;
+            min-width: 140px;
+            box-shadow: 0 4px 15px rgba(13, 60, 128, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .edit-btn:hover,
+        .subscription-btn:hover {
+            background: linear-gradient(135deg, #0A2F66, #164a9e);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0px 8px 25px rgba(13, 60, 128, 0.4);
+        }
+
+        /* Pro subscription button styling */
+        .subscription-btn.subscription-card-pro {
+            background: linear-gradient(135deg, rgba(13, 60, 128, 0.1), rgba(255, 255, 255, 0.95));
+            color: #0D3C80;
+            border: 2px solid #0D3C80;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(13, 60, 128, 0.2);
+        }
+
+        .subscription-btn.subscription-card-pro::after {
+            content: "PRO";
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: linear-gradient(135deg, #0D3C80, #1a5bb8);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 0 10px 0 10px;
+            font-size: 0.65rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
-        .credentials-card {
-            background: rgba(255, 255, 255, 0.85);
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0px 4px 12px rgba(13, 60, 128, 0.08);
+        .subscription-btn.subscription-card-pro:hover {
+            background: linear-gradient(135deg, rgba(13, 60, 128, 0.15), rgba(255, 255, 255, 1));
+            color: #0D3C80;
+            transform: translateY(-3px);
+            box-shadow: 0px 8px 25px rgba(13, 60, 128, 0.3);
         }
 
-            .credentials-card h4 {
-                margin-top: 0;
-                color: #0D3C80;
-                font-weight: 600;
-            }
+        .subscription-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+            background: #6c757d !important;
+        }
+
+        .subscription-btn:disabled:hover {
+            transform: none !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+        }
 
         .alert {
-            padding: 12px 16px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            font-weight: 500;
+            padding: 15px 20px;
+            margin-bottom: 25px;
+            border-radius: 12px;
+            font-weight: 600;
+            border: none;
         }
 
         .alert-success {
-            background-color: #d1edff;
-            border: 1px solid #0D3C80;
+            background: linear-gradient(135deg, #d1edff, #e8f4fd);
             color: #0D3C80;
+            border-left: 4px solid #0D3C80;
         }
 
         .alert-danger {
-            background-color: #f8d7da;
-            border: 1px solid #dc3545;
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
             color: #721c24;
+            border-left: 4px solid #dc3545;
         }
 
-        /* SUBSCRIPTION MODAL STYLES - Updated to match page design */
+        /* SUBSCRIPTION MODAL STYLES */
         .subscription-modal {
             display: none;
             position: fixed;
@@ -289,11 +333,11 @@
             backdrop-filter: blur(5px);
         }
 
-            .subscription-modal.show {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
+        .subscription-modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
         .modal-content-large {
             background: rgba(255, 255, 255, 0.95);
@@ -338,9 +382,9 @@
             transition: background-color 0.3s ease;
         }
 
-            .modal-close:hover {
-                background-color: rgba(255, 255, 255, 0.2);
-            }
+        .modal-close:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
 
         .modal-title-custom {
             font-size: 2rem;
@@ -360,7 +404,7 @@
             padding: 40px;
         }
 
-        /* Plans Container - Side by Side */
+        /* Plans Container */
         .plans-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -382,20 +426,20 @@
             flex-direction: column;
         }
 
-            .plan-card:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 16px 50px rgba(13, 60, 128, 0.2);
-            }
+        .plan-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 16px 50px rgba(13, 60, 128, 0.2);
+        }
 
-            .plan-card.pro-plan {
-                border-color: #0D3C80;
-                background: linear-gradient(135deg, rgba(13, 60, 128, 0.05), rgba(255, 255, 255, 0.95));
-            }
+        .plan-card.pro-plan {
+            border-color: #0D3C80;
+            background: linear-gradient(135deg, rgba(13, 60, 128, 0.05), rgba(255, 255, 255, 0.95));
+        }
 
-            .plan-card.current-plan {
-                border-color: #28a745;
-                background: linear-gradient(135deg, rgba(40, 167, 69, 0.05), rgba(255, 255, 255, 0.95));
-            }
+        .plan-card.current-plan {
+            border-color: #28a745;
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.05), rgba(255, 255, 255, 0.95));
+        }
 
         .plan-badge {
             position: absolute;
@@ -456,12 +500,12 @@
             margin: 0;
         }
 
-            .features-list li {
-                color: #333;
-                font-size: 1rem;
-                line-height: 1.6;
-                margin-bottom: 8px;
-            }
+        .features-list li {
+            color: #333;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
 
         .plan-button {
             width: 100%;
@@ -477,22 +521,22 @@
             margin-top: auto;
         }
 
-            .plan-button.primary {
-                background: linear-gradient(135deg, #0D3C80, #1a5bb8);
-                color: white;
-            }
+        .plan-button.primary {
+            background: linear-gradient(135deg, #0D3C80, #1a5bb8);
+            color: white;
+        }
 
-                .plan-button.primary:hover {
-                    background: linear-gradient(135deg, #0A2F66, #164a9e);
-                    transform: translateY(-2px);
-                    box-shadow: 0 8px 25px rgba(13, 60, 128, 0.3);
-                }
+        .plan-button.primary:hover {
+            background: linear-gradient(135deg, #0A2F66, #164a9e);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(13, 60, 128, 0.3);
+        }
 
-            .plan-button.current-btn {
-                background: linear-gradient(135deg, #28a745, #20c997);
-                color: white;
-                cursor: default;
-            }
+        .plan-button.current-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            cursor: default;
+        }
 
         /* CHECKOUT STYLES */
         .checkout-container {
@@ -500,9 +544,9 @@
             max-width: 100%;
         }
 
-            .checkout-container.show {
-                display: block;
-            }
+        .checkout-container.show {
+            display: block;
+        }
 
         .back-button {
             background: none;
@@ -518,9 +562,9 @@
             transition: opacity 0.3s ease;
         }
 
-            .back-button:hover {
-                opacity: 0.8;
-            }
+        .back-button:hover {
+            opacity: 0.8;
+        }
 
         .checkout-content {
             display: grid;
@@ -625,12 +669,12 @@
             background: rgba(255, 255, 255, 0.9);
         }
 
-            .form-input:focus {
-                outline: none;
-                border-color: #0D3C80;
-                box-shadow: 0 0 0 3px rgba(13, 60, 128, 0.1);
-                background: white;
-            }
+        .form-input:focus {
+            outline: none;
+            border-color: #0D3C80;
+            box-shadow: 0 0 0 3px rgba(13, 60, 128, 0.1);
+            background: white;
+        }
 
         .payment-methods {
             display: flex;
@@ -650,18 +694,18 @@
             background: white;
         }
 
-            .payment-method:hover {
-                border-color: #0D3C80;
-            }
+        .payment-method:hover {
+            border-color: #0D3C80;
+        }
 
-            .payment-method.selected {
-                border-color: #0D3C80;
-                background: rgba(13, 60, 128, 0.05);
-            }
+        .payment-method.selected {
+            border-color: #0D3C80;
+            background: rgba(13, 60, 128, 0.05);
+        }
 
-            .payment-method input[type="radio"] {
-                margin: 0;
-            }
+        .payment-method input[type="radio"] {
+            margin: 0;
+        }
 
         .checkout-buttons {
             display: flex;
@@ -682,10 +726,10 @@
             transition: all 0.3s ease;
         }
 
-            .btn-back:hover {
-                background: #0D3C80;
-                color: white;
-            }
+        .btn-back:hover {
+            background: #0D3C80;
+            color: white;
+        }
 
         .btn-confirm {
             flex: 2;
@@ -702,11 +746,11 @@
             letter-spacing: 0.5px;
         }
 
-            .btn-confirm:hover {
-                background: linear-gradient(135deg, #0A2F66, #164a9e);
-                transform: translateY(-2px);
-                box-shadow: 0 8px 25px rgba(13, 60, 128, 0.3);
-            }
+        .btn-confirm:hover {
+            background: linear-gradient(135deg, #0A2F66, #164a9e);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(13, 60, 128, 0.3);
+        }
 
         /* Responsive adjustments */
         @@media (max-width: 767.98px) {
@@ -730,9 +774,28 @@
                 font-size: 0.7rem;
             }
 
-            .profile-section {
+            .profile-card {
                 flex-direction: column;
-                gap: 15px;
+                align-items: flex-start !important;
+                gap: 20px;
+            }
+
+            .profile-info {
+                width: 100%;
+            }
+
+            .action-buttons {
+                flex-direction: row;
+                align-self: stretch;
+                justify-content: space-between;
+                gap: 10px;
+            }
+
+            .action-buttons .edit-btn,
+            .action-buttons .subscription-btn {
+                flex: 1;
+                min-width: auto;
+                margin: 0;
             }
 
             .modal-content-large {
@@ -808,9 +871,6 @@
                             </div>
                         }
                     </div>
-                    @* <div class="avatar-upload-overlay" onclick="document.getElementById('profilePictureInput').click()">
-                        Upload Photo
-                    </div> *@
                 </div>
                 <div class="user-details">
                     <div class="user-name-container">
@@ -821,33 +881,22 @@
                         }
                     </div>
                     <div class="email">@Model.Email</div>
-                    <div class="phone">@Model.PhoneNumber</div>
+                    <div class="phone">@(Model.PhoneNumber ?? "No phone number")</div>
+                    <div class="role-badge">@Model.Role</div>
                 </div>
             </div>
-            <a asp-controller="Account" asp-action="EditProfile" class="edit-btn">Edit Profile</a>
+            <div class="action-buttons">
+                <a asp-controller="Account" asp-action="EditProfile" class="edit-btn">
+                    <i class="fas fa-edit"></i> Edit Profile
+                </a>
+                <button class="subscription-btn @(Model.IsPro ? "subscription-card-pro" : "")"
+                    title="@(Model.Role == "Client" ? "Subscription is only available for architects" : "")"
+                    onclick="@(Model.Role == "Client" ? "return false;" : "openSubscriptionModal()")"
+                    @(Model.Role == "Client" ? "disabled" : "")>
+                    <i class="fas fa-crown"></i> Subscription
+                </button>
+            </div>
         </div>
-
-        <div class="side-buttons">
-            <button class="card @(Model.IsPro ? "subscription-card-pro" : "")" onclick="openSubscriptionModal()">Subscription</button>
-        </div>
-    </div>
-
-    <div class="credentials-card">
-        <h4>Architect Credentials</h4>
-
-        @if (!string.IsNullOrEmpty(Model.CredentialsFilePath))
-        {
-            var fullFileName = System.IO.Path.GetFileName(Model.CredentialsFilePath);
-            var displayName = fullFileName.Length > 37 ? fullFileName.Substring(37) : fullFileName;
-
-            <p>
-                <a href="~/credentials/@fullFileName" target="_blank">@displayName</a>
-            </p>
-        }
-        else
-        {
-            <p>N/A</p>
-        }
     </div>
 
     <!-- Hidden form for profile picture upload -->
@@ -985,8 +1034,10 @@
 
             const avatarContainer = document.querySelector('.avatar-container');
             const overlay = avatarContainer.querySelector('.avatar-upload-overlay');
-            overlay.innerHTML = 'Uploading...';
-            overlay.style.opacity = '1';
+            if (overlay) {
+                overlay.innerHTML = 'Uploading...';
+                overlay.style.opacity = '1';
+            }
 
             input.form.submit();
         }
@@ -1008,7 +1059,6 @@
 
         function showPlansView() {
             document.getElementById('plansView').style.display = 'grid';
-            document.getElementById('backButton').style.display = 'none';
             document.getElementById('modalTitle').textContent = 'Choose Your Plan';
             document.getElementById('modalSubtitle').textContent = 'Select the subscription that fits your needs';
         }
