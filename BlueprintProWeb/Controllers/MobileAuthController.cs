@@ -184,13 +184,26 @@ namespace BlueprintProWeb.Controllers
             if (user == null)
                 return NotFound(new { message = "User not found", success = false, statusCode = 404 });
 
-            // ✅ Build full URL for profile photo
+            // Fix localhost → 10.0.2.2 for Android emulator
+            var protocol = Request.Host.Host == "localhost" ? "http" : Request.Scheme;
+            var host = Request.Host.Host == "localhost" ? "10.0.2.2" : Request.Host.Host;
+            var baseUrl = $"{protocol}://{host}:{Request.Host.Port}";
+
+
+            // ---------- PROFILE PHOTO URL ----------
             string? profilePhotoUrl = null;
             if (!string.IsNullOrEmpty(user.user_profilePhoto))
             {
-                var host = Request.Host.Host == "localhost" ? "10.0.2.2" : Request.Host.Host;
-                var baseUrl = $"{Request.Scheme}://{host}:{Request.Host.Port}";
-                profilePhotoUrl = $"{baseUrl}/images/profiles/{Path.GetFileName(user.user_profilePhoto)}";
+                var fileName = Path.GetFileName(user.user_profilePhoto);
+                profilePhotoUrl = $"{baseUrl}/images/profiles/{fileName}";
+            }
+
+            // ---------- CREDENTIALS PDF URL ----------
+            string? credentialsUrl = null;
+            if (!string.IsNullOrEmpty(user.user_CredentialsFile))
+            {
+                var fileName = Path.GetFileName(user.user_CredentialsFile);
+                credentialsUrl = $"{baseUrl}/credentials/{fileName}";
             }
 
             var model = new
@@ -206,7 +219,7 @@ namespace BlueprintProWeb.Controllers
                 Specialization = user.user_Specialization,
                 Location = user.user_Location,
                 Budget = user.user_Budget,
-                CredentialsFilePath = user.user_CredentialsFile,
+                CredentialsFilePath = credentialsUrl,
                 PortfolioText = user.PortfolioText ?? "",
                 IsPro = user.IsProActive
             };
