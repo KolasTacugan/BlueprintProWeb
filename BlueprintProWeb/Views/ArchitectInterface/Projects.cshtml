@@ -398,7 +398,12 @@
                         <tr class="bp-row">
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <img src="~/images/@item.Blueprint.blueprintImage" class="bp-image" asp-append-version="true" alt="@item.project_Title" />
+                                    <img src="@(item.Blueprint.blueprintImage.StartsWith("/uploads")
+                                                 ? item.Blueprint.blueprintImage
+                                                 : Url.Content("~/images/" + item.Blueprint.blueprintImage))"
+                                     class="bp-image"
+                                     asp-append-version="true"
+                                     alt="@item.project_Title" />
                                     <div class="project-info">
                                         <div class="bp-name">@item.project_Title</div>
                                         <div class="project-details">
