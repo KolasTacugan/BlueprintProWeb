@@ -156,9 +156,14 @@ namespace BlueprintProWeb.Controllers
                     p.project_Budget,
                     p.project_Status,
                     p.blueprint_Id,
-                    blueprintImage = p.Blueprint.blueprintImage != null
-                        ? $"{Request.Scheme}://{Request.Host}/images/{p.Blueprint.blueprintImage}"
-                        : null,
+                    blueprintImage =
+                        p.Blueprint.blueprintImage != null
+                            ? (
+                                p.Blueprint.blueprintImage.StartsWith("/uploads")
+                                    ? $"{Request.Scheme}://{Request.Host}{p.Blueprint.blueprintImage}"
+                                    : $"{Request.Scheme}://{Request.Host}/images/{p.Blueprint.blueprintImage}"
+                              )
+                            : null,
                     clientName = p.Client.user_fname + " " + p.Client.user_lname
                 })
                 .ToListAsync();
@@ -629,6 +634,7 @@ namespace BlueprintProWeb.Controllers
             tracker.projectTrack_currentFileName = file.FileName;
             tracker.projectTrack_currentFilePath = "/uploads/" + uniqueFileName;
             tracker.projectTrack_currentRevision += 1;
+            project.Blueprint.blueprintImage = tracker.projectTrack_currentFilePath;
 
             await context.SaveChangesAsync();
 

@@ -766,7 +766,15 @@ namespace BlueprintProWeb.Controllers
                     p.project_endDate,
                     blueprint_Id = p.blueprint_Id,
                     blueprint_Name = p.Blueprint.blueprintName,
-                    blueprint_ImageUrl = p.Blueprint.blueprintImage,
+                    blueprint_ImageUrl =
+                        p.Blueprint.blueprintImage != null
+                            ? (
+                                p.Blueprint.blueprintImage.StartsWith("/uploads")
+                                    ? $"{Request.Scheme}://{Request.Host}{p.Blueprint.blueprintImage}"
+                                    : $"{Request.Scheme}://{Request.Host}/images/{p.Blueprint.blueprintImage}"
+                              )
+                            : null,
+
                     architectName = p.Architect.user_fname + " " + p.Architect.user_lname
                 })
                 .ToListAsync();
