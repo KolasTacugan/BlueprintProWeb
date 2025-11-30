@@ -384,99 +384,101 @@ namespace BlueprintProWeb.Controllers.ClientSide
         [HttpGet]
         public async Task<IActionResult> Matches(string? query)
         {
+            var count = context.Users.Count(u => u.user_role == "Architect" && !string.IsNullOrEmpty(u.PortfolioEmbedding));
+            Console.WriteLine($"Architects with embeddings: {count}");
+
             var currentUser = await userManager.GetUserAsync(User);
             if (currentUser == null)
             {
                 return RedirectToAction("Login", "Account");
             }
 
-            // Get all existing matches for this client
-            var existingMatches = await context.Matches
-                .Where(m => m.ClientId == currentUser.Id)
-                .Include(m => m.Architect)
-                .OrderByDescending(m => m.MatchDate)
-                .Select(m => new MatchViewModel
-                {
-                    MatchId = m.MatchId.ToString(),
-                    ClientId = m.ClientId,
-                    ClientName = $"{currentUser.user_fname} {currentUser.user_lname}",
-                    ArchitectId = m.ArchitectId,
-                    ArchitectName = $"{m.Architect.user_fname} {m.Architect.user_lname}",
-                    ArchitectStyle = m.Architect.user_Style,
-                    ArchitectLocation = m.Architect.user_Location,
-                    ArchitectBudget = m.Architect.user_Budget,
-                    ProfilePhoto = string.IsNullOrEmpty(m.Architect.user_profilePhoto)
-                       ? Url.Content("~/images/profile.jpg")
-                       : Url.Content(m.Architect.user_profilePhoto),
-                    MatchStatus = m.MatchStatus,
-                    MatchDate = m.MatchDate,
-                    
-                    // Add rating info
-                    TotalRatings = m.Architect.user_Rating ?? 0.0,
-                    RatingCount = context.Projects.Count(p => p.user_architectId == m.Architect.Id && p.project_clientHasRated == true)
-                })
-                .ToListAsync();
-
-            // Calculate average ratings
-            foreach (var match in existingMatches)
+            // Step 1: Default query is user's profile if empty
+            string searchQuery = query;
+            if (string.IsNullOrWhiteSpace(searchQuery))
             {
-                match.AverageRating = match.RatingCount > 0
-                    ? Math.Round(match.TotalRatings / match.RatingCount, 1)
+                searchQuery = $"Style: {currentUser.user_Style}, Location: {currentUser.user_Location}, Budget: {currentUser.user_Budget}";
+            }
+
+            // Step 2: Expand into natural descriptive request
+            // Step 2: Expand query with GPT
+            var chatClient = _openAi.GetChatClient("gpt-5-mini");
+            var messages = new List<ChatMessage>
+                {
+                    new SystemChatMessage("You are an assistant that rewrites client needs into a natural request for an architect."),
+                    new UserChatMessage($"User request: {searchQuery}. Expand into 2–3 descriptive sentences.")
+                };
+
+            var response = await chatClient.CompleteChatAsync(messages);
+            var expansion = response.Value.Content[0].Text;
+            var finalQuery = $"{searchQuery}. Expanded: {expansion}";
+
+            // Step 3: Embedding
+            var embeddingResponse = await _embeddingClient.GenerateEmbeddingAsync(finalQuery);
+            var queryVector = embeddingResponse.Value.ToFloats().ToArray();
+
+
+            // Step 4: Compare with portfolio embeddings
+            var architects = context.Users
+                .Where(u => u.user_role == "Architect" && !string.IsNullOrEmpty(u.PortfolioEmbedding))
+                .ToList();
+
+            var ranked = architects
+             .Select(a =>
+             {
+                 var vecA = ParseEmbedding(a.PortfolioEmbedding);
+
+                 if (vecA == null || vecA.Length == 0 || vecA.Length != queryVector.Length)
+                     return (Architect: a, Score: double.MinValue);
+
+                 var score = CosineSimilarity(queryVector, vecA);
+
+                 // ✅ Pro user boost (e.g., +5% boost to score)
+                 if (a.IsPro)
+                     score += 0.05;  // you can tune this from 0.03–0.1 depending on how strong you want the bias
+
+                 return (Architect: a, Score: score);
+             })
+             .Where(x => x.Score != double.MinValue)
+             .OrderByDescending(x => x.Score)
+             .Take(10)
+             .Select(x => new MatchViewModel
+             {
+                 MatchId = null,
+                 ClientId = currentUser.Id,
+                 ClientName = $"{currentUser.user_fname} {currentUser.user_lname}",
+                 ArchitectId = x.Architect.Id,
+                 ArchitectName = $"{x.Architect.user_fname} {x.Architect.user_lname}",
+                 ArchitectStyle = x.Architect.user_Style,
+                 ArchitectLocation = x.Architect.user_Location,
+                 ArchitectBudget = x.Architect.user_Budget,
+                 ProfilePhoto = string.IsNullOrEmpty(x.Architect.user_profilePhoto)
+                    ? Url.Content("~/images/profile.jpg")
+                    : Url.Content(x.Architect.user_profilePhoto),
+                 MatchStatus = x.Architect.IsPro ? "AI + Portfolio Match (Pro)" : "AI + Portfolio Match",
+                 MatchDate = DateTime.UtcNow,
+                
+                 // 🟦 NEW: Add rating info (no DB structure changed)
+                 TotalRatings = x.Architect.user_Rating ?? 0.0,
+                 RatingCount = context.Projects.Count(p => p.user_architectId == x.Architect.Id && p.project_clientHasRated == true)
+             })
+             .ToList();
+
+            foreach (var archi in ranked)
+            {
+                archi.AverageRating = archi.RatingCount > 0
+                    ? Math.Round(archi.TotalRatings / archi.RatingCount, 1)
                     : 0.0;
             }
 
-            // Return JSON if AJAX, else View
+            // Step 5: Return JSON if AJAX, else View
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-            {
-                return Json(existingMatches);
-            }
+                        {
+                            return Json(ranked);
+                        }
 
-            return View(existingMatches);
-        }
+            return View(ranked);
 
-        [HttpPost]
-        public async Task<IActionResult> RequestMatch(string architectId)
-        {
-            var currentUser = await userManager.GetUserAsync(User);
-            if (currentUser == null)
-                return Json(new { success = false, message = "Not logged in." });
-
-            // Check if already matched
-            var existing = await context.Matches
-                .FirstOrDefaultAsync(m => m.ClientId == currentUser.Id && m.ArchitectId == architectId);
-
-            if (existing != null)
-                return Json(new { success = false, message = "Match request already sent." });
-
-            var match = new Match
-            {
-                ClientId = currentUser.Id,
-                ArchitectId = architectId,
-                MatchStatus = "Pending",
-                MatchDate = DateTime.UtcNow
-            };
-
-            context.Matches.Add(match);
-            await context.SaveChangesAsync();
-
-            // 🔹 Create notification for the architect
-            var architect = await context.Users.FindAsync(architectId);
-            if (architect != null)
-            {
-                var notif = new Notification
-                {
-                    user_Id = architect.Id,
-                    notification_Title = "New Match Request",
-                    notification_Message = $"{currentUser.user_fname} {currentUser.user_lname} wants to match with you.",
-                    notification_Date = DateTime.Now,
-                    notification_isRead = false
-                };
-
-                context.Notifications.Add(notif);
-                await context.SaveChangesAsync();
-            }
-
-            return Json(new { success = true, message = "✅ Match request sent successfully." });
         }
 
         private double CosineSimilarity(float[] v1, float[] v2)
