@@ -892,7 +892,10 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             if (file == null || file.Length == 0)
                 return RedirectToAction("ProjectTracker", new { id = projectId });
 
-            var project = await context.Projects.FindAsync(projectId);
+            var project = await context.Projects
+                .Include(p => p.Blueprint)
+                .FirstOrDefaultAsync(p => p.project_Id == projectId);
+
             if (project == null) return NotFound();
 
             var tracker = context.ProjectTrackers.FirstOrDefault(t => t.project_Id == projectId);
@@ -928,6 +931,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             tracker.projectTrack_currentFileName = file.FileName;
             tracker.projectTrack_currentFilePath = "/uploads/" + uniqueFileName;
             tracker.projectTrack_currentRevision += 1;
+            project.Blueprint.blueprintImage = tracker.projectTrack_currentFilePath;
 
             await context.SaveChangesAsync();
 
