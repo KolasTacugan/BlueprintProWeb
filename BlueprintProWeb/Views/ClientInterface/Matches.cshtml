@@ -847,6 +847,17 @@
                                             ${m.architectName || "Unnamed Architect"}
                                         </a>
                                     </h6>
+                                    <!-- Enhanced Rating Display -->
+                                    <div class="rating-wrapper mt-2" style="max-width: 120px;">
+                                        <div class="rating-bar">
+                                            <div class="rating-fill" style="width: ${m.averageRating * 20}%;"></div>
+                                        </div>
+                                        <span class="rating-text">${m.averageRating.toFixed(1)}</span>
+                                    </div>
+
+                                    <small class="text-muted">
+                                        (${m.ratingCount} ${m.ratingCount === 1 ? "rating" : "ratings"})
+                                    </small>
                                 </div>
                             </div>
                             <button class="btn btn-outline-primary w-100 mt-auto match-btn"
