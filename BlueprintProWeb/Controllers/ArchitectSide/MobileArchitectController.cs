@@ -587,7 +587,8 @@ namespace BlueprintProWeb.Controllers
         public async Task<IActionResult> UploadProjectFile(
             [FromForm] string projectId,
             [FromForm] IFormFile file
-        ){
+        )
+        {
             if (file == null || file.Length == 0)
                 return BadRequest(new { success = false, message = "No file uploaded." });
 
