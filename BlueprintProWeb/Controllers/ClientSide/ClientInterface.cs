@@ -61,7 +61,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
 
             // Total Matches - count all matches where this user is the client
             var totalMatches = await context.Matches
-                .CountAsync(m => m.ClientId == userId);
+                .CountAsync(m => m.ClientId == userId && m.MatchStatus == "Approved");
 
             // Total Purchases - count blueprints purchased by this client
             var totalPurchases = await context.Blueprints
@@ -73,7 +73,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
 
             // Recent matches (last 5)
             var recentMatches = await context.Matches
-                .Where(m => m.ClientId == userId)
+                .Where(m => m.ClientId == userId && m.MatchStatus == "Approved")
                 .Include(m => m.Architect)
                 .OrderByDescending(m => m.MatchDate)
                 .Take(5)
@@ -439,30 +439,37 @@ namespace BlueprintProWeb.Controllers.ClientSide
 
                  return (Architect: a, Score: score);
              })
-             .Where(x => x.Score != double.MinValue)
-             .OrderByDescending(x => x.Score)
-             .Take(10)
-             .Select(x => new MatchViewModel
-             {
-                 MatchId = null,
-                 ClientId = currentUser.Id,
-                 ClientName = $"{currentUser.user_fname} {currentUser.user_lname}",
-                 ArchitectId = x.Architect.Id,
-                 ArchitectName = $"{x.Architect.user_fname} {x.Architect.user_lname}",
-                 ArchitectStyle = x.Architect.user_Style,
-                 ArchitectLocation = x.Architect.user_Location,
-                 ArchitectBudget = x.Architect.user_Budget,
-                 ProfilePhoto = string.IsNullOrEmpty(x.Architect.user_profilePhoto)
-                    ? Url.Content("~/images/profile.jpg")
-                    : Url.Content(x.Architect.user_profilePhoto),
-                 MatchStatus = x.Architect.IsPro ? "AI + Portfolio Match (Pro)" : "AI + Portfolio Match",
-                 MatchDate = DateTime.UtcNow,
-                
-                 // 🟦 NEW: Add rating info (no DB structure changed)
-                 TotalRatings = x.Architect.user_Rating ?? 0.0,
-                 RatingCount = context.Projects.Count(p => p.user_architectId == x.Architect.Id && p.project_clientHasRated == true)
-             })
-             .ToList();
+            .Where(x => x.Score != double.MinValue)
+            .OrderByDescending(x => x.Score)
+            .Take(10)
+            .Select(x => new MatchViewModel
+            {
+                MatchId = null,
+                ClientId = currentUser.Id,
+                ClientName = $"{currentUser.user_fname} {currentUser.user_lname}",
+                ArchitectId = x.Architect.Id,
+                ArchitectName = $"{x.Architect.user_fname} {x.Architect.user_lname}",
+                ArchitectStyle = x.Architect.user_Style,
+                ArchitectLocation = x.Architect.user_Location,
+                ArchitectBudget = x.Architect.user_Budget,
+                ProfilePhoto = string.IsNullOrEmpty(x.Architect.user_profilePhoto)
+                   ? Url.Content("~/images/profile.jpg")
+                   : Url.Content(x.Architect.user_profilePhoto),
+                MatchStatus = x.Architect.IsPro ? "AI + Portfolio Match (Pro)" : "AI + Portfolio Match",
+                MatchDate = DateTime.UtcNow,
+
+                // ⭐ Real DB match status (null / Pending / Approved)
+                RealMatchStatus = context.Matches
+                    .Where(m => m.ClientId == currentUser.Id && m.ArchitectId == x.Architect.Id)
+                    .Select(m => m.MatchStatus)
+                    .FirstOrDefault(),
+
+                // 🟦 NEW: Add rating info (no DB structure changed)
+                TotalRatings = x.Architect.user_Rating ?? 0.0,
+                RatingCount = context.Projects.Count(p => p.user_architectId == x.Architect.Id && p.project_clientHasRated == true)
+            })
+            .ToList();
+
 
             foreach (var archi in ranked)
             {

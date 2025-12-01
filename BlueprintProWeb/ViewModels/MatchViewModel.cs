@@ -26,7 +26,7 @@
         public double TotalRatings { get; set; }
         public int RatingCount { get; set; }
         public double AverageRating { get; set; }
-
+        public string? RealMatchStatus { get; set; }
 
     }
 }

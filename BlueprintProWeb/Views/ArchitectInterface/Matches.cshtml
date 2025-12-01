@@ -429,7 +429,7 @@
                 {
                     <div class="match-card">
                         <div class="match-header">
-                            <img src="@(string.IsNullOrEmpty(match.ClientProfileUrl) ? "/images/profile.jpg" : match.ClientProfileUrl)"
+                            <img src="@(string.IsNullOrEmpty(match.ClientProfileUrl) ? "/images/profile.jpg" : match.ClientProfileUrl.Replace("~", "").Replace("wwwroot", ""))"
                                  alt="@match.ClientName"
                                  class="client-avatar">
                             <div class="client-info">
@@ -483,7 +483,7 @@
                 {
                     <div class="match-card">
                         <div class="match-header">
-                            <img src="@(string.IsNullOrEmpty(pending.ClientProfileUrl) ? "/images/profile.jpg" : pending.ClientProfileUrl)"
+                            <img src="@(string.IsNullOrEmpty(pending.ClientProfileUrl) ? "/images/profile.jpg" : pending.ClientProfileUrl.Replace("~", "").Replace("wwwroot", ""))"
                                  alt="@pending.ClientName"
                                  class="client-avatar">
                             <div class="client-info">
