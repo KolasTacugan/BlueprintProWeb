@@ -79,6 +79,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 .Take(5)
                 .Select(m => new MatchSummary
                 {
+                    ArchitectId = m.ArchitectId, // Added for messaging functionality
                     ArchitectName = $"{m.Architect.user_fname} {m.Architect.user_lname}",
                     ArchitectSpecialty = m.Architect.user_Style ?? "General Architecture",
                     Status = m.MatchStatus,
@@ -93,28 +94,35 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 .Take(5)
                 .Select(bp => new BlueprintPurchase
                 {
+                    BlueprintId = bp.blueprintId, // Added for project tracker linking
                     BlueprintName = bp.blueprintName,
                     PurchaseDate = DateTime.UtcNow, // You might want to add a PurchaseDate field to Blueprint model
                     Price = bp.blueprintPrice
                 })
                 .ToListAsync();
 
-            // Current/most recent project - get the raw data first
+            // Current/most recent project - get the raw data first with ProjectTracker
             var currentProjectRaw = await context.Projects
                 .Where(p => p.user_clientId == userId)
                 .Include(p => p.Architect)
                 .OrderByDescending(p => p.project_startDate)
                 .FirstOrDefaultAsync();
 
-            // Calculate project overview after data is retrieved
+            // Calculate project overview with actual ProjectTracker data
             ProjectOverview? currentProject = null;
             if (currentProjectRaw != null)
             {
+                // Get the actual ProjectTracker status
+                var projectTracker = await context.ProjectTrackers
+                    .FirstOrDefaultAsync(pt => pt.project_Id == currentProjectRaw.project_Id);
+
+                var actualStatus = projectTracker?.projectTrack_Status ?? currentProjectRaw.project_Status;
+                
                 currentProject = new ProjectOverview
                 {
                     ProjectTitle = currentProjectRaw.project_Title,
-                    Status = currentProjectRaw.project_Status,
-                    ProgressPercentage = CalculateProjectProgress(currentProjectRaw.project_Status), // Now safe to call
+                    Status = actualStatus,
+                    ProgressPercentage = CalculateProjectProgressFromTracker(actualStatus, currentProjectRaw.project_Status),
                     StartDate = currentProjectRaw.project_startDate,
                     ArchitectName = $"{currentProjectRaw.Architect.user_fname} {currentProjectRaw.Architect.user_lname}"
                 };
@@ -131,6 +139,22 @@ namespace BlueprintProWeb.Controllers.ClientSide
             };
 
             return View(dashboardViewModel);
+        }
+
+        private int CalculateProjectProgressFromTracker(string trackerStatus, string projectStatus)
+        {
+            // If project is finished, show 100%
+            if (projectStatus?.ToLower() == "finished")
+                return 100;
+                
+            // Calculate progress based on actual ProjectTracker status
+            return trackerStatus?.ToLower() switch
+            {
+                "review" => 33,           // Review phase = 33%
+                "compliance" => 66,       // Compliance phase = 66%
+                "finalization" => 90,     // Finalization phase = 90%
+                _ => CalculateProjectProgress(projectStatus) // Fallback to old method
+            };
         }
 
         private int CalculateProjectProgress(string status)
@@ -159,7 +183,6 @@ namespace BlueprintProWeb.Controllers.ClientSide
 
             return View("BlueprintMarketplace", availableBlueprints);
         }
-
 
         [HttpPost]
         [Authorize]
@@ -217,6 +240,31 @@ namespace BlueprintProWeb.Controllers.ClientSide
             return Json(cart ?? new CartViewModel { CartId = 0, Items = new List<CartItemViewModel>() });
         }
 
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> RemoveFromCart([FromBody] int blueprintId)
+        {
+            var user = await userManager.GetUserAsync(User);
+            if (user == null)
+                return Unauthorized();
+
+            var cart = await context.Carts
+                .Include(c => c.Items)
+                .FirstOrDefaultAsync(c => c.UserId == user.Id);
+
+            if (cart == null)
+                return NotFound(new { success = false, message = "Cart not found" });
+
+            var item = cart.Items.FirstOrDefault(i => i.BlueprintId == blueprintId);
+            if (item == null)
+                return NotFound(new { success = false, message = "Item not found" });
+
+            cart.Items.Remove(item);
+            context.CartItems.Remove(item); // make sure this matches your actual table name
+            await context.SaveChangesAsync();
+
+            return Ok(new { success = true });
+        }
 
         public class CartRequest
         {
@@ -271,13 +319,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
         public IActionResult Success() => View();
         public IActionResult Cancel() => View();
 
-        public class CartItemDto
-        {
-            public string id { get; set; }
-            public string name { get; set; }
-            public decimal price { get; set; }
-            public string image { get; set; }
-        }
+
 
         [HttpPost]
         [Authorize]
@@ -338,7 +380,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
             return View(projects);
         }
 
-        // 🔹 AI Matching (Profile + Query)
+        // 🔹 Get Client's Matches
         [HttpGet]
         public async Task<IActionResult> Matches(string? query)
         {
@@ -446,51 +488,6 @@ namespace BlueprintProWeb.Controllers.ClientSide
 
         }
 
-        [HttpPost]
-        public async Task<IActionResult> RequestMatch(string architectId)
-        {
-            var currentUser = await userManager.GetUserAsync(User);
-            if (currentUser == null)
-                return Json(new { success = false, message = "Not logged in." });
-
-            // Check if already matched
-            var existing = await context.Matches
-                .FirstOrDefaultAsync(m => m.ClientId == currentUser.Id && m.ArchitectId == architectId);
-
-            if (existing != null)
-                return Json(new { success = false, message = "Match request already sent." });
-
-            var match = new Match
-            {
-                ClientId = currentUser.Id,
-                ArchitectId = architectId,
-                MatchStatus = "Pending",
-                MatchDate = DateTime.UtcNow
-            };
-
-            context.Matches.Add(match);
-            await context.SaveChangesAsync();
-
-            // 🔹 Create notification for the architect
-            var architect = await context.Users.FindAsync(architectId);
-            if (architect != null)
-            {
-                var notif = new Notification
-                {
-                    user_Id = architect.Id,
-                    notification_Title = "New Match Request",
-                    notification_Message = $"{currentUser.user_fname} {currentUser.user_lname} wants to match with you.",
-                    notification_Date = DateTime.Now,
-                    notification_isRead = false
-                };
-
-                context.Notifications.Add(notif);
-                await context.SaveChangesAsync();
-            }
-
-            return Json(new { success = true, message = "✅ Match request sent successfully." });
-        }
-
         private double CosineSimilarity(float[] v1, float[] v2)
         {
             if (v1.Length != v2.Length) return 0;
@@ -525,6 +522,9 @@ namespace BlueprintProWeb.Controllers.ClientSide
             if (currentUser == null)
                 return Unauthorized();
 
+            // Timezone (Philippines = UTC+8)
+            var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
+
             // ✅ 1. Load all matches for this client
             var matches = await context.Matches
                 .Where(m => m.ClientId == currentUser.Id && m.MatchStatus == "Approved")
@@ -535,8 +535,8 @@ namespace BlueprintProWeb.Controllers.ClientSide
                     ClientId = m.ClientId,
                     ArchitectId = m.ArchitectId,
                     ArchitectName = m.Architect.user_fname + " " + m.Architect.user_lname,
-                    ArchitectEmail = m.Architect.Email,              // make sure your User entity has Email
-                    ArchitectPhone = m.Architect.PhoneNumber,        // make sure your User entity has PhoneNumber
+                    ArchitectEmail = m.Architect.Email,
+                    ArchitectPhone = m.Architect.PhoneNumber,
                     MatchStatus = m.MatchStatus,
                     MatchDate = m.MatchDate,
                     ArchitectProfileUrl = string.IsNullOrEmpty(m.Architect.user_profilePhoto)
@@ -555,7 +555,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 {
                     ArchitectId = g.Key,
                     ArchitectName = g.First().Architect.user_fname + " " + g.First().Architect.user_lname,
-                    LastMessageTime = g.Max(x => x.MessageDate),
+                    LastMessageTime = TimeZoneInfo.ConvertTimeFromUtc(g.Max(x => x.MessageDate), phTimeZone),
                     Messages = new List<MessageViewModel>(),
                     UnreadCount = g.Count(x => x.SenderId != currentUser.Id && !x.IsRead),
                     ArchitectProfileUrl = string.IsNullOrEmpty(g.First().Architect.user_profilePhoto)
@@ -587,6 +587,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 if (unreadMessages.Any())
                     await context.SaveChangesAsync();
 
+                // convert messages to PH time
                 var vmMessages = messages.Select(m => new MessageViewModel
                 {
                     MessageId = m.MessageId.ToString(),
@@ -594,7 +595,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
                     ArchitectId = m.ArchitectId,
                     SenderId = m.SenderId,
                     MessageBody = m.MessageBody,
-                    MessageDate = m.MessageDate,
+                    MessageDate = TimeZoneInfo.ConvertTimeFromUtc(m.MessageDate, phTimeZone),
                     IsRead = m.IsRead,
                     IsDeleted = m.IsDeleted,
                     AttachmentUrl = m.AttachmentUrl,
@@ -613,7 +614,8 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 {
                     ArchitectId = architectId,
                     ArchitectName = matchInfo?.ArchitectName ?? "Unknown",
-                    LastMessageTime = vmMessages.LastOrDefault()?.MessageDate ?? DateTime.UtcNow,
+                    LastMessageTime = vmMessages.LastOrDefault()?.MessageDate
+                        ?? TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, phTimeZone),
                     Messages = vmMessages,
                     ArchitectProfileUrl = matchInfo?.ArchitectProfileUrl ?? "/images/default-profile.png"
                 };
@@ -641,6 +643,10 @@ namespace BlueprintProWeb.Controllers.ClientSide
             if (string.IsNullOrWhiteSpace(messageBody))
                 return RedirectToAction("Messages", new { architectId });
 
+            // Timezone (Philippines)
+            var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
+
+            // store in UTC
             var message = new Message
             {
                 MessageId = Guid.NewGuid(),
@@ -655,13 +661,13 @@ namespace BlueprintProWeb.Controllers.ClientSide
             context.Messages.Add(message);
             await context.SaveChangesAsync();
 
-            // ✅ Optional SignalR broadcast
+            // ✅ SignalR broadcast (show PH time in chat)
             await _hubContext.Clients.User(architectId).SendAsync("ReceiveMessage", new
             {
                 SenderId = currentUser.Id,
                 SenderName = currentUser.user_fname + " " + currentUser.user_lname,
                 MessageBody = messageBody,
-                MessageDate = DateTime.UtcNow.ToString("g"),
+                MessageDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, phTimeZone).ToString("g"),
                 SenderProfilePhoto = string.IsNullOrEmpty(currentUser.user_profilePhoto)
                     ? "/images/default-profile.png"
                     : currentUser.user_profilePhoto
@@ -669,6 +675,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
 
             return RedirectToAction("Messages", new { architectId });
         }
+
 
         [HttpGet]
         public IActionResult ProjectTracker(int id)
@@ -793,6 +800,34 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 .CountAsync(n => n.user_Id == currentUser.Id && !n.notification_isRead);
 
             return Json(count);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetMyMatches()
+        {
+            var currentUser = await userManager.GetUserAsync(User);
+            if (currentUser == null)
+                return Json(new List<object>());
+
+            var matches = await context.Matches
+                .Where(m => m.ClientId == currentUser.Id)
+                .Include(m => m.Architect)
+                .OrderByDescending(m => m.MatchDate)
+                .Take(10)
+                .Select(m => new
+                {
+                    matchId = m.MatchId,
+                    architectId = m.ArchitectId,
+                    architectName = $"{m.Architect.user_fname} {m.Architect.user_lname}",
+                    architectProfileUrl = string.IsNullOrEmpty(m.Architect.user_profilePhoto)
+                        ? "/images/profile.jpg"
+                        : m.Architect.user_profilePhoto,
+                    matchStatus = m.MatchStatus,
+                    matchDate = m.MatchDate.ToString("MMM dd, yyyy")
+                })
+                .ToListAsync();
+
+            return Json(matches);
         }
     }
 }
