@@ -545,6 +545,19 @@
         .results-content::-webkit-scrollbar-thumb:hover {
             background: #94A3B8;
         }
+        .match-btn[data-status="Pending"] {
+            background: #fbbf24 !important;
+            color: #000 !important;
+            border: none !important;
+            pointer-events: none;
+        }
+
+        .match-btn[data-status="Approved"] {
+            background: #22c55e !important;
+            color: #fff !important;
+            border: none !important;
+            pointer-events: none;
+        }
     </style>
 }
 
@@ -598,9 +611,24 @@
                                                 </small>
                                             </div>
                                         </div>
-                                        <button class="btn btn-outline-primary w-100 mt-auto match-btn"
-                                                data-architect-id="@match.ArchitectId">
-                                            Match
+                                        @{
+                                            string real = match.RealMatchStatus;
+                                        }
+                                        <button class="btn w-100 mt-auto match-btn"
+                                                data-architect-id="@match.ArchitectId"
+                                                data-status="@real"
+                                                style="
+                                                    @((real == null) ? "" :
+                                                        (real == "Pending")
+                                                            ? "background:#fbbf24;color:#000;border:none;pointer-events:none;"
+                                                            : "background:#22c55e;color:#fff;border:none;pointer-events:none;"
+                                                    )
+                                                ">
+                                            @(
+                                                real == null
+                                                ? "Match"
+                                                : (real == "Pending" ? "Pending…" : "Matched ✓")
+                                            )
                                         </button>
                                     </div>
                                 </div>
@@ -860,12 +888,20 @@
                                     </small>
                                 </div>
                             </div>
-                            <button class="btn btn-outline-primary w-100 mt-auto match-btn"
-                                    data-architect-id="${m.architectId}">
-                                Match
-                            </button>
+                                    <button class="btn w-100 mt-auto match-btn"
+                                    data-architect-id="${m.architectId}"
+                                    data-status="${m.realMatchStatus || ''}"
+                                    style="
+                                        ${m.realMatchStatus == null ? '' : 'pointer-events:none;'}
+                                        ${m.realMatchStatus === 'Pending' ? 'background:#fbbf24;color:#000;border:none;' : ''}
+                                        ${m.realMatchStatus === 'Approved' ? 'background:#22c55e;color:#fff;border:none;' : ''}
+                                    ">
+                                    ${m.realMatchStatus == null ? 'Match' :
+                                       (m.realMatchStatus === 'Pending' ? 'Pending…' : 'Matched ✓')}
+                                </button>
+
+                            </div>
                         </div>
-                    </div>
                 `;
                 resultsContainer.appendChild(card);
             });
@@ -902,6 +938,20 @@
 
         // Global Match button click (works for static + dynamic)
         $(document).on("click", ".match-btn", function () {
+            let status = $(this).data("status");
+
+            // 🔒 Prevent double-matching
+            if (status === "Pending") {
+                showNotification("Already Pending",
+                    "You've already requested a match with this architect.");
+                return;
+            }
+
+            if (status === "Approved") {
+                showNotification("Already Matched",
+                    "You are already matched with this architect.");
+                return;
+            }
             let architectId = $(this).data("architect-id");
             let token = $('input[name="__RequestVerificationToken"]').val();
 

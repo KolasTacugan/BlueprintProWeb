@@ -795,7 +795,7 @@
                 @foreach (var convo in Model.Conversations)
                 {
                     var convoPhoto = string.IsNullOrEmpty(convo.ClientProfileUrl)
-                    ? "/images/default-profile.png"
+                    ? "/images/profile.jpg"
                     : convo.ClientProfileUrl.Replace("~", "").Replace("wwwroot", "");
 
                     <a asp-controller="ArchitectInterface"
@@ -829,7 +829,7 @@
         @if (Model.ActiveChat != null)
         {
             var chatPhoto = string.IsNullOrEmpty(Model.ActiveChat.ClientProfileUrl)
-            ? "/images/default-profile.png"
+            ? "/images/profile.jpg"
             : Model.ActiveChat.ClientProfileUrl.Replace("~", "").Replace("wwwroot", "");
 
             <!-- Chat Header -->
