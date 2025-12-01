@@ -282,6 +282,40 @@
                            oninput="validatePhoneNumber(this)" />
                     <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                 </div>
+
+                @* Architect-specific fields *@
+                @if (Model.Role == "Architect")
+                {
+                    <div class="form-group">
+                        <label asp-for="LicenseNo">License Number</label>
+                        <input asp-for="LicenseNo" placeholder="Enter your architectural license number" />
+                        <span asp-validation-for="LicenseNo" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Style">Architectural Style</label>
+                        <input asp-for="Style" placeholder="e.g., Modern, Contemporary, Traditional" />
+                        <span asp-validation-for="Style" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Specialization">Specialization</label>
+                        <input asp-for="Specialization" placeholder="e.g., Residential, Commercial, Industrial" />
+                        <span asp-validation-for="Specialization" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Location">Location</label>
+                        <input asp-for="Location" placeholder="Your primary work location" />
+                        <span asp-validation-for="Location" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Budget">Budget Range</label>
+                        <input asp-for="Budget" placeholder="e.g., ₱50,000 - ₱500,000" />
+                        <span asp-validation-for="Budget" class="text-danger"></span>
+                    </div>
+                }
             </div>
 
             <div class="avatar-section form-section">
@@ -311,7 +345,22 @@
             <div class="form-group">
                 @if (Model.Role == "Architect")
                 {
+                    @if (!string.IsNullOrEmpty(Model.CredentialsFilePath))
+                    {
+                        <div style="margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #0D3C80;">
+                            <strong>Current file:</strong>
+                            <a href="@Url.Content($"~/credentials/{Model.CredentialsFilePath}")" 
+                               target="_blank" 
+                               style="color: #0D3C80; text-decoration: none; margin-left: 8px;">
+                                <i class="fas fa-file-pdf"></i> @Model.CredentialsFilePath
+                            </a>
+                        </div>
+                    }
+                    <label for="credentialsFile">Upload New Credentials File (PDF)</label>
                     <input type="file" id="credentialsFile" name="CredentialsFile" accept="application/pdf" class="form-control" />
+                    <div class="upload-info">
+                        <small>Upload your architectural credentials, portfolio, or resume in PDF format.</small>
+                    </div>
                 }
                 else
                 {

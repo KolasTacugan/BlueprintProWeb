@@ -822,5 +822,50 @@ namespace BlueprintProWeb.Controllers.ClientSide
 
             return Json(matches);
         }
+
+        [HttpPost]
+        public async Task<IActionResult> RequestMatch(string architectId)
+        {
+            var currentUser = await userManager.GetUserAsync(User);
+            if (currentUser == null)
+                return Json(new { success = false, message = "Not logged in." });
+
+            // Check if already matched
+            var existing = await context.Matches
+                .FirstOrDefaultAsync(m => m.ClientId == currentUser.Id && m.ArchitectId == architectId);
+
+            if (existing != null)
+                return Json(new { success = false, message = "Match request already sent." });
+
+            var match = new Match
+            {
+                ClientId = currentUser.Id,
+                ArchitectId = architectId,
+                MatchStatus = "Pending",
+                MatchDate = DateTime.UtcNow
+            };
+
+            context.Matches.Add(match);
+            await context.SaveChangesAsync();
+
+            // 🔹 Create notification for the architect
+            var architect = await context.Users.FindAsync(architectId);
+            if (architect != null)
+            {
+                var notif = new Notification
+                {
+                    user_Id = architect.Id,
+                    notification_Title = "New Match Request",
+                    notification_Message = $"{currentUser.user_fname} {currentUser.user_lname} wants to match with you.",
+                    notification_Date = DateTime.Now,
+                    notification_isRead = false
+                };
+
+                context.Notifications.Add(notif);
+                await context.SaveChangesAsync();
+            }
+
+            return Json(new { success = true, message = "✅ Match request sent successfully." });
+        }
     }
 }

@@ -222,6 +222,49 @@
             width: fit-content;
         }
 
+        /* Architect credentials styling */
+        .architect-credentials {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(13, 60, 128, 0.1);
+        }
+
+        .credentials-title {
+            color: #0D3C80;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .credential-item {
+            font-size: 0.95rem;
+            color: #555;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .credential-item strong {
+            color: #0D3C80;
+            font-weight: 600;
+            min-width: 100px;
+        }
+
+        .credentials-file-link {
+            color: #0D3C80;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .credentials-file-link:hover {
+            color: #1a5bb8;
+            text-decoration: underline;
+        }
+
         .action-buttons {
             display: flex;
             flex-direction: column;
@@ -883,6 +926,66 @@
                     <div class="email">@Model.Email</div>
                     <div class="phone">@(Model.PhoneNumber ?? "No phone number")</div>
                     <div class="role-badge">@Model.Role</div>
+
+                    @* Display architect credentials if user is an architect *@
+                    @if (Model.Role == "Architect")
+                    {
+                        <div class="architect-credentials">
+                            <div class="credentials-title">Professional Credentials</div>
+                            
+                            @if (!string.IsNullOrEmpty(Model.LicenseNo))
+                            {
+                                <div class="credential-item">
+                                    <strong>License No:</strong>
+                                    <span>@Model.LicenseNo</span>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.Style))
+                            {
+                                <div class="credential-item">
+                                    <strong>Style:</strong>
+                                    <span>@Model.Style</span>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.Specialization))
+                            {
+                                <div class="credential-item">
+                                    <strong>Specialization:</strong>
+                                    <span>@Model.Specialization</span>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.Location))
+                            {
+                                <div class="credential-item">
+                                    <strong>Location:</strong>
+                                    <span>@Model.Location</span>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.Budget))
+                            {
+                                <div class="credential-item">
+                                    <strong>Budget Range:</strong>
+                                    <span>@Model.Budget</span>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.CredentialsFilePath))
+                            {
+                                <div class="credential-item">
+                                    <strong>Credentials File:</strong>
+                                    <a href="@Url.Content($"~/credentials/{Model.CredentialsFilePath}")" 
+                                       target="_blank" 
+                                       class="credentials-file-link">
+                                        <i class="fas fa-file-pdf"></i> @Model.CredentialsFilePath
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    }
                 </div>
             </div>
             <div class="action-buttons">

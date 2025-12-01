@@ -368,6 +368,12 @@ namespace BlueprintProWeb.Controllers
                 PhoneNumber = user.PhoneNumber,
                 Role = user.user_role,
                 ProfilePhoto = user.user_profilePhoto, // Preserve existing profile picture
+                LicenseNo = user.user_licenseNo,
+                Style = user.user_Style,
+                Specialization = user.user_Specialization,
+                Location = user.user_Location,
+                Budget = user.user_Budget,
+                CredentialsFilePath = user.user_CredentialsFile,
                 IsPro = user.IsProActive
             });
         }
@@ -497,7 +503,7 @@ namespace BlueprintProWeb.Controllers
             if (!result.Succeeded)
             {
                 foreach (var error in result.Errors)
-                    ModelState.AddModelError(string.Empty, error.Description);
+                    ModelState.AddModelError("", error.Description);
 
                 return View(model);
             }
