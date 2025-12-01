@@ -516,7 +516,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                     MatchStatus = m.MatchStatus,
                     MatchDate = m.MatchDate,
                     ClientProfileUrl = string.IsNullOrEmpty(m.Client.user_profilePhoto)
-                        ? "/images/default-profile.png"
+                        ? "/images/profile.jpg"
                         : m.Client.user_profilePhoto
                 })
                 .ToListAsync();
