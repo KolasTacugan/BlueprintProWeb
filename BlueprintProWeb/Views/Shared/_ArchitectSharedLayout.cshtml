@@ -10,14 +10,11 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/BlueprintProWeb.styles.css" asp-append-version="true" />
-    <!-- Material Icons -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
-    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    @*STYLES*@
     <style>
         * {
             margin: 0;
@@ -325,74 +322,38 @@
 
 
 
+        * { margin:0; padding:0; box-sizing:border-box; font-family:"Raleway",sans-serif; }
+        #page-loader { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:#ffffff; z-index:10000; transition:opacity .3s ease; }
+        .spinner { width:56px; height:56px; border:6px solid #e2e8f0; border-top-color:#344EAD; border-radius:50%; animation: pageLoaderSpin 1s linear infinite; }
+        .header-pro-indicator { background:linear-gradient(135deg,#0D3C80,#1a5bb8); color:#fff; padding:6px 16px; border-radius:20px; font-size:.8rem; font-weight:700; letter-spacing:.8px; }
     </style>
     @RenderSection("Styles", required: false)
 </head>
 <body>
+    <div id="page-loader" aria-live="polite" aria-busy="true">
+        <lottie-player id="bpp-loader" src="/animations/Loading.json" background="transparent" speed="1" loop autoplay style="width:128px;height:128px"></lottie-player>
+        <div class="spinner" role="status" aria-label="Loading"></div>
+    </div>
     @inject UserManager<User> UserManager
-    @{
-        var user = await UserManager.GetUserAsync(User);
-        var isPro = user?.IsProActive ?? false;
-    }
-
-    @* SIDEBAR *@
+    @{ var user = await UserManager.GetUserAsync(User); var isPro = user?.IsProActive ?? false; }
     <aside class="sidebar collapsed">
-        @* SideBar Header *@
         <header class="sidebar-header">
-            <a href="#" class="header-logo">
-                <img src="~/images/BBP Logo.png" alt="BPP" />
-            </a>
+            <a href="#" class="header-logo"><img src="~/images/BBP Logo.png" alt="BPP" /></a>
             <h1 class="system-name">BlueprintPro</h1>
-            <button class="toggler sidebar-toggler">
-                <span class="material-symbols-rounded">chevron_left</span>
-            </button>
+            <button class="toggler sidebar-toggler"><span class="material-symbols-rounded">chevron_left</span></button>
         </header>
         <nav class="sidebar-nav">
-            @* SideBar Contents *@
             <ul class="nav-list primary-nav">
-                <li class="nav-item">
-                    <a asp-controller="ArchitectInterface" asp-action="ArchitectDashboard" class="nav-link">
-                        <span class="nav-icon material-symbols-rounded">monitoring</span>
-                        <span class="nav-label">Dashboard</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a asp-controller="ArchitectInterface" asp-action="PendingMatches" class="nav-link">
-                        <span class="nav-icon material-symbols-rounded">handshake</span>
-                        <span class="nav-label">Matches</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a asp-controller="ArchitectInterface" asp-action="Blueprints" class="nav-link">
-                        <span class="nav-icon material-symbols-rounded">house</span>
-                        <span class="nav-label">Blueprints</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a asp-controller="ArchitectInterface" asp-action="Projects" class="nav-link">
-                        <span class="material-symbols-rounded">note_stack</span>
-                        <span class="nav-label">Projects</span>
-                    </a>
-                </li>
+                <li class="nav-item"><a asp-controller="ArchitectInterface" asp-action="ArchitectDashboard" class="nav-link"><span class="nav-icon material-symbols-rounded">monitoring</span><span class="nav-label">Dashboard</span></a></li>
+                <li class="nav-item"><a asp-controller="ArchitectInterface" asp-action="Matches" class="nav-link"><span class="nav-icon material-symbols-rounded">handshake</span><span class="nav-label">Matches</span></a></li>
+                <li class="nav-item"><a asp-controller="ArchitectInterface" asp-action="Blueprints" class="nav-link"><span class="nav-icon material-symbols-rounded">house</span><span class="nav-label">Blueprints</span></a></li>
+                <li class="nav-item"><a asp-controller="ArchitectInterface" asp-action="Projects" class="nav-link"><span class="material-symbols-rounded">note_stack</span><span class="nav-label">Projects</span></a></li>
             </ul>
         </nav>
-        <form asp-controller="Account" asp-action="Logout" method="post" class="logout-form">
-            <button type="submit" class="logout-btn nav-link">
-                <span class="material-symbols-rounded">logout</span>
-            </button>
-        </form>
+        <form asp-controller="Account" asp-action="Logout" method="post" class="logout-form"><button type="submit" class="logout-btn nav-link"><span class="material-symbols-rounded">logout</span></button></form>
     </aside>
-    @*NAVBAR*@
     <nav class="navbar">
-        <!-- Pro indicator (left side) -->
-        <div>
-            @if (isPro)
-            {
-                <span class="header-pro-indicator">PRO</span>
-            }
-        </div>
-
-        <!-- Navigation items (right side) -->
+        <div>@if (isPro){ <span class="header-pro-indicator">PRO</span> }</div>
         <div class="navbar-div">
             <ul class="navbar-list">
                 <li class="top-nav-item position-relative">
@@ -416,90 +377,25 @@
             </ul>
         </div>
     </nav>
-    <main class="container mt-4">
-        @RenderBody()
-    </main>
-
+    <main class="container mt-4">@RenderBody()</main>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Lottie Player (for .json/.lottie animations) -->
+    <script src="https://unpkg.com/@@lottiefiles/lottie-player@2/dist/lottie-player.js" crossorigin="anonymous"></script>
     <script src="~/js/modal.js" asp-append-version="true"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
 
     @RenderSection("Scripts", required: false)
-
-    @*SCRIPTS*@
     <script>
-        const sidebar = document.querySelector(".sidebar");
-        const sidebarToggler = document.querySelector(".sidebar-toggler");
-
-        @*Collapsed state*@
-        sidebarToggler.addEventListener("click", ()=>{
-            sidebar.classList.toggle("collapsed")
+        const sidebar = document.querySelector('.sidebar');
+        const sidebarToggler = document.querySelector('.sidebar-toggler');
+        if(sidebarToggler){ sidebarToggler.addEventListener('click', ()=> sidebar.classList.toggle('collapsed')); }
+        document.addEventListener('DOMContentLoaded', async ()=>{
+            try{ const r = await fetch('/ArchitectInterface/GetUnreadNotificationsCount'); if(!r.ok) throw new Error(); const c = await r.json(); const b = document.getElementById('notifBadge'); if(b){ c>0? b.classList.remove('d-none'): b.classList.add('d-none'); } }catch(e){ console.error('Notification fetch error', e); }
         });
-
-        const bell = document.getElementById("notificationBell");
-        const panel = document.getElementById("notificationPanel");
-        const list = document.getElementById("notificationList");
-        const emptyState = document.getElementById("emptyNotification");
-
-        // Toggle panel on bell click
-        if (bell) {
-            bell.addEventListener("click", (e) => {
-                e.preventDefault();
-                panel.style.display = (panel.style.display === "none" || panel.style.display === "")
-                    ? "block"
-                    : "none";
-            });
-        }
-
-        // Add a new notification
-        function addNotification(message) {
-            if (emptyState) emptyState.style.display = "none";
-
-            const item = document.createElement("div");
-            item.className = "notification-item";
-            item.textContent = message;
-
-            if (list) list.appendChild(item);
-        }
-
-        document.addEventListener("DOMContentLoaded", async function () {
-            try {
-                // Fetch unread notifications count
-                const response = await fetch('/ArchitectInterface/GetUnreadNotificationsCount');
-                if (!response.ok) throw new Error("Failed to fetch notifications");
-
-                const count = await response.json();
-                const badge = document.getElementById("notifBadge");
-
-                // Show badge only if count > 0
-                if (count > 0) {
-                    badge.classList.remove("d-none");
-                } else {
-                    badge.classList.add("d-none");
-                }
-            } catch (err) {
-                console.error("Notification fetch error:", err);
-            }
-        });
-
-        document.addEventListener("DOMContentLoaded", function () {
-            const modal = new bootstrap.Modal(document.getElementById('notificationModal'));
-            const modalTitle = document.getElementById('notificationModalLabel');
-            const modalBody = document.querySelector('#notificationModal .modal-body');
+        document.addEventListener('DOMContentLoaded', ()=>{
             const notifBadge = document.getElementById('notifBadge');
-
-            function updateBadge() {
-                // Count unread notifications
-                const unreadCount = document.querySelectorAll(".list-group-item:not([style*='opacity: 0.6'])").length;
-                if (unreadCount > 0) {
-                    notifBadge.classList.remove("d-none");
-                } else {
-                    notifBadge.classList.add("d-none");
-                }
-            }
-
-            // Initialize badge visibility on load
+            function updateBadge(){ const unread = document.querySelectorAll('.list-group-item:not([style*="opacity: 0.6"])').length; if(notifBadge){ unread>0? notifBadge.classList.remove('d-none'): notifBadge.classList.add('d-none'); } }
             updateBadge();
 
             document.querySelectorAll(".list-group-item").forEach(item => {

@@ -503,7 +503,6 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                     ClientPhone = m.Client.PhoneNumber
                 })
                 .ToListAsync();
-
             return View(allMatches);
         }
 

@@ -545,7 +545,6 @@
         .results-content::-webkit-scrollbar-thumb:hover {
             background: #94A3B8;
         }
-
         .match-btn[data-status="Pending"] {
             background: #fbbf24 !important;
             color: #000 !important;
@@ -734,6 +733,14 @@
 
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // Explicitly show global page loader for this heavy page
+        document.addEventListener('DOMContentLoaded', function(){
+            if (window.BlueprintLoader && typeof window.BlueprintLoader.show === 'function') {
+                window.BlueprintLoader.show();
+            }
+        });
+    </script>
     <script>
         // Listen for sidebar toggle and adjust main content accordingly
         document.addEventListener('DOMContentLoaded', function() {
