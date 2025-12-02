@@ -734,6 +734,14 @@
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+        // Explicitly show global page loader for this heavy page
+        document.addEventListener('DOMContentLoaded', function(){
+            if (window.BlueprintLoader && typeof window.BlueprintLoader.show === 'function') {
+                window.BlueprintLoader.show();
+            }
+        });
+    </script>
+    <script>
         // Listen for sidebar toggle and adjust main content accordingly
         document.addEventListener('DOMContentLoaded', function() {
             const sidebar = document.querySelector('.sidebar');
