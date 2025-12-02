@@ -397,31 +397,7 @@
             const notifBadge = document.getElementById('notifBadge');
             function updateBadge(){ const unread = document.querySelectorAll('.list-group-item:not([style*="opacity: 0.6"])').length; if(notifBadge){ unread>0? notifBadge.classList.remove('d-none'): notifBadge.classList.add('d-none'); } }
             updateBadge();
-
-            document.querySelectorAll(".list-group-item").forEach(item => {
-                item.addEventListener("click", async function () {
-                    const id = this.dataset.id;
-                    modalTitle.textContent = this.dataset.title;
-                    modalBody.textContent = this.dataset.message;
-
-                    // Mark as read in backend
-                    await fetch('@Url.Action("MarkAsRead")', {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/x-www-form-urlencoded"
-                        },
-                        body: "id=" + id
-                    });
-
-                    // Visually mark as read
-                    this.style.opacity = "0.6";
-                    this.style.fontWeight = "normal";
-
-                    // 🔥 Update badge in real time
-                    updateBadge();
-                });
-            });
-
+            document.querySelectorAll('.list-group-item').forEach(i=>{ i.addEventListener('click', async function(){ const id = this.dataset.id; await fetch('@Url.Action("MarkAsRead")',{ method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:'id='+id }); this.style.opacity='0.6'; this.style.fontWeight='normal'; updateBadge(); }); });
         });
 
         document.addEventListener("DOMContentLoaded", async function () {
