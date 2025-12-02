@@ -428,12 +428,12 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
 
             if (match.ArchitectId != currentUser.Id) return Forbid();
 
-            match.MatchStatus = dto.Approve ? "Approved" : "Declined";
-            await context.SaveChangesAsync();
-
-            // ✅ Notify client when approved
             if (dto.Approve)
             {
+                // APPROVED → update status
+                match.MatchStatus = "Approved";
+
+                // Notification
                 var notif = new Notification
                 {
                     user_Id = match.ClientId,
@@ -442,24 +442,35 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                     notification_Date = DateTime.Now,
                     notification_isRead = false
                 };
+
                 context.Notifications.Add(notif);
-                await context.SaveChangesAsync();
+                await context.SaveChangesAsync(); // save once
+
+                return Json(new { success = true, status = "Approved" });
             }
             else
             {
-                // Rejected notification
+                // DECLINED → delete match row
+                var clientId = match.ClientId;
+
+                context.Matches.Remove(match);
+
+                // Send decline notification
                 var notif = new Notification
                 {
-                    user_Id = match.ClientId,
+                    user_Id = clientId,
                     notification_Title = "Match Declined",
                     notification_Message = $"{currentUser.user_fname} {currentUser.user_lname} has declined your match request.",
                     notification_Date = DateTime.Now,
                     notification_isRead = false
                 };
-                context.Notifications.Add(notif);
-            }
 
-            return Json(new { success = true, status = match.MatchStatus });
+                context.Notifications.Add(notif);
+
+                await context.SaveChangesAsync(); // save delete + notification
+
+                return Json(new { success = true, status = "Declined" });
+            }
         }
 
         public class MatchResponseDto
@@ -1207,7 +1218,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             if (project == null)
                 return NotFound();
 
-            // Load related tracker and children
+            // 1. Delete related tracker + children
             var tracker = await context.ProjectTrackers
                 .Include(t => t.Compliance)
                 .Include(t => t.ProjectFiles)
@@ -1224,16 +1235,30 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 context.ProjectTrackers.Remove(tracker);
             }
 
-            // Optional: delete blueprint
-            var blueprint = await context.Blueprints
-                .FirstOrDefaultAsync(b => b.blueprintId == project.blueprint_Id);
-            if (blueprint != null)
-                context.Blueprints.Remove(blueprint);
-
+            // 2. Delete the project
+            var blueprintId = project.blueprint_Id;
             context.Projects.Remove(project);
+
+            // Save first so the project is gone before checking blueprint reuse
             await context.SaveChangesAsync();
+
+            // 3. Delete the blueprint ONLY if no projects still use it
+            bool blueprintStillUsed = await context.Projects
+                .AnyAsync(p => p.blueprint_Id == blueprintId);
+
+            if (!blueprintStillUsed)
+            {
+                var blueprint = await context.Blueprints
+                    .FirstOrDefaultAsync(b => b.blueprintId == blueprintId);
+
+                if (blueprint != null)
+                    context.Blueprints.Remove(blueprint);
+
+                await context.SaveChangesAsync();
+            }
 
             return RedirectToAction("Projects");
         }
+
     }
 }

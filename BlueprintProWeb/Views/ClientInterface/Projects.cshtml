@@ -563,14 +563,13 @@
                         document.getElementById('architectProfileLocation').textContent = data.location || '';
 
                         const credentialsLink = document.getElementById('architectProfileCredentials');
+                        const credentialsRow = credentialsLink.closest('p');
                         if (data.credentialsFile) {
                             credentialsLink.href = data.credentialsFile;
                             credentialsLink.textContent = 'Architect Credentials';
                             credentialsLink.style.display = 'inline';
                         } else {
-                            credentialsLink.textContent = 'No file uploaded';
-                            credentialsLink.removeAttribute('href');
-                            credentialsLink.style.display = 'inline';
+                            credentialsRow.style.display = 'none';
                         }
 
                         const modal = new bootstrap.Modal(document.getElementById('architectProfileModal'));

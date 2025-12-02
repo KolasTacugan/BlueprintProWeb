@@ -625,7 +625,7 @@
                     .then(res => res.json())
                     .then(data => {
                         if (data.success) {
-                            document.getElementById("matchResultTitle").innerText = "? Success";
+                            document.getElementById("matchResultTitle").innerText = "Match Update";
                             document.getElementById("matchResultMessage").innerText = `Match ${data.status}`;
                         } else {
                             document.getElementById("matchResultTitle").innerText = "? Error";
