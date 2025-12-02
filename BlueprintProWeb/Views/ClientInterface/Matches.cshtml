@@ -807,8 +807,18 @@
                                 document.getElementById("architectProfileStyle").innerText = data.style || "N/A";
                                 document.getElementById("architectProfileSpecialization").innerText = data.specialization || "N/A";
                                 document.getElementById("architectProfileLocation").innerText = data.location || "N/A";
-                                document.getElementById("architectProfileCredentials").href = data.credentialsFile || "#";
                                 document.getElementById("architectProfilePhoto").src = data.photo || "/images/profile.jpg";
+                                // Credentials File handling
+                                if (!data.credentialsFile || data.credentialsFile === "null") {
+                                    // Hide the entire <p> section
+                                    document.querySelector("#architectProfileCredentials").closest("p").style.display = "none";
+                                } else {
+                                    // Show and update the link
+                                    const credLink = document.querySelector("#architectProfileCredentials");
+                                    credLink.href = data.credentialsFile;
+                                    credLink.textContent = "Architect's Credentials";
+                                    credLink.closest("p").style.display = "block";
+                                }
 
                                 architectModal.show();
                             } else {
