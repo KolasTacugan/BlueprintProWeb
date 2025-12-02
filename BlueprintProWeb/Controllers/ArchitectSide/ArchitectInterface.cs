@@ -428,15 +428,15 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
 
             if (match.ArchitectId != currentUser.Id) return Forbid();
 
+            string clientId = match.ClientId;
+
             if (dto.Approve)
             {
-                // APPROVED → update status
                 match.MatchStatus = "Approved";
 
-                // Notification
                 var notif = new Notification
                 {
-                    user_Id = match.ClientId,
+                    user_Id = clientId,
                     notification_Title = "Match Approved",
                     notification_Message = $"{currentUser.user_fname} {currentUser.user_lname} has approved your match request.",
                     notification_Date = DateTime.Now,
@@ -444,18 +444,17 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 };
 
                 context.Notifications.Add(notif);
-                await context.SaveChangesAsync(); // save once
+                await context.SaveChangesAsync();
+
+                // ✅ SIGNALR LIVE UPDATE
+                await _hubContext.Clients.User(clientId).SendAsync("ReceiveNotificationUpdate");
 
                 return Json(new { success = true, status = "Approved" });
             }
             else
             {
-                // DECLINED → delete match row
-                var clientId = match.ClientId;
-
                 context.Matches.Remove(match);
 
-                // Send decline notification
                 var notif = new Notification
                 {
                     user_Id = clientId,
@@ -467,7 +466,10 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
 
                 context.Notifications.Add(notif);
 
-                await context.SaveChangesAsync(); // save delete + notification
+                await context.SaveChangesAsync();
+
+                // ✅ SIGNALR LIVE UPDATE
+                await _hubContext.Clients.User(clientId).SendAsync("ReceiveNotificationUpdate");
 
                 return Json(new { success = true, status = "Declined" });
             }
@@ -501,7 +503,6 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                     ClientPhone = m.Client.PhoneNumber
                 })
                 .ToListAsync();
-
             return View(allMatches);
         }
 
@@ -702,6 +703,9 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                     : currentUser.user_profilePhoto
             });
 
+            await _hubContext.Clients.User(clientId)
+            .SendAsync("ReceiveMessageUpdate");
+
             return RedirectToAction("Messages", new { clientId });
         }
 
@@ -848,6 +852,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             // ✅ Safely notify client if Project exists
             if (tracker.Project != null)
             {
+                var clientId = tracker.Project.user_clientId;
                 var notif = new Notification
                 {
                     user_Id = tracker.Project.user_clientId,
@@ -859,6 +864,9 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
 
                 context.Notifications.Add(notif);
                 await context.SaveChangesAsync();
+
+                await _hubContext.Clients.User(clientId)
+                .SendAsync("ReceiveNotificationUpdate");
             }
 
             return Json(new { success = true });
@@ -958,6 +966,9 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             context.Notifications.Add(notif);
             await context.SaveChangesAsync();
 
+            await _hubContext.Clients.User(project.user_clientId)
+            .SendAsync("ReceiveNotificationUpdate");
+
             return RedirectToAction("ProjectTracker", new { id = project.blueprint_Id });
         }
 
@@ -1024,6 +1035,15 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
 
                     context.Notifications.Add(notif);
                     await context.SaveChangesAsync();
+                    await _hubContext.Clients
+                        .User(tracker.Project.user_clientId)
+                        .SendAsync("ReceiveNotification", new
+                        {
+                            title = notif.notification_Title,
+                            message = notif.notification_Message,
+                            date = notif.notification_Date.ToString("g")
+                        });
+
                 }
 
                 return Json(new
@@ -1081,6 +1101,15 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
 
                 context.Notifications.Add(notif);
                 await context.SaveChangesAsync();
+
+                await _hubContext.Clients
+                    .User(project.user_clientId)
+                    .SendAsync("ReceiveNotification", new
+                    {
+                        title = notif.notification_Title,
+                        message = notif.notification_Message,
+                        date = notif.notification_Date.ToString("g")
+                    });
             }
 
             // ✅ Return redirect to ProjectTracker view for this project
@@ -1135,6 +1164,24 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
         }
 
         [HttpGet]
+        public async Task<IActionResult> GetUnreadMessagesCount()
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+                return Json(0);
+
+            var count = await context.Messages.CountAsync(m =>
+                ((m.ClientId == currentUser.Id) || (m.ArchitectId == currentUser.Id)) &&
+                 m.SenderId != currentUser.Id &&
+                 !m.IsRead &&
+                 !m.IsDeleted
+            );
+
+            return Json(count);
+        }
+
+
+        [HttpGet]
         public async Task<IActionResult> DeletedProjects()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -1179,6 +1226,15 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             context.Notifications.Add(notif);
             await context.SaveChangesAsync();
 
+            await _hubContext.Clients
+                .User(project.user_clientId)
+                .SendAsync("ReceiveNotification", new
+                {
+                    title = notif.notification_Title,
+                    message = notif.notification_Message,
+                    date = notif.notification_Date.ToString("g")
+                });
+
             return RedirectToAction("Projects");
         }
 
@@ -1204,6 +1260,15 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             };
             context.Notifications.Add(notif);
             await context.SaveChangesAsync();
+
+            await _hubContext.Clients
+                .User(project.user_clientId)
+                .SendAsync("ReceiveNotification", new
+                {
+                    title = notif.notification_Title,
+                    message = notif.notification_Message,
+                    date = notif.notification_Date.ToString("g")
+                });
 
             return RedirectToAction("Projects");
         }

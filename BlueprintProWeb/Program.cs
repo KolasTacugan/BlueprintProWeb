@@ -15,6 +15,7 @@ using BlueprintProWeb.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddSignalR();
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<ImageService>();
 builder.Services.AddEndpointsApiExplorer();
@@ -129,7 +130,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+app.MapHub<NotificationHub>("/notificationHub");
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

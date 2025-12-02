@@ -44,7 +44,6 @@ namespace BlueprintProWeb.Controllers.ClientSide
             _embeddingClient = embeddingClient;
             _hubContext = hubContext;
             _stripeSettings = stripeSettings.Value;
-
         }
 
 
@@ -673,6 +672,9 @@ namespace BlueprintProWeb.Controllers.ClientSide
                     : currentUser.user_profilePhoto
             });
 
+            await _hubContext.Clients.User(architectId)
+            .SendAsync("ReceiveMessageUpdate");
+
             return RedirectToAction("Messages", new { architectId });
         }
 
@@ -803,6 +805,23 @@ namespace BlueprintProWeb.Controllers.ClientSide
         }
 
         [HttpGet]
+        public async Task<IActionResult> GetUnreadMessagesCount()
+        {
+            var currentUser = await userManager.GetUserAsync(User);
+            if (currentUser == null)
+                return Json(0);
+
+            var count = await context.Messages.CountAsync(m =>
+                ((m.ClientId == currentUser.Id) || (m.ArchitectId == currentUser.Id)) &&
+                 m.SenderId != currentUser.Id &&
+                 !m.IsRead &&
+                 !m.IsDeleted
+            );
+
+            return Json(count);
+        }
+
+        [HttpGet]
         public async Task<IActionResult> GetMyMatches()
         {
             var currentUser = await userManager.GetUserAsync(User);
@@ -870,6 +889,15 @@ namespace BlueprintProWeb.Controllers.ClientSide
 
                 context.Notifications.Add(notif);
                 await context.SaveChangesAsync();
+
+                await _hubContext.Clients
+                    .User(architect.Id)
+                    .SendAsync("ReceiveNotification", new
+                    {
+                        title = notif.notification_Title,
+                        message = notif.notification_Message,
+                        date = notif.notification_Date.ToString("g")
+                    });
             }
 
             return Json(new { success = true, message = "✅ Match request sent successfully." });
