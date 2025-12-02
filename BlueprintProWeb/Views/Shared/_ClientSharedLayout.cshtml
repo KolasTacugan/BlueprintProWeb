@@ -7,17 +7,20 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/BlueprintProWeb.styles.css" asp-append-version="true" />
+    <!-- Material Icons -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     @*STYLES*@
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: "Poppins", sans-serif;
+            font-family: "Raleway", sans-serif;
         }
 
         body {
@@ -207,7 +210,7 @@
 
         .navbar-list {
             display: flex; /* make list horizontal */
-            align-items: center; /* vertically center li’s */
+            align-items: center; /* vertically center li's */
             margin: 0;
             padding: 0;
         }
@@ -328,11 +331,13 @@
     <nav class="navbar">
         <div class="navbar-div">
             <ul class="navbar-list">
-                <li class="top-nav-item">
-                    <a href="#" class="top-nav-link">
+                <li class="top-nav-item position-relative">
+                    <a asp-controller="ClientInterface" asp-action="Messages" class="top-nav-link position-relative d-inline-block">
                         <span class="material-symbols-rounded">chat_bubble</span>
+                        <span id="msgBadgeClient" class="notif-badge d-none"></span>
                     </a>
                 </li>
+
                 <li class="top-nav-item">
                     <a asp-controller="ClientInterface" asp-action="Notifications"
                        class="top-nav-link position-relative d-inline-block">
@@ -353,6 +358,7 @@
         @RenderBody()
     </main>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="~/js/modal.js" asp-append-version="true"></script>
@@ -431,6 +437,126 @@
                 });
             });
         });
+
+        document.addEventListener("DOMContentLoaded", async function () {
+                try {
+                    const response = await fetch('/ClientInterface/GetUnreadMessagesCount');
+                    const count = await response.json();
+
+                    console.log("CLIENT unread messages:", count);
+
+                    const msgBadge = document.getElementById("msgBadgeClient");
+
+                    if (count > 0) {
+                        msgBadge.innerText = count;
+                        msgBadge.classList.remove("d-none");
+                    } else {
+                        msgBadge.classList.add("d-none");
+                    }
+                } catch (err) {
+                    console.error("Error loading unread messages:", err);
+                }
+        });
+
+        //REAL TIME SCRIPTS
+
+        document.addEventListener("DOMContentLoaded", async () => {
+
+        // ------------------------------
+        // 1. Identify the logged-in user
+        // ------------------------------
+        const userId = "@User?.FindFirst("sub")?.Value"; // ASP.NET Identity user Id
+        if (!userId) return;
+
+        // ------------------------------
+        // 2. Build SignalR connection
+        // ------------------------------
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/notificationHub")
+            .build();
+
+        // ------------------------------
+        // 3. Handle NEW Notification push
+        // ------------------------------
+        connection.on("ReceiveNotification", (notif) => {
+            console.log("📩 Real-time Notification:", notif);
+
+            const notifBadge = document.getElementById("notifBadge");
+            if (notifBadge) notifBadge.classList.remove("d-none");
+
+            refreshNotificationCount();
+        });
+
+        // ------------------------------
+        // 4. Handle NEW Message push
+        // ------------------------------
+        connection.on("ReceiveMessage", (msg) => {
+            console.log("💬 Real-time Message:", msg);
+
+            const msgBadge = document.getElementById("msgBadge");
+            if (msgBadge) msgBadge.classList.remove("d-none");
+
+            refreshMessageCount();
+        });
+
+        // ------------------------------
+        // 5. Start signalR
+        // ------------------------------
+        await connection.start().catch(err => console.error(err));
+
+        // ------------------------------
+        // 6. Load initial counts
+        // ------------------------------
+        refreshNotificationCount();
+        refreshMessageCount();
+
+        // ------------------------------
+        // 7. API loaders
+        // ------------------------------
+        async function refreshNotificationCount() {
+            const isArchitect = window.location.pathname.toLowerCase().includes("architectinterface");
+
+            const url = isArchitect
+                ? "/ArchitectInterface/GetUnreadNotificationsCount"
+                : "/ClientInterface/GetUnreadNotificationsCount";
+
+            try {
+                const res = await fetch(url);
+                const count = await res.json();
+
+                const notifBadge = document.getElementById("notifBadge");
+                if (notifBadge) {
+                    count > 0
+                        ? notifBadge.classList.remove("d-none")
+                        : notifBadge.classList.add("d-none");
+                }
+            } catch (err) {
+                console.error("Error loading notification count:", err);
+            }
+        }
+
+        async function refreshMessageCount() {
+            const isArchitect = window.location.pathname.toLowerCase().includes("architectinterface");
+
+            const url = isArchitect
+                ? "/ArchitectInterface/GetUnreadMessagesCount"
+                : "/ClientInterface/GetUnreadMessagesCount";
+
+            try {
+                const res = await fetch(url);
+                const count = await res.json();
+
+                const msgBadge = document.getElementById("msgBadge");
+                if (msgBadge) {
+                    count > 0
+                        ? msgBadge.classList.remove("d-none")
+                        : msgBadge.classList.add("d-none");
+                }
+            } catch (err) {
+                console.error("Error loading messages:", err);
+            }
+        }
+    });
     </script>
 </body>
 </html>

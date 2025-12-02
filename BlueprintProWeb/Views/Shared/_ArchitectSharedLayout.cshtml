@@ -317,6 +317,7 @@
             transition: opacity 0.3s ease, visibility 0.3s ease;
         }
 
+
         .notif-badge.d-none {
             opacity: 0;
             visibility: hidden;
@@ -394,9 +395,10 @@
         <!-- Navigation items (right side) -->
         <div class="navbar-div">
             <ul class="navbar-list">
-                <li class="top-nav-item">
-                    <a asp-controller="ArchitectInterface" asp-action="Messages" class="top-nav-link">
+                <li class="top-nav-item position-relative">
+                    <a asp-controller="ArchitectInterface" asp-action="Messages" class="top-nav-link position-relative d-inline-block">
                         <span class="material-symbols-rounded">chat_bubble</span>
+                        <span id="msgBadgeArchitect" class="notif-badge d-none"></span>
                     </a>
                 </li>
                 <li class="top-nav-item">
@@ -421,6 +423,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/modal.js" asp-append-version="true"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
 
     @RenderSection("Scripts", required: false)
 
@@ -522,7 +525,126 @@
                     updateBadge();
                 });
             });
+
         });
+
+        document.addEventListener("DOMContentLoaded", async function () {
+            try {
+                const response = await fetch('/ArchitectInterface/GetUnreadMessagesCount');
+                const count = await response.json();
+
+                console.log("ARCHITECT unread messages:", count);
+
+                const msgBadge = document.getElementById("msgBadgeArchitect");
+
+                if (count > 0) {
+                    msgBadge.innerText = count;
+                    msgBadge.classList.remove("d-none");
+                } else {
+                    msgBadge.classList.add("d-none");
+                }
+            } catch (err) {
+                console.error("Error loading unread messages:", err);
+            }
+        });
+
+        //REAL TIME SCRIPTS
+        document.addEventListener("DOMContentLoaded", async () => {
+
+        // ------------------------------
+        // 1. Identify the logged-in user
+        // ------------------------------
+        const userId = "@User?.FindFirst("sub")?.Value"; // ASP.NET Identity user Id
+        if (!userId) return;
+
+        // ------------------------------
+        // 2. Build SignalR connection
+        // ------------------------------
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/notificationHub")
+            .build();
+
+        // ------------------------------
+        // 3. Handle NEW Notification push
+        // ------------------------------
+        connection.on("ReceiveNotification", (notif) => {
+            console.log("📩 Real-time Notification:", notif);
+
+            const notifBadge = document.getElementById("notifBadge");
+            if (notifBadge) notifBadge.classList.remove("d-none");
+
+            refreshNotificationCount();
+        });
+
+        // ------------------------------
+        // 4. Handle NEW Message push
+        // ------------------------------
+        connection.on("ReceiveMessage", (msg) => {
+            console.log("💬 Real-time Message:", msg);
+
+            const msgBadge = document.getElementById("msgBadge");
+            if (msgBadge) msgBadge.classList.remove("d-none");
+
+            refreshMessageCount();
+        });
+
+        // ------------------------------
+        // 5. Start signalR
+        // ------------------------------
+        await connection.start().catch(err => console.error(err));
+
+        // ------------------------------
+        // 6. Load initial counts
+        // ------------------------------
+        refreshNotificationCount();
+        refreshMessageCount();
+
+        // ------------------------------
+        // 7. API loaders
+        // ------------------------------
+        async function refreshNotificationCount() {
+            const isArchitect = window.location.pathname.toLowerCase().includes("architectinterface");
+
+            const url = isArchitect
+                ? "/ArchitectInterface/GetUnreadNotificationsCount"
+                : "/ClientInterface/GetUnreadNotificationsCount";
+
+            try {
+                const res = await fetch(url);
+                const count = await res.json();
+
+                const notifBadge = document.getElementById("notifBadge");
+                if (notifBadge) {
+                    count > 0
+                        ? notifBadge.classList.remove("d-none")
+                        : notifBadge.classList.add("d-none");
+                }
+            } catch (err) {
+                console.error("Error loading notification count:", err);
+            }
+        }
+
+        async function refreshMessageCount() {
+            const isArchitect = window.location.pathname.toLowerCase().includes("architectinterface");
+
+            const url = isArchitect
+                ? "/ArchitectInterface/GetUnreadMessagesCount"
+                : "/ClientInterface/GetUnreadMessagesCount";
+
+            try {
+                const res = await fetch(url);
+                const count = await res.json();
+
+                const msgBadge = document.getElementById("msgBadge");
+                if (msgBadge) {
+                    count > 0
+                        ? msgBadge.classList.remove("d-none")
+                        : msgBadge.classList.add("d-none");
+                }
+            } catch (err) {
+                console.error("Error loading messages:", err);
+            }
+        }
     </script>
 </body>
 </html>
