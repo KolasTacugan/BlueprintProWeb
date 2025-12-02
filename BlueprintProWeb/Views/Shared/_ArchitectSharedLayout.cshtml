@@ -501,31 +501,7 @@
 
             // Initialize badge visibility on load
             updateBadge();
-
-            document.querySelectorAll(".list-group-item").forEach(item => {
-                item.addEventListener("click", async function () {
-                    const id = this.dataset.id;
-                    modalTitle.textContent = this.dataset.title;
-                    modalBody.textContent = this.dataset.message;
-
-                    // Mark as read in backend
-                    await fetch('@Url.Action("MarkAsRead")', {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/x-www-form-urlencoded"
-                        },
-                        body: "id=" + id
-                    });
-
-                    // Visually mark as read
-                    this.style.opacity = "0.6";
-                    this.style.fontWeight = "normal";
-
-                    // 🔥 Update badge in real time
-                    updateBadge();
-                });
-            });
-
+            document.querySelectorAll('.list-group-item').forEach(i=>{ i.addEventListener('click', async function(){ const id = this.dataset.id; await fetch('@Url.Action("MarkAsRead")',{ method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:'id='+id }); this.style.opacity='0.6'; this.style.fontWeight='normal'; updateBadge(); }); });
         });
 
         document.addEventListener("DOMContentLoaded", async function () {
