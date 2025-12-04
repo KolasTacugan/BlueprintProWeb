@@ -39,7 +39,7 @@ jobs:
 
       # 5. Install EF tool (needed for migrations)
       - name: Install EF Core CLI
-        run: dotnet tool install --global dotnet-ef
+        run: dotnet tool install --global dotnet-ef --version 8.*
       - name: Add EF tool to PATH
         run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
 
