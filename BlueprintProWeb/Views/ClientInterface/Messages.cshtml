@@ -769,7 +769,8 @@
             {
                 @foreach (var convo in Model.Conversations)
                 {
-                    var convoPhoto = string.IsNullOrEmpty(convo.ArchitectProfileUrl)
+                    var convoPhoto = string.IsNullOrWhiteSpace(convo.ArchitectProfileUrl)
+                    || convo.ArchitectProfileUrl.Contains("default", StringComparison.OrdinalIgnoreCase)
                     ? "/images/default-profile.png"
                     : convo.ArchitectProfileUrl.Replace("~", "").Replace("wwwroot", "");
 
@@ -803,7 +804,8 @@
     <div class="chat-panel">
         @if (Model.ActiveChat != null)
         {
-            var chatPhoto = string.IsNullOrEmpty(Model.ActiveChat.ArchitectProfileUrl)
+            var chatPhoto = string.IsNullOrWhiteSpace(Model.ActiveChat.ArchitectProfileUrl)
+            || Model.ActiveChat.ArchitectProfileUrl.Contains("default", StringComparison.OrdinalIgnoreCase)
             ? "/images/default-profile.png"
             : Model.ActiveChat.ArchitectProfileUrl.Replace("~", "").Replace("wwwroot", "");
 
@@ -826,7 +828,8 @@
 
                 @foreach (var msg in Model.ActiveChat.Messages)
                 {
-                    var msgPhoto = string.IsNullOrEmpty(msg.SenderProfilePhoto)
+                    var msgPhoto = string.IsNullOrWhiteSpace(msg.SenderProfilePhoto)
+                    || msg.SenderProfilePhoto.Contains("default", StringComparison.OrdinalIgnoreCase)
                     ? "/images/default-profile.png"
                     : msg.SenderProfilePhoto.Replace("~", "").Replace("wwwroot", "");
 

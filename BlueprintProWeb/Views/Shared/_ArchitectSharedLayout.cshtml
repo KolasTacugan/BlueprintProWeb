@@ -15,6 +15,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="~/images/BBP Logo.png" />
     <style>
         * {
             margin: 0;
@@ -320,12 +321,8 @@
             visibility: hidden;
         }
 
-
-
-        * { margin:0; padding:0; box-sizing:border-box; font-family:"Raleway",sans-serif; }
         #page-loader { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:#ffffff; z-index:10000; transition:opacity .3s ease; }
         .spinner { width:56px; height:56px; border:6px solid #e2e8f0; border-top-color:#344EAD; border-radius:50%; animation: pageLoaderSpin 1s linear infinite; }
-        .header-pro-indicator { background:linear-gradient(135deg,#0D3C80,#1a5bb8); color:#fff; padding:6px 16px; border-radius:20px; font-size:.8rem; font-weight:700; letter-spacing:.8px; }
     </style>
     @RenderSection("Styles", required: false)
 </head>
@@ -344,10 +341,30 @@
         </header>
         <nav class="sidebar-nav">
             <ul class="nav-list primary-nav">
-                <li class="nav-item"><a asp-controller="ArchitectInterface" asp-action="ArchitectDashboard" class="nav-link"><span class="nav-icon material-symbols-rounded">monitoring</span><span class="nav-label">Dashboard</span></a></li>
-                <li class="nav-item"><a asp-controller="ArchitectInterface" asp-action="Matches" class="nav-link"><span class="nav-icon material-symbols-rounded">handshake</span><span class="nav-label">Matches</span></a></li>
-                <li class="nav-item"><a asp-controller="ArchitectInterface" asp-action="Blueprints" class="nav-link"><span class="nav-icon material-symbols-rounded">house</span><span class="nav-label">Blueprints</span></a></li>
-                <li class="nav-item"><a asp-controller="ArchitectInterface" asp-action="Projects" class="nav-link"><span class="material-symbols-rounded">note_stack</span><span class="nav-label">Projects</span></a></li>
+                <li class="nav-item">
+                    <a asp-controller="ArchitectInterface" asp-action="ArchitectDashboard" class="nav-link">
+                        <span class="nav-icon material-symbols-rounded">monitoring</span>
+                        <span class="nav-label">Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a asp-controller="ArchitectInterface" asp-action="Matches" class="nav-link">
+                        <span class="nav-icon material-symbols-rounded">handshake</span>
+                        <span class="nav-label">Matches</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a asp-controller="ArchitectInterface" asp-action="Blueprints" class="nav-link">
+                        <span class="nav-icon material-symbols-rounded">house</span>
+                        <span class="nav-label">Blueprints</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a asp-controller="ArchitectInterface" asp-action="Projects" class="nav-link">
+                        <span class="material-symbols-rounded">note_stack</span>
+                        <span class="nav-label">Projects</span>
+                    </a>
+                </li>
             </ul>
         </nav>
         <form asp-controller="Account" asp-action="Logout" method="post" class="logout-form"><button type="submit" class="logout-btn nav-link"><span class="material-symbols-rounded">logout</span></button></form>
@@ -387,25 +404,29 @@
 
     @RenderSection("Scripts", required: false)
     <script>
-        const sidebar = document.querySelector('.sidebar');
-        const sidebarToggler = document.querySelector('.sidebar-toggler');
-        if(sidebarToggler){ sidebarToggler.addEventListener('click', ()=> sidebar.classList.toggle('collapsed')); }
-        document.addEventListener('DOMContentLoaded', async ()=>{
-            try{ const r = await fetch('/ArchitectInterface/GetUnreadNotificationsCount'); if(!r.ok) throw new Error(); const c = await r.json(); const b = document.getElementById('notifBadge'); if(b){ c>0? b.classList.remove('d-none'): b.classList.add('d-none'); } }catch(e){ console.error('Notification fetch error', e); }
-        });
-        document.addEventListener('DOMContentLoaded', ()=>{
-            const notifBadge = document.getElementById('notifBadge');
-            function updateBadge(){ const unread = document.querySelectorAll('.list-group-item:not([style*="opacity: 0.6"])').length; if(notifBadge){ unread>0? notifBadge.classList.remove('d-none'): notifBadge.classList.add('d-none'); } }
-            updateBadge();
-            document.querySelectorAll('.list-group-item').forEach(i=>{ i.addEventListener('click', async function(){ const id = this.dataset.id; await fetch('@Url.Action("MarkAsRead")',{ method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:'id='+id }); this.style.opacity='0.6'; this.style.fontWeight='normal'; updateBadge(); }); });
+        document.addEventListener("DOMContentLoaded", () => {
+
+            // SIDEBAR TOGGLER
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarToggler = document.querySelector('.sidebar-toggler');
+
+            if (sidebar && sidebarToggler) {
+                sidebarToggler.addEventListener("click", () => {
+                    sidebar.classList.toggle("collapsed");
+                });
+            } else {
+                console.error("Sidebar or toggler not found in DOM");
+            }
+
+            // INITIAL UNREAD MESSAGES
+            loadArchitectUnreadMessages();
+            loadArchitectNotifications();
         });
 
-        document.addEventListener("DOMContentLoaded", async function () {
+        async function loadArchitectUnreadMessages() {
             try {
-                const response = await fetch('/ArchitectInterface/GetUnreadMessagesCount');
-                const count = await response.json();
-
-                console.log("ARCHITECT unread messages:", count);
+                const res = await fetch('/ArchitectInterface/GetUnreadMessagesCount');
+                const count = await res.json();
 
                 const msgBadge = document.getElementById("msgBadgeArchitect");
 
@@ -418,105 +439,53 @@
             } catch (err) {
                 console.error("Error loading unread messages:", err);
             }
-        });
+        }
 
-        //REAL TIME SCRIPTS
+        async function loadArchitectNotifications() {
+            try {
+                const notifBadge = document.getElementById('notifBadge');
+                const unread = document.querySelectorAll(
+                    '.list-group-item:not([style*="opacity: 0.6"])'
+                ).length;
+
+                unread > 0
+                    ? notifBadge.classList.remove('d-none')
+                    : notifBadge.classList.add('d-none');
+
+            } catch (err) {
+                console.error("Error loading notifications:", err);
+            }
+        }
+
+        // REAL TIME SCRIPTS
         document.addEventListener("DOMContentLoaded", async () => {
 
-        // ------------------------------
-        // 1. Identify the logged-in user
-        // ------------------------------
-        const userId = "@User?.FindFirst("sub")?.Value"; // ASP.NET Identity user Id
-        if (!userId) return;
+            const userId = '@User?.FindFirst("sub")?.Value';   // FIXED ✔
 
-        // ------------------------------
-        // 2. Build SignalR connection
-        // ------------------------------
-        const connection = new signalR.HubConnectionBuilder()
-            .withUrl("/notificationHub")
-            .build();
+            if (!userId) return;
 
-        // ------------------------------
-        // 3. Handle NEW Notification push
-        // ------------------------------
-        connection.on("ReceiveNotification", (notif) => {
-            console.log("📩 Real-time Notification:", notif);
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/notificationHub")
+                .build();
 
-            const notifBadge = document.getElementById("notifBadge");
-            if (notifBadge) notifBadge.classList.remove("d-none");
-
-            refreshNotificationCount();
-        });
-
-        // ------------------------------
-        // 4. Handle NEW Message push
-        // ------------------------------
-        connection.on("ReceiveMessage", (msg) => {
-            console.log("💬 Real-time Message:", msg);
-
-            const msgBadge = document.getElementById("msgBadge");
-            if (msgBadge) msgBadge.classList.remove("d-none");
-
-            refreshMessageCount();
-        });
-
-        // ------------------------------
-        // 5. Start signalR
-        // ------------------------------
-        await connection.start().catch(err => console.error(err));
-
-        // ------------------------------
-        // 6. Load initial counts
-        // ------------------------------
-        refreshNotificationCount();
-        refreshMessageCount();
-
-        // ------------------------------
-        // 7. API loaders
-        // ------------------------------
-        async function refreshNotificationCount() {
-            const isArchitect = window.location.pathname.toLowerCase().includes("architectinterface");
-
-            const url = isArchitect
-                ? "/ArchitectInterface/GetUnreadNotificationsCount"
-                : "/ClientInterface/GetUnreadNotificationsCount";
-
-            try {
-                const res = await fetch(url);
-                const count = await res.json();
-
+            connection.on("ReceiveNotification", () => {
                 const notifBadge = document.getElementById("notifBadge");
-                if (notifBadge) {
-                    count > 0
-                        ? notifBadge.classList.remove("d-none")
-                        : notifBadge.classList.add("d-none");
-                }
-            } catch (err) {
-                console.error("Error loading notification count:", err);
-            }
-        }
+                notifBadge.classList.remove("d-none");
+                loadArchitectNotifications();
+            });
 
-        async function refreshMessageCount() {
-            const isArchitect = window.location.pathname.toLowerCase().includes("architectinterface");
+            connection.on("ReceiveMessage", () => {
+                const msgBadge = document.getElementById("msgBadgeArchitect");
+                msgBadge.classList.remove("d-none");
+                loadArchitectUnreadMessages();
+            });
 
-            const url = isArchitect
-                ? "/ArchitectInterface/GetUnreadMessagesCount"
-                : "/ClientInterface/GetUnreadMessagesCount";
+            await connection.start().catch(err => console.error(err));
 
-            try {
-                const res = await fetch(url);
-                const count = await res.json();
-
-                const msgBadge = document.getElementById("msgBadge");
-                if (msgBadge) {
-                    count > 0
-                        ? msgBadge.classList.remove("d-none")
-                        : msgBadge.classList.add("d-none");
-                }
-            } catch (err) {
-                console.error("Error loading messages:", err);
-            }
-        }
+            loadArchitectUnreadMessages();
+            loadArchitectNotifications();
+        });
     </script>
+
 </body>
 </html>

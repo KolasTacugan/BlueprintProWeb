@@ -794,8 +794,9 @@
             {
                 @foreach (var convo in Model.Conversations)
                 {
-                    var convoPhoto = string.IsNullOrEmpty(convo.ClientProfileUrl)
-                    ? "/images/profile.jpg"
+                    var convoPhoto = string.IsNullOrWhiteSpace(convo.ClientProfileUrl)
+                    || convo.ClientProfileUrl.Contains("default", StringComparison.OrdinalIgnoreCase)
+                    ? "/images/default-profile.png"
                     : convo.ClientProfileUrl.Replace("~", "").Replace("wwwroot", "");
 
                     <a asp-controller="ArchitectInterface"
@@ -828,8 +829,9 @@
     <div class="chat-panel">
         @if (Model.ActiveChat != null)
         {
-            var chatPhoto = string.IsNullOrEmpty(Model.ActiveChat.ClientProfileUrl)
-            ? "/images/profile.jpg"
+            var chatPhoto = string.IsNullOrWhiteSpace(Model.ActiveChat.ClientProfileUrl)
+            || Model.ActiveChat.ClientProfileUrl.Contains("default", StringComparison.OrdinalIgnoreCase)
+            ? "/images/default-profile.png"
             : Model.ActiveChat.ClientProfileUrl.Replace("~", "").Replace("wwwroot", "");
 
             <!-- Chat Header -->
@@ -851,9 +853,11 @@
 
                 @foreach (var msg in Model.ActiveChat.Messages)
                 {
-                    var msgPhoto = string.IsNullOrEmpty(msg.SenderProfilePhoto)
+                    var msgPhoto = string.IsNullOrWhiteSpace(msg.SenderProfilePhoto)
+                    || msg.SenderProfilePhoto.Contains("default", StringComparison.OrdinalIgnoreCase)
                     ? "/images/default-profile.png"
                     : msg.SenderProfilePhoto.Replace("~", "").Replace("wwwroot", "");
+
 
                     <div class="message-group">
                         <div class="message-container @(msg.IsOwnMessage ? "own" : "")">

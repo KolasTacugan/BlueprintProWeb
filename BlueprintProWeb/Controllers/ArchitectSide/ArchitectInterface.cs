@@ -584,7 +584,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                     Messages = new List<MessageViewModel>(),
                     UnreadCount = g.Count(x => x.SenderId != currentUser.Id && !x.IsRead),
                     ClientProfileUrl = string.IsNullOrEmpty(g.First().Client.user_profilePhoto)
-                        ? "/images/default-profile.png"
+                        ? "/images/profile.jpg"
                         : g.First().Client.user_profilePhoto
                 })
                 .ToListAsync();
@@ -629,13 +629,13 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                         : "Unknown",
                     SenderProfilePhoto = m.Sender != null && !string.IsNullOrEmpty(m.Sender.user_profilePhoto)
                         ? m.Sender.user_profilePhoto
-                        : "/images/default-profile.png",
+                        : "/images/profile.jpg",
                     IsOwnMessage = (m.SenderId == currentUser.Id)
                 }).ToList();
 
                 // ✅ Use match photo as chat header
                 var matchPhoto = matches.FirstOrDefault(m => m.ClientId == clientId)?.ClientProfileUrl
-                                 ?? "/images/default-profile.png";
+                                 ?? "/images/profile.jpg";
 
                 activeChat = new ChatViewModel
                 {
@@ -699,7 +699,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 MessageBody = messageBody,
                 MessageDate = phTime.ToString("g"),
                 SenderProfilePhoto = string.IsNullOrEmpty(currentUser.user_profilePhoto)
-                    ? "/images/default-profile.png"
+                    ? "/images/profile.jpg"
                     : currentUser.user_profilePhoto
             });
 
