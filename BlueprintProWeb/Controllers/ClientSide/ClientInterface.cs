@@ -558,7 +558,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
                     Messages = new List<MessageViewModel>(),
                     UnreadCount = g.Count(x => x.SenderId != currentUser.Id && !x.IsRead),
                     ArchitectProfileUrl = string.IsNullOrEmpty(g.First().Architect.user_profilePhoto)
-                        ? "/images/default-profile.png"
+                        ? "/images/profile.jpg"
                         : g.First().Architect.user_profilePhoto
                 })
                 .ToListAsync();
@@ -603,7 +603,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
                         : "Unknown",
                     SenderProfilePhoto = m.Sender != null && !string.IsNullOrEmpty(m.Sender.user_profilePhoto)
                         ? m.Sender.user_profilePhoto
-                        : "/images/default-profile.png",
+                        : "/images/profile.jpg",
                     IsOwnMessage = (m.SenderId == currentUser.Id)
                 }).ToList();
 
@@ -616,7 +616,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
                     LastMessageTime = vmMessages.LastOrDefault()?.MessageDate
                         ?? TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, phTimeZone),
                     Messages = vmMessages,
-                    ArchitectProfileUrl = matchInfo?.ArchitectProfileUrl ?? "/images/default-profile.png"
+                    ArchitectProfileUrl = matchInfo?.ArchitectProfileUrl ?? "/images/profile.jpg"
                 };
             }
 
@@ -668,7 +668,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 MessageBody = messageBody,
                 MessageDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, phTimeZone).ToString("g"),
                 SenderProfilePhoto = string.IsNullOrEmpty(currentUser.user_profilePhoto)
-                    ? "/images/default-profile.png"
+                    ? "/images/profile.jpg"
                     : currentUser.user_profilePhoto
             });
 

@@ -7,60 +7,98 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/BlueprintProWeb.styles.css" asp-append-version="true" />
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="~/images/BBP Logo.png" />
     @RenderSection("Styles", required: false)
 </head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">BlueprintProWeb</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Profile">Profile</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Settings" asp-action="Settings">Settings</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="ArchitectInterface" asp-action="ArchitectDashboard">Architect</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="ClientInterface" asp-action="ClientDashboard">Client</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="ClientInterface" asp-action="Matches">Matches</a>
-                        </li>
-                        <partial name="_LoginPartial" />
-                    </ul>
+<body class="@(ViewData["HideNavigation"] != null ? "landing-page" : "")" style="font-family: 'Raleway', sans-serif;">
+    <div id="page-loader" aria-live="polite" aria-busy="true">
+        <lottie-player id="bpp-loader" src="/animations/Loading.json" background="transparent" speed="1" loop autoplay style="width:128px;height:128px"></lottie-player>
+        <div class="spinner" role="status" aria-label="Loading"></div>
+    </div>
+    @if (ViewData["HideNavigation"] == null)
+    {
+        <header>
+            <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+                <div class="container-fluid">
+                    <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                        <i class="fas fa-drafting-compass me-2"></i>BlueprintProWeb
+                    </a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                            aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                        <ul class="navbar-nav flex-grow-1">
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">
+                                    <i class="fas fa-home me-1"></i>Home
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">
+                                    <i class="fas fa-shield-alt me-1"></i>Privacy
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Profile">
+                                    <i class="fas fa-user me-1"></i>Profile
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Settings" asp-action="Settings">
+                                    <i class="fas fa-cog me-1"></i>Settings
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="ArchitectInterface" asp-action="ArchitectDashboard">
+                                    <i class="fas fa-hard-hat me-1"></i>Architect
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="ClientInterface" asp-action="ClientDashboard">
+                                    <i class="fas fa-user-tie me-1"></i>Client
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="ClientInterface" asp-action="Matches">
+                                    <i class="fas fa-handshake me-1"></i>Matches
+                                </a>
+                            </li>
+                            <partial name="_LoginPartial" />
+                        </ul>
+                    </div>
                 </div>
-            </div>
-        </nav>
-    </header>
+            </nav>
+        </header>
+    }
 
     <!-- Hero Section slot (outside container so it can be full-width) -->
     @RenderSection("Hero", required: false)
 
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
+    @if (ViewData["HideNavigation"] == null)
+    {
+        <div class="container">
+            <main role="main" class="pb-3">
+                @RenderBody()
+            </main>
+        </div>
+    }
+    else
+    {
+        @RenderBody()
+    }
 
-    <script src="~/js/modal.js" asp-append-version="true"></script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <!-- Lottie Player (for .json/.lottie animations) -->
+    <script src="https://unpkg.com/@@lottiefiles/lottie-player@2/dist/lottie-player.js" crossorigin="anonymous"></script>
+    <script src="~/js/modal.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

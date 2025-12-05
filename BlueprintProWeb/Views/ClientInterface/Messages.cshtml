@@ -2,7 +2,7 @@
 
 @{
     ViewData["Title"] = "Messages";
-    Layout = "~/Views/Shared/_ArchitectSharedLayout.cshtml";
+    Layout = "~/Views/Shared/_ClientSharedLayout.cshtml";
 }
 
 @section Styles {
@@ -123,6 +123,35 @@
             letter-spacing: 0.05em;
             margin-bottom: 1rem;
             font-family: 'Raleway', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .scroll-indicator {
+            display: flex;
+            align-items: center;
+            color: #344EAD;
+        }
+
+        .scroll-chevron {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #344EAD, #2563EB);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            box-shadow: 0 2px 8px rgba(52, 78, 173, 0.3);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .scroll-chevron:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(52, 78, 173, 0.4);
         }
 
         .matches-grid {
@@ -130,6 +159,26 @@
             grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
             gap: 1rem;
             margin-bottom: 2rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+        }
+
+        .matches-grid::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+
+        .matches-grid::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .matches-grid::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 2px;
+        }
+
+        .matches-grid::-webkit-scrollbar-thumb:hover {
+            background: #94A3B8;
         }
 
         .match-item {
@@ -219,7 +268,7 @@
 
         .conversation-name {
             font-weight: 600;
-            color: #1E293B;
+            color: #1a202c;
             font-size: 0.9rem;
             margin-bottom: 0.25rem;
             font-family: 'Raleway', sans-serif;
@@ -306,7 +355,7 @@
         .chat-user-details h3 {
             font-size: 1.1rem;
             font-weight: 700;
-            color: #1E293B;
+            color: #1a202c;
             margin: 0;
             font-family: 'Raleway', sans-serif;
         }
@@ -316,31 +365,6 @@
             color: #344EAD;
             font-weight: 500;
         }
-
-        .chat-actions {
-            display: flex;
-            gap: 0.75rem;
-        }
-
-        .chat-action-btn {
-            width: 40px;
-            height: 40px;
-            border: 1px solid #E2E8F0;
-            background: #FFFFFF;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #64748B;
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-
-            .chat-action-btn:hover {
-                background: #F8FAFC;
-                border-color: #344EAD;
-                color: #344EAD;
-            }
 
         .chat-messages {
             flex: 1;
@@ -703,7 +727,7 @@
     <div class="conversations-sidebar">
         <div class="conversations-header">
             <h1 class="conversations-title">Messages</h1>
-            <p class="conversations-subtitle">Connect with your clients</p>
+            <p class="conversations-subtitle">Stay connected with your architects</p>
         </div>
 
         <div class="search-container">
@@ -714,20 +738,25 @@
         <!-- Matches Section -->
         @if (Model.Matches.Any())
         {
-            <div class="section-label">Available Matches</div>
+            <div class="section-label">
+                <span>Available Matches</span>
+                <div class="scroll-indicator">
+                    <span class="material-symbols-rounded scroll-chevron">chevron_right</span>
+                </div>
+            </div>
             <div class="matches-grid">
                 @foreach (var match in Model.Matches)
                 {
-                    var profilePhoto = string.IsNullOrEmpty(match.ClientProfileUrl)
+                    var profilePhoto = string.IsNullOrEmpty(match.ArchitectProfileUrl)
                     ? "/images/default-profile.png"
-                    : match.ClientProfileUrl.Replace("~", "").Replace("wwwroot", "");
+                    : match.ArchitectProfileUrl.Replace("~", "").Replace("wwwroot", "");
 
-                    <a asp-controller="ArchitectInterface"
+                    <a asp-controller="ClientInterface"
                        asp-action="Messages"
-                       asp-route-clientId="@match.ClientId"
+                       asp-route-architectId="@match.ArchitectId"
                        class="match-item">
-                        <img src="@profilePhoto" class="match-avatar" alt="@match.ClientName" />
-                        <div class="match-name">@match.ClientName</div>
+                        <img src="@profilePhoto" class="match-avatar" alt="@match.ArchitectName" />
+                        <div class="match-name">@match.ArchitectName</div>
                     </a>
                 }
             </div>
@@ -740,18 +769,18 @@
             {
                 @foreach (var convo in Model.Conversations)
                 {
-                    var convoPhoto = string.IsNullOrWhiteSpace(convo.ClientProfileUrl)
-                    || convo.ClientProfileUrl.Contains("default", StringComparison.OrdinalIgnoreCase)
+                    var convoPhoto = string.IsNullOrWhiteSpace(convo.ArchitectProfileUrl)
+                    || convo.ArchitectProfileUrl.Contains("default", StringComparison.OrdinalIgnoreCase)
                     ? "/images/default-profile.png"
-                    : convo.ClientProfileUrl.Replace("~", "").Replace("wwwroot", "");
+                    : convo.ArchitectProfileUrl.Replace("~", "").Replace("wwwroot", "");
 
-                    <a asp-controller="ArchitectInterface"
+                    <a asp-controller="ClientInterface"
                        asp-action="Messages"
-                       asp-route-clientId="@convo.ClientId"
-                       class="conversation-item @(Model.ActiveChat?.ClientId == convo.ClientId ? "active" : "")">
-                        <img src="@convoPhoto" class="conversation-avatar" alt="@convo.ClientName" />
+                       asp-route-architectId="@convo.ArchitectId"
+                       class="conversation-item @(Model.ActiveChat?.ArchitectId == convo.ArchitectId ? "active" : "")">
+                        <img src="@convoPhoto" class="conversation-avatar" alt="@convo.ArchitectName" />
                         <div class="conversation-info">
-                            <div class="conversation-name">@convo.ClientName</div>
+                            <div class="conversation-name">@convo.ArchitectName</div>
                             <div class="conversation-preview">Click to start conversation</div>
                         </div>
                         <div class="conversation-meta">
@@ -775,17 +804,17 @@
     <div class="chat-panel">
         @if (Model.ActiveChat != null)
         {
-            var chatPhoto = string.IsNullOrWhiteSpace(Model.ActiveChat.ClientProfileUrl)
-            || Model.ActiveChat.ClientProfileUrl.Contains("default", StringComparison.OrdinalIgnoreCase)
+            var chatPhoto = string.IsNullOrWhiteSpace(Model.ActiveChat.ArchitectProfileUrl)
+            || Model.ActiveChat.ArchitectProfileUrl.Contains("default", StringComparison.OrdinalIgnoreCase)
             ? "/images/default-profile.png"
-            : Model.ActiveChat.ClientProfileUrl.Replace("~", "").Replace("wwwroot", "");
+            : Model.ActiveChat.ArchitectProfileUrl.Replace("~", "").Replace("wwwroot", "");
 
             <!-- Chat Header -->
             <div class="chat-header">
                 <div class="chat-user-info">
-                    <img src="@chatPhoto" class="chat-avatar" alt="@Model.ActiveChat.ClientName" />
+                    <img src="@chatPhoto" class="chat-avatar" alt="@Model.ActiveChat.ArchitectName" />
                     <div class="chat-user-details">
-                        <h3>@Model.ActiveChat.ClientName</h3>
+                        <h3>@Model.ActiveChat.ArchitectName</h3>
                         <div class="chat-user-status">Online</div>
                     </div>
                 </div>
@@ -804,7 +833,6 @@
                     ? "/images/default-profile.png"
                     : msg.SenderProfilePhoto.Replace("~", "").Replace("wwwroot", "");
 
-
                     <div class="message-group">
                         <div class="message-container @(msg.IsOwnMessage ? "own" : "")">
                             <img src="@msgPhoto" class="message-avatar" alt="Sender" />
@@ -821,14 +849,14 @@
 
             <!-- Chat Input -->
             <div class="chat-input-area">
-                <form asp-controller="ArchitectInterface"
+                <form asp-controller="ClientInterface"
                       asp-action="SendMessage"
                       method="post">
                     @Html.AntiForgeryToken()
-                    <input type="hidden" name="clientId" value="@Model.ActiveChat.ClientId" />
+                    <input type="hidden" name="architectId" value="@Model.ActiveChat.ArchitectId" />
 
                     <div class="chat-input-container">
-                        <textarea name="messageBody" class="message-input" placeholder="Type your message..." rows="1"></textarea>
+                        <textarea name="messageBody" class="message-input" placeholder="Type your message... (Press Enter to send, Shift+Enter for new line)" rows="1"></textarea>
                         <div class="input-actions">
                             <button type="submit" class="send-button" title="Send Message">
                                 <span class="material-symbols-rounded">send</span>
@@ -844,7 +872,7 @@
                 <div class="no-chat-content">
                     <div class="no-chat-icon material-symbols-rounded">chat</div>
                     <h2 class="no-chat-title">Welcome to Messages</h2>
-                    <p class="no-chat-subtitle">Select a conversation from the sidebar to start chatting with your clients, or browse available matches to connect with new professionals.</p>
+                    <p class="no-chat-subtitle">Select a conversation from the sidebar to start chatting with your architects, or browse available matches to connect with new professionals.</p>
                 </div>
             </div>
         }

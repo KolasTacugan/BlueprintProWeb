@@ -14,6 +14,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="~/images/BBP Logo.png" />
     @*STYLES*@
     <style>
         * {
@@ -462,22 +463,13 @@
 
         document.addEventListener("DOMContentLoaded", async () => {
 
-        // ------------------------------
-        // 1. Identify the logged-in user
-        // ------------------------------
         const userId = "@User?.FindFirst("sub")?.Value"; // ASP.NET Identity user Id
         if (!userId) return;
 
-        // ------------------------------
-        // 2. Build SignalR connection
-        // ------------------------------
         const connection = new signalR.HubConnectionBuilder()
             .withUrl("/notificationHub")
             .build();
 
-        // ------------------------------
-        // 3. Handle NEW Notification push
-        // ------------------------------
         connection.on("ReceiveNotification", (notif) => {
             console.log("📩 Real-time Notification:", notif);
 
@@ -487,32 +479,20 @@
             refreshNotificationCount();
         });
 
-        // ------------------------------
-        // 4. Handle NEW Message push
-        // ------------------------------
         connection.on("ReceiveMessage", (msg) => {
             console.log("💬 Real-time Message:", msg);
 
-            const msgBadge = document.getElementById("msgBadge");
+            const msgBadge = document.getElementById("msgBadgeClient");
             if (msgBadge) msgBadge.classList.remove("d-none");
 
             refreshMessageCount();
         });
 
-        // ------------------------------
-        // 5. Start signalR
-        // ------------------------------
         await connection.start().catch(err => console.error(err));
 
-        // ------------------------------
-        // 6. Load initial counts
-        // ------------------------------
         refreshNotificationCount();
         refreshMessageCount();
 
-        // ------------------------------
-        // 7. API loaders
-        // ------------------------------
         async function refreshNotificationCount() {
             const isArchitect = window.location.pathname.toLowerCase().includes("architectinterface");
 
@@ -546,7 +526,7 @@
                 const res = await fetch(url);
                 const count = await res.json();
 
-                const msgBadge = document.getElementById("msgBadge");
+                const msgBadge = document.getElementById("msgBadgeClient");
                 if (msgBadge) {
                     count > 0
                         ? msgBadge.classList.remove("d-none")
