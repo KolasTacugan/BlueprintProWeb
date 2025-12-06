@@ -191,11 +191,18 @@ namespace BlueprintProWeb.Controllers
 
 
             // ---------- PROFILE PHOTO URL ----------
-            string? profilePhotoUrl = null;
+            string? profilePhotoUrl;
+
             if (!string.IsNullOrEmpty(user.user_profilePhoto))
             {
+                // Extract the file name and build the URL for uploaded photo
                 var fileName = Path.GetFileName(user.user_profilePhoto);
                 profilePhotoUrl = $"{baseUrl}/images/profiles/{fileName}";
+            }
+            else
+            {
+                // Default fallback profile image
+                profilePhotoUrl = $"{baseUrl}/images/profile.jpg";
             }
 
             // ---------- CREDENTIALS PDF URL ----------
