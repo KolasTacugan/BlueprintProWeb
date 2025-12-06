@@ -164,6 +164,7 @@ namespace BlueprintProWeb.Controllers
                                     : $"{Request.Scheme}://{Request.Host}/images/{p.Blueprint.blueprintImage}"
                               )
                             : null,
+                    clientId = p.Client.Id,
                     clientName = p.Client.user_fname + " " + p.Client.user_lname
                 })
                 .ToListAsync();
@@ -965,5 +966,32 @@ namespace BlueprintProWeb.Controllers
 
             return Ok(new { success = true, message = "Project permanently deleted." });
         }
+
+        [HttpGet("getClientProfile/{clientId}")]
+        public async Task<IActionResult> GetClientProfile(string clientId)
+        {
+            if (string.IsNullOrEmpty(clientId))
+                return BadRequest(new { success = false, message = "ClientId required" });
+
+            var client = await context.Users.FindAsync(clientId);
+
+            if (client == null)
+                return NotFound(new { success = false, message = "Client not found" });
+
+            // Build full profile photo URL
+            string profilePhoto = string.IsNullOrEmpty(client.user_profilePhoto)
+                ? Url.Content("~/images/profile.jpg")
+                : Url.Content(client.user_profilePhoto);
+
+            return Ok(new
+            {
+                success = true,
+                name = $"{client.user_fname} {client.user_lname}",
+                email = client.Email,
+                phone = client.PhoneNumber,
+                profilePhoto = profilePhoto
+            });
+        }
+
     }
 }
