@@ -973,7 +973,7 @@
         justify-content: center;
     }
 
-    .checkout-btn_primary {
+    .checkout-btn-primary {
         background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
         color: white;
         border: none;
@@ -990,12 +990,12 @@
         box-shadow: 0 3px 12px rgba(52, 78, 173, 0.3);
     }
 
-        .checkout-btn_primary:hover {
+        .checkout-btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 18px rgba(52, 78, 173, 0.4);
         }
 
-    .checkout-btn_secondary {
+    .checkout-btn-secondary {
         background: #FFFFFF;
         color: #344EAD;
         border: 2px solid #344EAD;
@@ -1011,7 +1011,7 @@
         gap: 0.4rem;
     }
 
-        .checkout-btn_secondary:hover {
+        .checkout-btn-secondary:hover {
             background: rgba(52, 78, 173, 0.06);
             transform: translateY(-1px);
         }
@@ -1033,292 +1033,6 @@
         -ms-user-select: none;
         user-select: none;
         cursor: default;
-    }
-
-    /* ===== NOTIFICATION MODAL STYLING ===== */
-    .notification-modal {
-        display: none;
-        position: fixed;
-        z-index: 3000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.55);
-        backdrop-filter: blur(4px);
-        animation: fadeIn 0.2s ease;
-    }
-
-    @@keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-
-    .notification-modal-content {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: #FFFFFF;
-        border-radius: 16px;
-        box-shadow: 0 20px 60px rgba(52, 78, 173, 0.3);
-        border: 1px solid rgba(52, 78, 173, 0.1);
-        width: 90%;
-        max-width: 380px;
-        overflow: hidden;
-        animation: slideUp 0.3s ease-out;
-    }
-
-    @@keyframes slideUp {
-        from {
-            opacity: 0;
-            transform: translate(-50%, -40%);
-        }
-        to {
-            opacity: 1;
-            transform: translate(-50%, -50%);
-        }
-    }
-
-    .notification-modal-header {
-        background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
-        color: white;
-        padding: 1rem 1.25rem;
-        display: flex;
-        align-items: center;
-        gap: 0.6rem;
-    }
-
-    .notification-modal-icon {
-        font-size: 1.5rem;
-        width: 36px;
-        height: 36px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(255, 255, 255, 0.15);
-        border-radius: 8px;
-        flex-shrink: 0;
-    }
-
-    .notification-modal-title {
-        font-size: 1rem;
-        font-weight: 700;
-        margin: 0;
-        font-family: 'Raleway', sans-serif;
-        flex: 1;
-    }
-
-    .notification-modal-body {
-        padding: 1.25rem 1.25rem;
-        font-family: 'Raleway', sans-serif;
-        line-height: 1.5;
-        color: #374151;
-        font-size: 0.9rem;
-        text-align: center;
-    }
-
-    .notification-modal-footer {
-        padding: 0.75rem 1.25rem 1rem;
-        display: flex;
-        justify-content: center;
-        background: #F8FAFC;
-        border-top: 1px solid rgba(52, 78, 173, 0.08);
-    }
-
-    .notification-modal-btn {
-        background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
-        color: white;
-        border: none;
-        padding: 0.6rem 1.75rem;
-        border-radius: 8px;
-        font-weight: 600;
-        font-family: 'Raleway', sans-serif;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        font-size: 0.9rem;
-        box-shadow: 0 2px 8px rgba(52, 78, 173, 0.25);
-        min-width: 90px;
-    }
-
-    .notification-modal-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(52, 78, 173, 0.35);
-    }
-
-    .notification-modal-btn:active {
-        transform: translateY(0);
-    }
-
-    /* Notification types */
-    .notification-modal.success .notification-modal-header {
-        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-    }
-
-    .notification-modal.error .notification-modal-header {
-        background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
-    }
-
-    .notification-modal.warning .notification-modal-header {
-        background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-    }
-
-    /* ===== CONFIRMATION MODAL STYLING ===== */
-    .confirmation-modal {
-        display: none;
-        position: fixed;
-        z-index: 3000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.55);
-        backdrop-filter: blur(4px);
-        animation: fadeIn 0.2s ease;
-    }
-
-    .confirmation-modal-content {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: #FFFFFF;
-        border-radius: 16px;
-        box-shadow: 0 20px 60px rgba(52, 78, 173, 0.3);
-        border: 1px solid rgba(52, 78, 173, 0.1);
-        width: 90%;
-        max-width: 380px;
-        overflow: hidden;
-        animation: slideUp 0.3s ease-out;
-    }
-
-    .confirmation-modal-header {
-        background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
-        color: white;
-        padding: 1rem 1.25rem;
-        display: flex;
-        align-items: center;
-        gap: 0.6rem;
-    }
-
-    .confirmation-modal-icon {
-        font-size: 1.5rem;
-        width: 36px;
-        height: 36px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(255, 255, 255, 0.15);
-        border-radius: 8px;
-        flex-shrink: 0;
-    }
-
-    .confirmation-modal-title {
-        font-size: 1rem;
-        font-weight: 700;
-        margin: 0;
-        font-family: 'Raleway', sans-serif;
-        flex: 1;
-    }
-
-    .confirmation-modal-body {
-        padding: 1.25rem 1.25rem;
-        font-family: 'Raleway', sans-serif;
-        line-height: 1.5;
-        color: #374151;
-        font-size: 0.9rem;
-        text-align: center;
-    }
-
-    .confirmation-modal-footer {
-        padding: 0.75rem 1.25rem 1rem;
-        display: flex;
-        justify-content: center;
-        gap: 0.75rem;
-        background: #F8FAFC;
-        border-top: 1px solid rgba(52, 78, 173, 0.08);
-    }
-
-    .confirmation-modal-btn {
-        padding: 0.6rem 1.5rem;
-        border-radius: 8px;
-        font-weight: 600;
-        font-family: 'Raleway', sans-serif;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        font-size: 0.9rem;
-        border: none;
-        min-width: 90px;
-    }
-
-    .confirmation-btn-cancel {
-        background: #FFFFFF;
-        color: #6B7280;
-        border: 2px solid #D1D5DB;
-    }
-
-    .confirmation-btn-cancel:hover {
-        background: #F3F4F6;
-        transform: translateY(-1px);
-    }
-
-    .confirmation-btn-confirm {
-        background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
-        color: white;
-        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
-    }
-
-    .confirmation-btn-confirm:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
-    }
-
-    .confirmation-btn-confirm:active,
-    .confirmation-btn-cancel:active {
-        transform: translateY(0);
-    }
-
-    /* Blueprint Details Modal Footer Buttons */
-    .blueprint-btn-secondary,
-    .blueprint-btn-primary {
-        padding: 0.65rem 1.25rem;
-        border-radius: 8px;
-        font-weight: 600;
-        font-family: 'Raleway', sans-serif;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        font-size: 0.9rem;
-        border: none;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .blueprint-btn-secondary {
-        background: #FFFFFF;
-        color: #6B7280;
-        border: 2px solid #D1D5DB;
-    }
-
-    .blueprint-btn-secondary:hover {
-        background: #F3F4F6;
-        transform: translateY(-1px);
-    }
-
-    .blueprint-btn-primary {
-        background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
-        color: white;
-        box-shadow: 0 2px 8px rgba(52, 78, 173, 0.25);
-    }
-
-    .blueprint-btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(52, 78, 173, 0.35);
-    }
-
-    .blueprint-btn-primary:active,
-    .blueprint-btn-secondary:active {
-        transform: translateY(0);
     }
 
     /* Responsive adjustments - Compact */
@@ -1395,27 +1109,6 @@
             .nav-tabs .nav-item:not(:last-child)::after {
                 display: none;
             }
-
-        .notification-modal-content,
-        .confirmation-modal-content {
-            width: 95%;
-            max-width: 360px;
-        }
-
-        .notification-modal-header,
-        .confirmation-modal-header {
-            padding: 0.875rem 1rem;
-        }
-
-        .notification-modal_body,
-        .confirmation-modal-body {
-            padding: 1rem 1rem;
-        }
-
-        .notification-modal-footer,
-        .confirmation-modal-footer {
-            padding: 0.75rem 1rem 0.875rem;
-        }
     }
 
     @@media (max-width: 576px) {
@@ -1532,7 +1225,7 @@
                     }
 
                     <div class="card-body">
-                        <div class="blueprint-price">₱<span class="price-value">@item.blueprintPrice.ToString("N0")</span></div>
+                        <div class="blueprint-price">?<span class="price-value">@item.blueprintPrice.ToString("N0")</span></div>
                         <h5 class="blueprint-title">@item.blueprintName</h5>
                         <p class="blueprint-description">@item.blueprintDescription</p>
 
@@ -1567,7 +1260,7 @@
             <div class="blueprint-image-section">
                 <img id="modalBlueprintImage" src="" alt="" class="blueprint-main-image protected-img">
                 <div class="blueprint-image-overlay">
-                    <div class="blueprint-price-tag">₱<span id="modalBlueprintPrice">0</span></div>
+                    <div class="blueprint-price-tag">?<span id="modalBlueprintPrice">0</span></div>
                 </div>
             </div>
 
@@ -1704,7 +1397,7 @@
         <div class="cart-modal-footer">
             <div class="cart-total">
                 <span>Total:</span>
-                <span class="cart-total-amount">₱<span id="cartTotal">0.00</span></span>
+                <span class="cart-total-amount">?<span id="cartTotal">0.00</span></span>
             </div>
             <button id="checkoutBtn" class="cart-checkout-btn" disabled>
                 <i class="fas fa-credit-card me-2"></i>
@@ -1740,21 +1433,21 @@
                             <i class="fas fa-calculator"></i>
                             Subtotal:
                         </span>
-                        <span class="checkout-detail-value" id="checkoutSubtotal">₱0.00</span>
+                        <span class="checkout-detail-value" id="checkoutSubtotal">?0.00</span>
                     </div>
                     <div class="checkout-detail-row">
                         <span class="checkout-detail-label">
                             <i class="fas fa-tags"></i>
                             Processing Fee:
                         </span>
-                        <span class="checkout-detail-value">₱50.00</span>
+                        <span class="checkout-detail-value">?50.00</span>
                     </div>
                     <div class="checkout-detail-row">
                         <span class="checkout-detail-label">
                             <i class="fas fa-money-bill-wave"></i>
                             Total Amount:
                         </span>
-                        <span class="checkout-detail-value" id="checkoutTotalAmount">₱0.00</span>
+                        <span class="checkout-detail-value" id="checkoutTotalAmount">?0.00</span>
                     </div>
                 </div>
             </div>
@@ -1773,495 +1466,375 @@
     </div>
 </div>
 
-<!-- Notification Modal -->
-<div id="notificationModal" class="notification-modal">
-    <div class="notification-modal-content">
-        <div class="notification-modal-header">
-            <div class="notification-modal-icon">
-                <i id="notificationIcon" class="fas fa-check-circle"></i>
-            </div>
-            <h3 class="notification-modal-title" id="notificationTitle">Notification</h3>
-        </div>
-        <div class="notification-modal-body" id="notificationMessage">
-            <!-- Message will be inserted here -->
-        </div>
-        <div class="notification-modal-footer">
-            <button class="notification-modal-btn" onclick="closeNotificationModal()">OK</button>
-        </div>
-    </div>
-</div>
-
-<!-- Confirmation Modal -->
-<div id="confirmationModal" class="confirmation-modal">
-    <div class="confirmation-modal-content">
-        <div class="confirmation-modal-header">
-            <div class="confirmation-modal-icon">
-                <i class="fas fa-exclamation-triangle"></i>
-            </div>
-            <h3 class="confirmation-modal-title">Confirm Action</h3>
-        </div>
-        <div class="confirmation-modal-body" id="confirmationMessage">
-            Are you sure you want to proceed?
-        </div>
-        <div class="confirmation-modal-footer">
-            <button class="confirmation-modal-btn confirmation-btn-cancel" onclick="closeConfirmationModal(false)">
-                Cancel
-            </button>
-            <button class="confirmation-modal-btn confirmation-btn-confirm" onclick="closeConfirmationModal(true)">
-                Confirm
-            </button>
-        </div>
-    </div>
-</div>
-
 @section Scripts {
     <script src="https://js.stripe.com/v3/"></script>
     <script>
-        // === NOTIFICATION MODAL FUNCTIONS ===
-        function showNotification(message, type = 'success') {
-            const modal = document.getElementById('notificationModal');
-            const icon = document.getElementById('notificationIcon');
-            const title = document.getElementById('notificationTitle');
-            const messageEl = document.getElementById('notificationMessage');
+                // --- Utility functions ---
+                function formatNumber(num) {
+                    return parseFloat(num).toLocaleString('en-US');
+                }
+                function formatCurrency(num) {
+                    return "?" + parseFloat(num).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
-            // Set content
-            messageEl.textContent = message;
+                }
 
-            // Reset classes
-            modal.classList.remove('success', 'error', 'warning');
+                // --- Blueprint Details Modal ---
+                const blueprintDetailsModal = document.getElementById('blueprintDetailsModal');
+                const blueprintDetailsCloseBtn = document.getElementById('blueprintDetailsCloseBtn');
+                const modalCloseBtn = document.getElementById('modalCloseBtn');
+                const modalAddToCartBtn = document.getElementById('modalAddToCartBtn');
 
-            // Set icon and type
-            switch(type) {
-                case 'success':
-                    icon.className = 'fas fa-check-circle';
-                    title.textContent = 'Success';
-                    modal.classList.add('success');
-                    break;
-                case 'error':
-                    icon.className = 'fas fa-times-circle';
-                    title.textContent = 'Error';
-                    modal.classList.add('error');
-                    break;
-                case 'warning':
-                    icon.className = 'fas fa-exclamation-triangle';
-                    title.textContent = 'Warning';
-                    modal.classList.add('warning');
-                    break;
-                default:
-                    icon.className = 'fas fa-info-circle';
-                    title.textContent = 'Information';
-            }
+                let currentModalBlueprint = null;
 
-            // Show modal
-            modal.style.display = 'block';
-            document.body.style.overflow = 'hidden';
-        }
+                function showBlueprintDetails(blueprintData) {
+                    currentModalBlueprint = blueprintData;
 
-        function closeNotificationModal() {
-            const modal = document.getElementById('notificationModal');
-            modal.style.display = 'none';
-            document.body.style.overflow = '';
-        }
+                    // Populate modal with blueprint data
+                    document.getElementById('modalBlueprintName').textContent = blueprintData.name;
+                    document.getElementById('modalBlueprintImage').src = `/images/${blueprintData.image}`;
+                    document.getElementById('modalBlueprintImage').alt = blueprintData.name;
+                    document.getElementById('modalBlueprintPrice').textContent = formatNumber(parseFloat(blueprintData.price).toFixed(0));
+                    document.getElementById('modalBlueprintStyle').textContent = blueprintData.style;
+                    document.getElementById('modalBlueprintId').textContent = `BP-${blueprintData.id.toString().padStart(4, '0')}`;
+                    document.getElementById('modalBlueprintDescription').textContent = blueprintData.description;
 
-        // Close modal when clicking outside
-        document.getElementById('notificationModal')?.addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeNotificationModal();
-            }
-        });
+                    // Show modal
+                    blueprintDetailsModal.style.display = 'block';
+                }
 
-        // === CONFIRMATION MODAL FUNCTIONS ===
-        let confirmationCallback = null;
+                function hideBlueprintDetails() {
+                    blueprintDetailsModal.style.display = 'none';
+                    currentModalBlueprint = null;
+                }
 
-        function showConfirmation(message) {
-            return new Promise((resolve) => {
-                const modal = document.getElementById('confirmationModal');
-                const messageEl = document.getElementById('confirmationMessage');
-                
-                messageEl.textContent = message;
-                confirmationCallback = resolve;
-                
-                modal.style.display = 'block';
-                document.body.style.overflow = 'hidden';
-            });
-        }
-
-        function closeConfirmationModal(confirmed) {
-            const modal = document.getElementById('confirmationModal');
-            modal.style.display = 'none';
-            document.body.style.overflow = '';
-            
-            if (confirmationCallback) {
-                confirmationCallback(confirmed);
-                confirmationCallback = null;
-            }
-        }
-
-        // Close modal when clicking outside
-        document.getElementById('confirmationModal')?.addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeConfirmationModal(false);
-            }
-        });
-
-
-        // --- Utility functions ---
-        function formatNumber(num) {
-            return parseFloat(num).toLocaleString('en-US');
-        }
-        function formatCurrency(num) {
-            return "₱" + parseFloat(num).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        }
-
-        // --- Blueprint Details Modal ---
-        const blueprintDetailsModal = document.getElementById('blueprintDetailsModal');
-        const blueprintDetailsCloseBtn = document.getElementById('blueprintDetailsCloseBtn');
-        const modalCloseBtn = document.getElementById('modalCloseBtn');
-        const modalAddToCartBtn = document.getElementById('modalAddToCartBtn');
-
-        let currentModalBlueprint = null;
-
-        function showBlueprintDetails(blueprintData) {
-            currentModalBlueprint = blueprintData;
-
-            // Populate modal with blueprint data
-            document.getElementById('modalBlueprintName').textContent = blueprintData.name;
-            document.getElementById('modalBlueprintImage').src = `/images/${blueprintData.image}`;
-            document.getElementById('modalBlueprintImage').alt = blueprintData.name;
-            document.getElementById('modalBlueprintPrice').textContent = formatNumber(parseFloat(blueprintData.price).toFixed(0));
-            document.getElementById('modalBlueprintStyle').textContent = blueprintData.style;
-            document.getElementById('modalBlueprintId').textContent = `BP-${blueprintData.id.toString().padStart(4, '0')}`;
-            document.getElementById('modalBlueprintDescription').textContent = blueprintData.description;
-
-            // Show modal
-            blueprintDetailsModal.style.display = 'block';
-        }
-
-        function hideBlueprintDetails() {
-            blueprintDetailsModal.style.display = 'none';
-            currentModalBlueprint = null;
-        }
-
-        // Modal event listeners
-        blueprintDetailsCloseBtn.addEventListener('click', hideBlueprintDetails);
-        modalCloseBtn.addEventListener('click', hideBlueprintDetails);
-        blueprintDetailsModal.addEventListener('click', e => {
-            if (e.target === blueprintDetailsModal) hideBlueprintDetails();
-        });
-
-        modalAddToCartBtn.addEventListener('click', () => {
-            if (currentModalBlueprint) {
-                addToCart(
-                    currentModalBlueprint.id,
-                    currentModalBlueprint.name,
-                    currentModalBlueprint.price,
-                    currentModalBlueprint.image
-                );
-                hideBlueprintDetails();
-            }
-        });
-
-        // --- Page load setup (format prices, tabs, sidebar adjust) ---
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.price-value').forEach(function(element) {
-                const price = parseFloat(element.textContent.replace(/,/g, ''));
-                element.textContent = formatNumber(price);
-            });
-
-            // Add click listeners to blueprint cards
-            document.querySelectorAll('.blueprint-card').forEach(card => {
-                card.addEventListener('click', function(e) {
-                    // Don't open modal if clicking on the add to cart button
-                    if (e.target.classList.contains('add-to-cart') || e.target.closest('.add-to-cart')) {
-                        return;
-                    }
-
-                    const blueprintData = {
-                        id: this.dataset.id,
-                        name: this.dataset.name,
-                        price: this.dataset.price,
-                        description: this.dataset.description,
-                        style: this.dataset.style,
-                        image: this.dataset.image
-                    };
-                    showBlueprintDetails(blueprintData);
+                // Modal event listeners
+                blueprintDetailsCloseBtn.addEventListener('click', hideBlueprintDetails);
+                modalCloseBtn.addEventListener('click', hideBlueprintDetails);
+                blueprintDetailsModal.addEventListener('click', e => {
+                    if (e.target === blueprintDetailsModal) hideBlueprintDetails();
                 });
-            });
 
-            const categoryTabs = document.querySelectorAll('#categoryTabs .nav-link');
-            const blueprintItems = document.querySelectorAll('.blueprint-item');
-            categoryTabs.forEach(tab => {
-                tab.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    categoryTabs.forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-                    const selectedCategory = this.getAttribute('data-category');
-                    blueprintItems.forEach(item => {
-                        const itemCategory = item.getAttribute('data-category');
-                        if (selectedCategory === 'All' || itemCategory === selectedCategory) {
-                            item.style.display = 'block';
-                            item.classList.remove('d-none');
-                        } else {
-                            item.style.display = 'none';
-                            item.classList.add('d-none');
+                modalAddToCartBtn.addEventListener('click', () => {
+                    if (currentModalBlueprint) {
+                        addToCart(
+                            currentModalBlueprint.id,
+                            currentModalBlueprint.name,
+                            currentModalBlueprint.price,
+                            currentModalBlueprint.image
+                        );
+                        hideBlueprintDetails();
+                    }
+                });
+
+                // --- Page load setup (format prices, tabs, sidebar adjust) ---
+                document.addEventListener('DOMContentLoaded', function() {
+                    document.querySelectorAll('.price-value').forEach(function(element) {
+                        const price = parseFloat(element.textContent.replace(/,/g, ''));
+                        element.textContent = formatNumber(price);
+                    });
+
+                    // Add click listeners to blueprint cards
+                    document.querySelectorAll('.blueprint-card').forEach(card => {
+                        card.addEventListener('click', function(e) {
+                            // Don't open modal if clicking on the add to cart button
+                            if (e.target.classList.contains('add-to-cart') || e.target.closest('.add-to-cart')) {
+                                return;
+                            }
+
+                            const blueprintData = {
+                                id: this.dataset.id,
+                                name: this.dataset.name,
+                                price: this.dataset.price,
+                                description: this.dataset.description,
+                                style: this.dataset.style,
+                                image: this.dataset.image
+                            };
+                            showBlueprintDetails(blueprintData);
+                        });
+                    });
+
+                    const categoryTabs = document.querySelectorAll('#categoryTabs .nav-link');
+                    const blueprintItems = document.querySelectorAll('.blueprint-item');
+                    categoryTabs.forEach(tab => {
+                        tab.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            categoryTabs.forEach(t => t.classList.remove('active'));
+                            this.classList.add('active');
+                            const selectedCategory = this.getAttribute('data-category');
+                            blueprintItems.forEach(item => {
+                                const itemCategory = item.getAttribute('data-category');
+                                if (selectedCategory === 'All' || itemCategory === selectedCategory) {
+                                    item.style.display = 'block';
+                                    item.classList.remove('d-none');
+                                } else {
+                                    item.style.display = 'none';
+                                    item.classList.add('d-none');
+                                }
+                            });
+                        });
+                    });
+
+                    const sidebar = document.querySelector('.sidebar');
+                    const sidebarToggler = document.querySelector('.sidebar-toggler');
+                    const mainContent = document.querySelector('main.container');
+                    function adjustMainContent() {
+                        if (sidebar && mainContent) {
+                            if (sidebar.classList.contains('collapsed')) {
+                                mainContent.style.marginLeft = '110px';
+                                mainContent.style.maxWidth = 'calc(100% - 130px)';
+                            } else {
+                                mainContent.style.marginLeft = '300px';
+                                mainContent.style.maxWidth = 'calc(100% - 320px)';
+                            }
                         }
+                    }
+                    adjustMainContent();
+                    if (sidebarToggler) {
+                        sidebarToggler.addEventListener('click', function() {
+                            setTimeout(adjustMainContent, 50);
+                        });
+                    }
+                });
+
+                // --- Cart Items ---
+                const userId = "@User.Identity.Name"; // unique per logged-in user
+                let cart = JSON.parse(localStorage.getItem(`blueprintCart_${userId}`)) || [];
+
+
+                const cartModal = document.getElementById('cartModal');
+                const cartBtn = document.getElementById('cartBtn');
+                const cartCloseBtn = document.getElementById('cartCloseBtn');
+                const cartCount = document.getElementById('cartCount');
+                const cartTabCount = document.getElementById('cartTabCount');
+                const cartTotal = document.getElementById('cartTotal');
+                const checkoutBtn = document.getElementById('checkoutBtn');
+                const cartItems = document.getElementById('cartItems');
+                const cartEmpty = document.getElementById('cartEmpty');
+
+                const checkoutModal = document.getElementById('checkoutModal');
+                const checkoutCancelBtn = document.getElementById('checkoutCancelBtn');
+                const checkoutConfirmBtn = document.getElementById('checkoutConfirmBtn');
+                const checkoutItemCount = document.getElementById('checkoutItemCount');
+                const checkoutSubtotal = document.getElementById('checkoutSubtotal');
+                const checkoutTotalAmount = document.getElementById('checkoutTotalAmount');
+
+                document.querySelectorAll('.cart-tab').forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        document.querySelectorAll('.cart-tab').forEach(t => t.classList.remove('active'));
+                        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                        tab.classList.add('active');
+                        document.getElementById(tab.dataset.tab + 'Tab').classList.add('active');
                     });
                 });
-            });
 
-            const sidebar = document.querySelector('.sidebar');
-            const sidebarToggler = document.querySelector('.sidebar-toggler');
-            const mainContent = document.querySelector('main.container');
-            function adjustMainContent() {
-                if (sidebar && mainContent) {
-                    if (sidebar.classList.contains('collapsed')) {
-                        mainContent.style.marginLeft = '110px';
-                        mainContent.style.maxWidth = 'calc(100% - 130px)';
-                    } else {
-                        mainContent.style.marginLeft = '300px';
-                        mainContent.style.maxWidth = 'calc(100% - 320px)';
+                document.addEventListener("DOMContentLoaded", async () => {
+                    // Fetch latest cart from backend when user logs in
+                    await loadCart();
+
+                    // Merge backend cart with localStorage if needed
+                    const localCart = JSON.parse(localStorage.getItem(`blueprintCart_${userId}`)) || [];
+                    if (localCart.length > 0 && cart.length === 0) {
+                        // Restore backend from local storage if backend is empty
+                        for (const item of localCart) {
+                            await addToCart(item.id, 1);
+                        }
+                    }
+
+                    updateCartDisplay();
+                });
+
+                function updateCartDisplay() {
+                    cartCount.textContent = cart.length;
+                    cartTabCount.textContent = cart.length;
+                    const total = cart.reduce((sum, item) => sum + parseFloat(item.price), 0);
+                    cartTotal.textContent = formatNumber(total.toFixed(2));
+                    checkoutBtn.disabled = cart.length === 0;
+                    cartEmpty.style.display = cart.length === 0 ? 'block' : 'none';
+                    renderCartItems();
+
+                    // ?? Save to local storage
+                    localStorage.setItem(`blueprintCart_${userId}`, JSON.stringify(cart));
+
+                    // ?? Disable Add to Cart buttons for already added items
+                    document.querySelectorAll('.add-to-cart').forEach(btn => {
+                        const id = parseInt(btn.dataset.id);
+                        const inCart = cart.some(item => parseInt(item.id) === id);
+
+                        if (inCart) {
+                            btn.disabled = true;
+                            btn.innerHTML = `<i class="fas fa-check"></i> Item Added`;
+                            btn.classList.add('disabled-cart-btn');
+                        } else {
+                            btn.disabled = false;
+                            btn.innerHTML = `<i class="fas fa-cart-plus"></i> Add to Cart`;
+                            btn.classList.remove('disabled-cart-btn');
+                        }
+                });
+        }
+
+
+                function renderCartItems() {
+                    cartItems.innerHTML = '';
+                    cart.forEach((item, index) => {
+                        const cartItem = document.createElement('div');
+                        cartItem.innerHTML = `
+                            <div class="cart-item-container">
+                                <img src="/images/${item.image}" class="cart-item-image" alt="${item.name}">
+                                <div class="cart-item-details">
+                                    <div class="cart-item-name">${item.name}</div>
+                                    <div class="cart-item-price">?${formatNumber(parseFloat(item.price).toFixed(2))}</div>
+                                </div>
+                                <div class="cart-item-actions">
+                                    <button class="cart-action-btn remove-btn" onclick="removeFromCart(${index})">
+                                        <i class="fas fa-trash me-1"></i>Remove
+                                    </button>
+                                </div>
+                            </div>`;
+                        cartItems.appendChild(cartItem);
+                    });
+                }
+
+
+
+                async function addToCart(blueprintId, quantity = 1) {
+                    try {
+                        const response = await fetch('/ClientInterface/AddToCart', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                            },
+                            body: JSON.stringify({ blueprintId, quantity })
+                        });
+
+                        const data = await response.json();
+                        if (data.success) {
+                            alert("? Added to cart!");
+                            await loadCart(); // reload cart from backend
+                        } else {
+                            alert("? Failed to add to cart");
+                        }
+                    } catch (err) {
+                        console.error("AddToCart error:", err);
                     }
                 }
-            }
-            adjustMainContent();
-            if (sidebarToggler) {
-                sidebarToggler.addEventListener('click', function() {
-                    setTimeout(adjustMainContent, 50);
-                });
-            }
-        });
+                async function loadCart() {
+                    const res = await fetch('/ClientInterface/GetCart');
+                    const cartData = await res.json();
 
-        // --- Cart Items ---
-        const userId = "@User.Identity.Name"; // unique per logged-in user
-        let cart = JSON.parse(localStorage.getItem(`blueprintCart_${userId}`)) || [];
+                    cart = cartData.items.map(item => ({
+                        id: item.blueprintId,
+                        name: item.blueprintName,
+                        price: item.price,
+                        image: item.image
+                    }));
 
-
-        const cartModal = document.getElementById('cartModal');
-        const cartBtn = document.getElementById('cartBtn');
-        const cartCloseBtn = document.getElementById('cartCloseBtn');
-        const cartCount = document.getElementById('cartCount');
-        const cartTabCount = document.getElementById('cartTabCount');
-        const cartTotal = document.getElementById('cartTotal');
-        const checkoutBtn = document.getElementById('checkoutBtn');
-        const cartItems = document.getElementById('cartItems');
-        const cartEmpty = document.getElementById('cartEmpty');
-
-        const checkoutModal = document.getElementById('checkoutModal');
-        const checkoutCancelBtn = document.getElementById('checkoutCancelBtn');
-        const checkoutConfirmBtn = document.getElementById('checkoutConfirmBtn');
-        const checkoutItemCount = document.getElementById('checkoutItemCount');
-        const checkoutSubtotal = document.getElementById('checkoutSubtotal');
-        const checkoutTotalAmount = document.getElementById('checkoutTotalAmount');
-
-        document.querySelectorAll('.cart-tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                document.querySelectorAll('.cart-tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                tab.classList.add('active');
-                document.getElementById(tab.dataset.tab + 'Tab').classList.add('active');
-            });
-        });
-
-        document.addEventListener("DOMContentLoaded", async () => {
-            // Fetch latest cart from backend when user logs in
-            await loadCart();
-
-            // Merge backend cart with localStorage if needed
-            const localCart = JSON.parse(localStorage.getItem(`blueprintCart_${userId}`)) || [];
-            if (localCart.length > 0 && cart.length === 0) {
-                // Restore backend from local storage if backend is empty
-                for (const item of localCart) {
-                    await addToCart(item.id, 1);
-                }
-            }
-
-            updateCartDisplay();
-        });
-
-        function updateCartDisplay() {
-            cartCount.textContent = cart.length;
-            cartTabCount.textContent = cart.length;
-            const total = cart.reduce((sum, item) => sum + parseFloat(item.price), 0);
-            cartTotal.textContent = formatNumber(total.toFixed(2));
-            checkoutBtn.disabled = cart.length === 0;
-            cartEmpty.style.display = cart.length === 0 ? 'block' : 'none';
-            renderCartItems();
-
-            // Save to local storage
-            localStorage.setItem(`blueprintCart_${userId}`, JSON.stringify(cart));
-
-            // Disable Add to Cart buttons for already added items
-            document.querySelectorAll('.add-to-cart').forEach(btn => {
-                const id = parseInt(btn.dataset.id);
-                const inCart = cart.some(item => parseInt(item.id) === id);
-
-                if (inCart) {
-                    btn.disabled = true;
-                    btn.innerHTML = `<i class="fas fa-check"></i> Item Added`;
-                    btn.classList.add('disabled-cart-btn');
-                } else {
-                    btn.disabled = false;
-                    btn.innerHTML = `<i class="fas fa-cart-plus"></i> Add to Cart`;
-                    btn.classList.remove('disabled-cart-btn');
-                }
-            });
-        }
-
-        function renderCartItems() {
-            cartItems.innerHTML = '';
-            cart.forEach((item, index) => {
-                const cartItem = document.createElement('div');
-                cartItem.innerHTML = `
-                    <div class="cart-item-container">
-                        <img src="/images/${item.image}" class="cart-item-image" alt="${item.name}">
-                        <div class="cart-item-details">
-                            <div class="cart-item-name">${item.name}</div>
-                            <div class="cart-item-price">₱${formatNumber(parseFloat(item.price).toFixed(2))}</div>
-                        </div>
-                        <div class="cart-item-actions">
-                            <button class="cart-action-btn remove-btn" onclick="removeFromCart(${index})">
-                                <i class="fas fa-trash me-1"></i>Remove
-                            </button>
-                        </div>
-                    </div>`;
-                cartItems.appendChild(cartItem);
-            });
- }
-
-        async function addToCart(blueprintId, quantity = 1) {
-            try {
-                const response = await fetch('/ClientInterface/AddToCart', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-                    },
-                    body: JSON.stringify({ blueprintId, quantity })
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    showNotification("Added to cart!", 'success');
-                    await loadCart(); // reload cart from backend
-                } else {
-                    showNotification("Failed to add to cart", 'error');
-                }
-            } catch (err) {
-                console.error("AddToCart error:", err);
-                showNotification("An error occurred. Please try again.", 'error');
-            }
-        }
-
-        async function loadCart() {
-            const res = await fetch('/ClientInterface/GetCart');
-            const cartData = await res.json();
-
-            cart = cartData.items.map(item => ({
-                id: item.blueprintId,
-                name: item.name,  // ✅ Changed from item.blueprintName to item.name
-                price: item.price,
-                image: item.image
-            }));
-
-            updateCartDisplay();
-        }
-
-        async function removeFromCart(index) {
-            const item = cart[index];
-            if (!item) return;
-
-            const confirmed = await showConfirmation(`Remove ${item.name} from cart?`);
-            if (!confirmed) return;
-
-            try {
-                const response = await fetch('/ClientInterface/RemoveFromCart', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-                    },
-                    body: JSON.stringify(item.id)
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    // Remove locally
-                    cart.splice(index, 1);
                     updateCartDisplay();
-                    showNotification("Removed from cart!", 'success');
-                } else {
-                    showNotification("Failed to remove from cart", 'error');
                 }
-            } catch (err) {
-                console.error("RemoveFromCart error:", err);
-                showNotification("Error removing item", 'error');
-            }
-        }
 
-        cartBtn.addEventListener('click', e => { e.preventDefault(); cartModal.style.display='block'; });
-        cartCloseBtn.addEventListener('click', () => { cartModal.style.display='none'; });
-        cartModal.addEventListener('click', e => { if (e.target===cartModal) cartModal.style.display='none'; });
+                async function removeFromCart(index) {
+                    const item = cart[index];
+                    if (!item) return;
 
-        checkoutBtn.addEventListener('click', () => {
-            if (cart.length > 0) {
-                cartModal.style.display = 'none';
-                showCheckoutModal();
-            }
-        });
-        checkoutCancelBtn.addEventListener('click', () => { hideCheckoutModal(); cartModal.style.display='block'; });
+                    if (!confirm(`Remove ${item.name} from cart?`)) return;
 
-        function showCheckoutModal() {
-            const subtotal = cart.reduce((sum, item) => sum + parseFloat(item.price), 0);
-            const processingFee = 50;
-            const total = subtotal + processingFee;
-            checkoutItemCount.textContent = cart.length;
-            checkoutSubtotal.textContent = `₱${formatNumber(subtotal.toFixed(2))}`;
-            checkoutTotalAmount.textContent = `₱${formatNumber(total.toFixed(2))}`;
-            checkoutModal.style.display = 'block';
-        }
-        function hideCheckoutModal() { checkoutModal.style.display='none'; }
+                    try {
+                        const response = await fetch('/ClientInterface/RemoveFromCart', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                            },
+                            body: JSON.stringify(item.id)
+                        });
 
-        document.querySelectorAll('.add-to-cart').forEach(btn => {
-            btn.addEventListener('click', e => {
-                e.preventDefault();
-                const id = parseInt(btn.dataset.id);
-                addToCart(id, 1);
-            });
-        });
+                        const data = await response.json();
+                        if (data.success) {
+                            // Remove locally
+                            cart.splice(index, 1);
+                            updateCartDisplay();
+                            alert("? Removed from cart!");
+                        } else {
+                            alert("? Failed to remove from cart");
+                        }
+                    } catch (err) {
+                        console.error("RemoveFromCart error:", err);
+                        alert("?? Error removing item");
+                    }
+                }
 
-        // --- Stripe Checkout Integration ---
-        const stripe = Stripe("@ViewBag.StripePublishableKey");
-        checkoutConfirmBtn.addEventListener('click', async () => {
-            hideCheckoutModal();
-            const response = await fetch("/ClientInterface/CreateCheckoutSession", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(cart)
-            });
-            const session = await response.json();
-            await stripe.redirectToCheckout({ sessionId: session.id });
-        });
 
-        // Detect Stripe success redirect
-        window.addEventListener("load", async () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has("session_id")) {
-                const blueprintIds = cart.map(i => parseInt(i.id));
-                const response = await fetch("/ClientInterface/CompletePurchase", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(blueprintIds)
+
+                cartBtn.addEventListener('click', e => { e.preventDefault(); cartModal.style.display='block'; });
+                cartCloseBtn.addEventListener('click', () => { cartModal.style.display='none'; });
+                cartModal.addEventListener('click', e => { if (e.target===cartModal) cartModal.style.display='none'; });
+
+                checkoutBtn.addEventListener('click', () => {
+                    if (cart.length > 0) {
+                        cartModal.style.display = 'none';
+                        showCheckoutModal();
+                    }
                 });
-                const data = await response.json();
-                if (data.success) {
-                    localStorage.removeItem(`blueprintCart_${userId}`);
-                    cart = [];
-                    updateCartDisplay();
-                    showNotification("Purchase completed! Cart cleared.", 'success');
-                }
-            }
-        });
+                checkoutCancelBtn.addEventListener('click', () => { hideCheckoutModal(); cartModal.style.display='block'; });
 
+                function showCheckoutModal() {
+                    const subtotal = cart.reduce((sum, item) => sum + parseFloat(item.price), 0);
+                    const processingFee = 50;
+                    const total = subtotal + processingFee;
+                    checkoutItemCount.textContent = cart.length;
+                    checkoutSubtotal.textContent = `?${formatNumber(subtotal.toFixed(2))}`;
+                    checkoutTotalAmount.textContent = `?${formatNumber(total.toFixed(2))}`;
+                    checkoutModal.style.display = 'block';
+                }
+                function hideCheckoutModal() { checkoutModal.style.display='none'; }
+
+                document.querySelectorAll('.add-to-cart').forEach(btn => {
+                    btn.addEventListener('click', e => {
+                        e.preventDefault();
+                        const id = parseInt(btn.dataset.id);
+                        addToCart(id, 1);
+                    });
+                });
+
+
+                // --- Stripe Checkout Integration ---
+                const stripe = Stripe("@ViewBag.StripePublishableKey");
+                checkoutConfirmBtn.addEventListener('click', async () => {
+                    hideCheckoutModal();
+                    const response = await fetch("/ClientInterface/CreateCheckoutSession", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(cart)
+                    });
+                    const session = await response.json();
+                    await stripe.redirectToCheckout({ sessionId: session.id });
+                });
+
+                // Detect Stripe success redirect
+                window.addEventListener("load", async () => {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    if (urlParams.has("session_id")) {
+                        const blueprintIds = cart.map(i => parseInt(i.id));
+                        const response = await fetch("/ClientInterface/CompletePurchase", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(blueprintIds)
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            localStorage.removeItem(`blueprintCart_${userId}`);
+
+                            cart = [];
+                            updateCartDisplay();
+                            alert("? Purchase completed! Cart cleared.");
+                        }
+                    }
+                });
+
+                updateCartDisplay();
+    </script>
+
+    <script>
         // --- Protection Script ---
         (function () {
             const protectedSelector = '.protected-img';

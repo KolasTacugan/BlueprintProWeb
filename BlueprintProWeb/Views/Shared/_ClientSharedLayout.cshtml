@@ -68,18 +68,17 @@
             display: flex;
             padding: 25px 20px;
             align-items: center;
-            justify-content: space-between;
+            justify-content: flex-start;
+            gap: 12px;
         }
 
         .sidebar-header .header-logo {
             display: flex;
-            /* so it hugs the img */
             align-items: center;
             justify-content: center;
             padding: 0;
-            /* remove extra padding */
             margin: 0;
-            /* remove extra margin */
+            flex-shrink: 0;
         }
 
         .sidebar-header .header-logo img {
@@ -100,6 +99,8 @@
             overflow: hidden;
             text-overflow: ellipsis;
             transition: opacity 0.4s ease, width 0.4s ease;
+            margin: 0;
+            flex: 1;
         }
 
         .system-name {
@@ -171,7 +172,7 @@
             align-items: center;
             color: #fff;
             text-decoration: none;
-            gap: 50px;
+            gap: 12px;
             padding: 12px 15px;
             border-radius: 8px;
             transition: 0.4s ease;
@@ -268,11 +269,28 @@
             gap: 8px;
             cursor: pointer;
             transition: 0.3s ease;
+            overflow: hidden;
+            white-space: nowrap;
         }
 
         .logout-btn:hover {
             background: #fff;
-            border-color: #d62828;
+            color: #e63946;
+        }
+
+        .logout-btn .nav-label {
+            transition: opacity 0.4s ease, width 0.4s ease;
+            white-space: nowrap;
+        }
+
+        .sidebar.collapsed .logout-btn .nav-label {
+            opacity: 0;
+            width: 0;
+            pointer-events: none;
+        }
+
+        .sidebar.collapsed .logout-btn {
+            padding: 12px 8px;
         }
 
         .notif-badge {
@@ -344,7 +362,7 @@
     <aside class="sidebar collapsed">
         @* SideBar Header *@
         <header class="sidebar-header">
-            <a href="#" class="header-logo">
+            <a asp-controller="ClientInterface" asp-action="ClientDashboard" class="header-logo">
                 <img src="~/images/BBP Logo.png" alt="BPP" />
             </a>
             <h1 class="system-name">BlueprintPro</h1>
@@ -375,7 +393,7 @@
                 </li>
                 <li class="nav-item">
                     <a asp-controller="ClientInterface" asp-action="Projects" class="nav-link">
-                        <span class="material-symbols-rounded">note_stack</span>
+                        <span class="nav-icon material-symbols-rounded">note_stack</span>
                         <span class="nav-label">Projects</span>
                     </a>
                 </li>
@@ -384,6 +402,7 @@
         <form asp-controller="Account" asp-action="Logout" method="post" class="logout-form">
             <button type="submit" class="nav-link logout-btn">
                 <span class="material-symbols-rounded">logout</span>
+                <span class="nav-label">Log out</span>
             </button>
         </form>
     </aside>

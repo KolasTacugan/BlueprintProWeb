@@ -8,6 +8,11 @@
     overflow: hidden;
 }
 
+/* Landing Page Loader - Hide completely on landing page */
+.landing-page #page-loader {
+    display: none !important;
+}
+
 /* Global font family */
 * {
     font-family: 'Raleway', sans-serif;
