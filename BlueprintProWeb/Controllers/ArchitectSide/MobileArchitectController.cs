@@ -295,9 +295,6 @@ namespace BlueprintProWeb.Controllers
                 })
                 .ToListAsync();
 
-            if (matches == null || !matches.Any())
-                return NotFound();
-
             return Ok(matches);
         }
 
