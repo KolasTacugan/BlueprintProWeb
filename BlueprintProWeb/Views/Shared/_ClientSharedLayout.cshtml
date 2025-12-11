@@ -447,200 +447,139 @@
 
     @*SCRIPTS*@
     <script>
-        const sidebar = document.querySelector(".sidebar");
-        const sidebarToggler = document.querySelector(".sidebar-toggler");
-
-        sidebarToggler.addEventListener("click", ()=>{
-            sidebar.classList.toggle("collapsed")
-        });
-
         document.addEventListener("DOMContentLoaded", async function () {
-            try {
-                const response = await fetch('/ClientInterface/GetUnreadNotificationsCount');
-                if (!response.ok) throw new Error("Failed to fetch notifications");
 
-                const count = await response.json();
-                const badge = document.getElementById("notifBadge");
-
-                if (count > 0) {
-                    badge.classList.remove("d-none");
-                } else {
-                    badge.classList.add("d-none");
-                }
-            } catch (err) {
-                console.error("Notification fetch error:", err);
-            }
-        });
-
-        document.addEventListener("DOMContentLoaded", function () {
-            const modal = new bootstrap.Modal(document.getElementById('notificationModal'));
-            const modalTitle = document.getElementById('notificationModalLabel');
-            const modalBody = document.querySelector('#notificationModal .modal-body');
-            const notifBadge = document.getElementById('notifBadge');
-
-            function updateBadge() {
-                const unreadCount = document.querySelectorAll(".list-group-item:not([style*='opacity: 0.6'])").length;
-                if (unreadCount > 0) {
-                    notifBadge.classList.remove("d-none");
-                } else {
-                    notifBadge.classList.add("d-none");
-                }
-            }
-
-            updateBadge();
-
-            document.querySelectorAll(".list-group-item").forEach(item => {
-                item.addEventListener("click", async function () {
-                    const id = this.dataset.id;
-                    modalTitle.textContent = this.dataset.title;
-                    modalBody.textContent = this.dataset.message;
-
-                    await fetch('@Url.Action("MarkAsRead")', {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/x-www-form-urlencoded"
-                        },
-                        body: "id=" + id
-                    });
-
-                    this.style.opacity = "0.6";
-                    this.style.fontWeight = "normal";
-
-                    updateBadge();
+            /* ----------------------------------------------------
+                SIDEBAR TOGGLER
+            ---------------------------------------------------- */
+            const sidebar = document.querySelector(".sidebar");
+            const sidebarToggler = document.querySelector(".sidebar-toggler");
+            if (sidebar && sidebarToggler) {
+                sidebarToggler.addEventListener("click", () => {
+                    sidebar.classList.toggle("collapsed");
                 });
-            });
-        });
+            }
 
-        document.addEventListener("DOMContentLoaded", async function () {
+
+            /* ----------------------------------------------------
+                INITIAL UNREAD COUNTS
+            ---------------------------------------------------- */
+            async function loadInitialCounts() {
                 try {
-                    const response = await fetch('/ClientInterface/GetUnreadMessagesCount');
-                    const count = await response.json();
+                    // Notifications
+                    const notifRes = await fetch('/ClientInterface/GetUnreadNotificationsCount');
+                    const notifCount = await notifRes.json();
+                    const notifBadge = document.getElementById("notifBadge");
+                    if (notifBadge) {
+                        notifBadge.classList.toggle("d-none", notifCount <= 0);
+                        if (notifCount > 0) notifBadge.innerText = notifCount;
+                    }
 
-                    console.log("CLIENT unread messages:", count);
-
+                    // Messages
+                    const msgRes = await fetch('/ClientInterface/GetUnreadMessagesCount');
+                    const msgCount = await msgRes.json();
                     const msgBadge = document.getElementById("msgBadgeClient");
-
-                    if (count > 0) {
-                        msgBadge.innerText = count;
-                        msgBadge.classList.remove("d-none");
-                    } else {
-                        msgBadge.classList.add("d-none");
+                    if (msgBadge) {
+                        msgBadge.classList.toggle("d-none", msgCount <= 0);
+                        if (msgCount > 0) msgBadge.innerText = msgCount;
                     }
+
                 } catch (err) {
-                    console.error("Error loading unread messages:", err);
-                }
-        });
-
-        //REAL TIME SCRIPTS
-
-        document.addEventListener("DOMContentLoaded", async () => {
-
-        const userId = "@User?.FindFirst("sub")?.Value"; // ASP.NET Identity user Id
-        if (!userId) return;
-
-        const connection = new signalR.HubConnectionBuilder()
-            .withUrl("/notificationHub")
-            .build();
-
-        connection.on("ReceiveNotification", (notif) => {
-            console.log("📩 Real-time Notification:", notif);
-
-            const notifBadge = document.getElementById("notifBadge");
-            if (notifBadge) notifBadge.classList.remove("d-none");
-
-            refreshNotificationCount();
-        });
-
-        connection.on("ReceiveMessage", (msg) => {
-            console.log("💬 Real-time Message:", msg);
-
-            const msgBadge = document.getElementById("msgBadgeClient");
-            if (msgBadge) msgBadge.classList.remove("d-none");
-
-            refreshMessageCount();
-        });
-
-        await connection.start().catch(err => console.error(err));
-
-        refreshNotificationCount();
-        refreshMessageCount();
-
-        async function refreshNotificationCount() {
-            const isArchitect = window.location.pathname.toLowerCase().includes("architectinterface");
-
-            const url = isArchitect
-                ? "/ArchitectInterface/GetUnreadNotificationsCount"
-                : "/ClientInterface/GetUnreadNotificationsCount";
-
-            try {
-                const res = await fetch(url);
-                const count = await res.json();
-
-                const notifBadge = document.getElementById("notifBadge");
-                if (notifBadge) {
-                    count > 0
-                        ? notifBadge.classList.remove("d-none")
-                        : notifBadge.classList.add("d-none");
-                }
-            } catch (err) {
-                console.error("Error loading notification count:", err);
-            }
-        }
-
-        async function refreshMessageCount() {
-            const isArchitect = window.location.pathname.toLowerCase().includes("architectinterface");
-
-            const url = isArchitect
-                ? "/ArchitectInterface/GetUnreadMessagesCount"
-                : "/ClientInterface/GetUnreadMessagesCount";
-
-            try {
-                const res = await fetch(url);
-                const count = await res.json();
-
-                const msgBadge = document.getElementById("msgBadgeClient");
-                if (msgBadge) {
-                    count > 0
-                        ? msgBadge.classList.remove("d-none")
-                        : msgBadge.classList.add("d-none");
-                }
-            } catch (err) {
-                console.error("Error loading messages:", err);
-            }
-        }
-    });
-        // Page loader script: hide on window load
-        $(window).on("load", function () {
-            $("#page-loader").fadeOut("slow");
-        });
-
-        // Show loader early when navigating (same-origin links/forms, beforeunload)
-        (function(){
-            function showLoader(){
-                if(window.BlueprintLoader && typeof window.BlueprintLoader.show==='function'){
-                    window.BlueprintLoader.show();
+                    console.error("Initial badge load failed:", err);
                 }
             }
-            document.addEventListener('click', function(e){
-                const a = e.target.closest('a');
-                if(!a) return;
-                if(a.target === '_blank' || a.hasAttribute('download')) return;
-                const href = a.getAttribute('href');
-                if(!href || href.startsWith('#')) return;
-                // Same-origin only
-                try{
-                    const url = new URL(a.href);
-                    if(url.origin === window.location.origin){
-                        if(e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey){
-                            showLoader();
-                        }
-                    }
-                }catch{ /* ignore */ }
+
+            loadInitialCounts();
+
+
+            // ------------------------------------
+            // CONNECT TO NOTIFICATION HUB
+            // ------------------------------------
+            const notifConnection = new signalR.HubConnectionBuilder()
+                .withUrl("/notificationHub")
+                .withAutomaticReconnect()
+                .build();
+
+            notifConnection.on("ReceiveNotification", () => {
+                console.log("🔔 Notification received");
+                loadArchitectNotifications?.();
+                loadClientNotifications?.();
             });
-            document.addEventListener('submit', function(){ showLoader(); });
-            window.addEventListener('beforeunload', function(){ showLoader(); });
-        })();
+
+            notifConnection.on("UpdateUnreadMessagesCount", () => {
+                console.log("📩 Unread messages update received");
+                loadArchitectUnreadMessages?.();
+                loadClientUnreadMessages?.();
+            });
+
+            await notifConnection.start()
+                .then(() => console.log("NotificationHub connected"))
+                .catch(err => console.error(err));
+
+
+            // ------------------------------------
+            // CONNECT TO CHAT HUB
+            // ------------------------------------
+            const chatConnection = new signalR.HubConnectionBuilder()
+                .withUrl(`/chatHub?clientId=${userId}`)
+                .withAutomaticReconnect()
+                .build();
+
+            chatConnection.on("ReceiveMessage", (data) => {
+                console.log("💬 Real-time message:", data);
+
+                loadArchitectUnreadMessages?.();
+                loadClientUnreadMessages?.();
+            });
+
+            chatConnection.on("UpdateUnreadMessagesCount", () => {
+                console.log("🟦 Chat unread count updated");
+                loadArchitectUnreadMessages?.();
+                loadClientUnreadMessages?.();
+            });
+
+            await chatConnection.start()
+                .then(() => console.log("ChatHub connected successfully"))
+                .catch(err => console.error(err));
+
+        });
     </script>
+
+
+    <!-- PAGE LOADER (KEEP AS IS) -->
+    <script>
+    $(window).on("load", function () {
+        $("#page-loader").fadeOut("slow");
+    });
+
+    (function () {
+        function showLoader() {
+            if (window.BlueprintLoader && typeof window.BlueprintLoader.show === 'function') {
+                window.BlueprintLoader.show();
+            }
+        }
+        document.addEventListener('click', function (e) {
+            const a = e.target.closest('a');
+            if (!a) return;
+            if (a.target === '_blank' || a.hasAttribute('download')) return;
+            const href = a.getAttribute('href');
+            if (!href || href.startsWith('#')) return;
+
+            try {
+                const url = new URL(a.href);
+                if (url.origin === window.location.origin) {
+                    if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
+                        showLoader();
+                    }
+                }
+            } catch { }
+        });
+
+        document.addEventListener('submit', function () { showLoader(); });
+        window.addEventListener('beforeunload', function () { showLoader(); });
+    })();
+</script>
+
 </body>
 
 </html>
