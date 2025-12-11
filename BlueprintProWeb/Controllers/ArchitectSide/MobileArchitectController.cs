@@ -482,6 +482,11 @@ namespace BlueprintProWeb.Controllers
                     return BadRequest(new { success = false, message = "ClientId, ArchitectId, and MessageBody are required." });
                 }
 
+                // 🔍 Fetch architect user so we can get name + profile photo like the web version
+                var architect = await userManager.FindByIdAsync(request.ArchitectId);
+                if (architect == null)
+                    return BadRequest(new { success = false, message = "Architect not found." });
+
                 // ✅ Create message object where architect is the sender
                 var message = new Message
                 {
@@ -497,13 +502,31 @@ namespace BlueprintProWeb.Controllers
                 context.Messages.Add(message);
                 await context.SaveChangesAsync();
 
-                // ✅ Notify the client via SignalR
+                // 🇵🇭 Convert UTC to PH time (same code as web version)
+                var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
+                var phTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, phTimeZone);
+
+                // 🧩 Fix profile photo path logic (same as web)
+                string profilePhoto =
+                    string.IsNullOrEmpty(architect.user_profilePhoto)
+                        ? "/images/profile.jpg"
+                        : architect.user_profilePhoto
+                                .Replace("~", "")
+                                .Replace("wwwroot", "");
+
+                // 📡 Send full SignalR payload identical to web version
                 await _hubContext.Clients.User(request.ClientId).SendAsync("ReceiveMessage", new
                 {
-                    SenderId = message.SenderId,
-                    MessageBody = message.MessageBody,
-                    MessageDate = message.MessageDate.ToString("g")
+                    senderId = architect.Id,
+                    senderName = architect.user_fname + " " + architect.user_lname,
+                    messageBody = request.MessageBody,
+                    messageDate = phTime.ToString("HH:mm"), // same format as web
+                    senderProfilePhoto = profilePhoto
                 });
+
+                // 🔔 Additional lightweight update call like web version
+                await _hubContext.Clients.User(request.ClientId)
+                    .SendAsync("ReceiveMessageUpdate");
 
                 return Ok(new { success = true, message = "Message sent successfully." });
             }

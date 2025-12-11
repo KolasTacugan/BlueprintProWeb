@@ -83,7 +83,7 @@ namespace BlueprintProWeb.Services
                     using (var watermarkImg = Image.Load<Rgba32>(watermarkFile))
                     {
                         watermarkImg.Mutate(w => w.Resize(image.Width, image.Height));
-                        float opacity = 0.28f;
+                        float opacity = 0.55f;
 
                         image.Mutate(ctx => ctx.DrawImage(
                             watermarkImg,

@@ -721,6 +721,15 @@ namespace BlueprintProWeb.Controllers
                     return BadRequest(new { success = false, message = "ClientId, ArchitectId, and MessageBody are required." });
                 }
 
+                // 🔍 Fetch client user (for name + profile photo like Web)
+                var clientUser = await userManager.FindByIdAsync(request.ClientId);
+                if (clientUser == null)
+                    return BadRequest(new { success = false, message = "Client not found." });
+
+                // 🌏 PH timezone
+                var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
+                var phTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, phTimeZone);
+
                 var message = new Message
                 {
                     MessageId = Guid.NewGuid(),
@@ -735,13 +744,27 @@ namespace BlueprintProWeb.Controllers
                 context.Messages.Add(message);
                 await context.SaveChangesAsync();
 
-                // Optional SignalR broadcast
+                // 🧩 Profile photo logic (same as web)
+                string senderPhoto =
+                    string.IsNullOrEmpty(clientUser.user_profilePhoto)
+                        ? "/images/profile.jpg"
+                        : clientUser.user_profilePhoto
+                            .Replace("~", "")
+                            .Replace("wwwroot", "");
+
+                // 📡 SignalR (MATCHES WEB VERSION)
                 await _hubContext.Clients.User(request.ArchitectId).SendAsync("ReceiveMessage", new
                 {
-                    SenderId = message.SenderId,
-                    MessageBody = message.MessageBody,
-                    MessageDate = message.MessageDate.ToString("g")
+                    senderId = clientUser.Id,
+                    senderName = clientUser.user_fname + " " + clientUser.user_lname,
+                    messageBody = request.MessageBody,
+                    messageDate = phTime.ToString("g"),
+                    senderProfilePhoto = senderPhoto
                 });
+
+                // 🔔 Same update ping as web version
+                await _hubContext.Clients.User(request.ArchitectId)
+                    .SendAsync("ReceiveMessageUpdate");
 
                 return Ok(new { success = true, message = "Message sent successfully." });
             }
