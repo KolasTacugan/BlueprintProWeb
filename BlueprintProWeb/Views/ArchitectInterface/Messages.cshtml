@@ -649,6 +649,16 @@
             .chat-messages::-webkit-scrollbar-thumb:hover {
                 background: #94A3B8;
             }
+
+        .client-name-link {
+            text-decoration: none;
+            color: #0d3c80;
+            cursor: pointer;
+        }
+
+            .client-name-link:hover {
+                text-decoration: underline;
+            }
     </style>
 }
 
@@ -791,6 +801,37 @@
                 .catch(err => console.error(err));
 
         });
+    </script>3
+    <script>
+        $(document).on("click", "#openClientProfile", function () {
+            const clientId = $(this).data("client-id");
+
+            if (!clientId) return;
+
+            $.ajax({
+                url: "/ArchitectInterface/GetClientProfile",
+                type: "GET",
+                data: { clientId: clientId },
+                success: function (res) {
+                    if (!res.success) {
+                        alert("Error: " + res.message);
+                        return;
+                    }
+
+                    // Fill modal fields
+                    $("#clientProfileName").text(res.name);
+                    $("#clientProfileEmail").text(res.email || "No email");
+                    $("#clientProfilePhone").text(res.phone || "No phone");
+                    $(".profile-container img").attr("src", res.profilePhoto);
+
+                    // Show modal
+                    $("#clientProfileModal").modal("show");
+                },
+                error: function () {
+                    alert("Failed to load client profile.");
+                }
+            });
+        });
     </script>
 
 }
@@ -881,9 +922,16 @@
             <div class="chat-header">
                 <div class="chat-user-info">
                     <img src="@chatPhoto" class="chat-avatar" alt="@Model.ActiveChat.ClientName" />
+
                     <div class="chat-user-details">
-                        <h3>@Model.ActiveChat.ClientName</h3>
-                        <div class="chat-user-status">Online</div>
+                        <h3>
+                            <a href="javascript:void(0);"
+                               id="openClientProfile"
+                               data-client-id="@Model.ActiveChat.ClientId"
+                               class="client-name-link">
+                                @Model.ActiveChat.ClientName
+                            </a>
+                        </h3>
                     </div>
                 </div>
             </div>
@@ -945,5 +993,36 @@
                 </div>
             </div>
         }
+    </div>
+</div>
+
+<!-- Client Profile Modal -->
+<div class="modal fade" id="clientProfileModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user"></i>
+                    Client Profile
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="profile-container">
+                    <div class="profile-main-card p-3">
+                        <div class="profile-info d-flex align-items-center gap-3 mb-3">
+                            <div class="avatar">
+                                <img src="~/images/profile.jpg" alt="Avatar" style="width:64px;height:64px;border-radius:50%;">
+                            </div>
+                            <div class="user-details">
+                                <h3 id="clientProfileName" class="client-name mb-1 fw-bold"></h3>
+                                <div id="clientProfileEmail" class="text-muted"></div>
+                                <div id="clientProfilePhone" class="text-muted"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
