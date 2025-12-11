@@ -634,6 +634,27 @@
 
 @section Scripts {
     <script>
+        function insertMessageToChat(msg) {
+            const chatContainer = document.getElementById("chat-container");
+
+            if (!chatContainer) return;
+
+            const bubble = document.createElement("div");
+            bubble.classList.add("message-group");
+            bubble.innerHTML = `
+                <div class="message-container">
+                    <img src="${msg.senderProfilePhoto}" class="message-avatar" />
+                    <div class="message-bubble other">${msg.messageBody}</div>
+                </div>
+                <div class="message-time">${msg.messageDate}</div>
+            `;
+
+            chatContainer.appendChild(bubble);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+    </script>
+
+    <script>
         document.addEventListener('DOMContentLoaded', function() {
             const sidebar = document.querySelector('.sidebar');
             const sidebarToggler = document.querySelector('.sidebar-toggler');
@@ -696,6 +717,62 @@
             }
         });
     </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+
+            const userId = '@User?.FindFirst("sub")?.Value';
+
+            // ---------------------------
+            // CONNECT TO NOTIFICATION HUB
+            // ---------------------------
+            const notifConnection = new signalR.HubConnectionBuilder()
+                .withUrl("/notificationHub")
+                .withAutomaticReconnect()
+                .build();
+
+            notifConnection.on("ReceiveNotification", () => {
+                loadArchitectNotifications();
+            });
+
+            notifConnection.on("UpdateUnreadMessagesCount", () => {
+                loadArchitectUnreadMessages();
+            });
+
+            await notifConnection.start()
+                .then(() => console.log("NotificationHub connected (Architect Messages)"))
+                .catch(err => console.error(err));
+
+
+            // ---------------------
+            // CONNECT TO CHAT HUB
+            // ---------------------
+            const chatConnection = new signalR.HubConnectionBuilder()
+                .withUrl(`/chatHub?clientId=${userId}`)
+                .withAutomaticReconnect()
+                .build();
+
+            chatConnection.on("ReceiveMessage", (data) => {
+                console.log("Architect ReceivedMessage:", data);
+
+                // If architect is currently viewing chat with this client → update chat UI instantly
+                insertMessageToChat(data);
+
+                // Update side panel unread count
+                loadArchitectUnreadMessages();
+            });
+
+            chatConnection.on("UpdateUnreadMessagesCount", () => {
+                loadArchitectUnreadMessages();
+            });
+
+            await chatConnection.start()
+                .then(() => console.log("ChatHub connected (Architect Messages)"))
+                .catch(err => console.error(err));
+
+        });
+    </script>
+
 }
 
 <div class="messages-layout">
