@@ -97,32 +97,36 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 })
                 .ToListAsync();
 
-            // Current/most recent project - get the raw data first with ProjectTracker
-            var currentProjectRaw = await context.Projects
+            // Get ALL projects
+            var allProjectsRaw = await context.Projects
                 .Where(p => p.user_architectId == userId)
                 .Include(p => p.Client)
                 .OrderByDescending(p => p.project_startDate)
-                .FirstOrDefaultAsync();
+                .ToListAsync();
 
-            // Calculate project overview with actual ProjectTracker data
-            ProjectOverview? currentProject = null;
-            if (currentProjectRaw != null)
+            // Convert to your ProjectOverview list
+            var allProjects = new List<ProjectOverview>();
+
+            foreach (var project in allProjectsRaw)
             {
-                // Get the actual ProjectTracker status
-                var projectTracker = await context.ProjectTrackers
-                    .FirstOrDefaultAsync(pt => pt.project_Id == currentProjectRaw.project_Id);
+                var tracker = await context.ProjectTrackers
+                    .FirstOrDefaultAsync(pt => pt.project_Id == project.project_Id);
 
-                var actualStatus = projectTracker?.projectTrack_Status ?? currentProjectRaw.project_Status;
-                
-                currentProject = new ProjectOverview
+                var status = tracker?.projectTrack_Status ?? project.project_Status;
+
+                allProjects.Add(new ProjectOverview
                 {
-                    ProjectTitle = currentProjectRaw.project_Title,
-                    Status = actualStatus,
-                    ProgressPercentage = CalculateProjectProgressFromTracker(actualStatus, currentProjectRaw.project_Status),
-                    StartDate = currentProjectRaw.project_startDate,
-                    ArchitectName = $"{currentProjectRaw.Client.user_fname} {currentProjectRaw.Client.user_lname}" // Client name for architect view
-                };
+                    ProjectTitle = project.project_Title,
+                    Status = status,
+                    ProgressPercentage = CalculateProjectProgressFromTracker(status, project.project_Status),
+                    StartDate = project.project_startDate,
+                    ArchitectName = $"{project.Client.user_fname} {project.Client.user_lname}"
+                });
             }
+
+            // Pick the first one as current
+            var currentProject = allProjects.FirstOrDefault();
+
 
             var dashboardViewModel = new ArchitectDashboardViewModel
             {
@@ -131,7 +135,8 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 TotalProjects = totalProjects,
                 RecentMatches = recentMatches,
                 RecentUploads = recentUploads,
-                CurrentProject = currentProject
+                CurrentProject = currentProject,
+                AllProjects = allProjects
             };
 
             return View(dashboardViewModel);
