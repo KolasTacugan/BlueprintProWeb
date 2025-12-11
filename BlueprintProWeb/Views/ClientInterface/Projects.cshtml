@@ -48,6 +48,11 @@
             border-bottom: 1px solid rgba(52, 78, 173, 0.1);
         }
 
+        .projects-title-section {
+            display: flex;
+            flex-direction: column;
+        }
+
         .projects-title {
             font-size: 1.75rem;
             font-weight: 600;
@@ -67,6 +72,14 @@
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+
+        .projects-subtitle {
+            font-size: 1rem;
+            font-weight: 400;
+            color: #718096;
+            margin-top: 0.5rem;
+            margin-left: 2.2rem; /* Aligns with title text after icon */
         }
 
         /* Projects Container */
@@ -381,10 +394,15 @@
 
 <div>
     <div class="projects-header">
-        <h2 class="projects-title">
-            <i class="fas fa-project-diagram"></i>
-            My Projects
-        </h2>
+        <div class="projects-title-section">
+            <h2 class="projects-title">
+                <i class="fas fa-project-diagram"></i>
+                My Projects
+            </h2>
+            <div class="projects-subtitle">
+                Track your active construction projects
+            </div>
+        </div>
     </div>
 
     <div class="projects-container">
