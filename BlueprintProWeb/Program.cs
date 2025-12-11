@@ -4,7 +4,6 @@ using BlueprintProWeb.Models;
 using BlueprintProWeb.Settings;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using BlueprintProWeb.Settings;
 using OpenAI;
 using OpenAI.Embeddings;
 using System.Text.Json;
@@ -13,10 +12,21 @@ using BlueprintProWeb.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddSignalR();
-builder.Services.AddControllersWithViews();
+// ======================================================
+// 1. ADD SERVICES
+// ======================================================
+
+// MVC + JSON settings
+builder.Services.AddControllersWithViews()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    });
+
+// Custom services
 builder.Services.AddScoped<ImageService>();
+
+// Swagger + JWT
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -26,7 +36,6 @@ builder.Services.AddSwaggerGen(c =>
         Version = "v1"
     });
 
-    // JWT Bearer auth so [Authorize] endpoints are visible
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -42,111 +51,116 @@ builder.Services.AddSwaggerGen(c =>
         {
             new OpenApiSecurityScheme
             {
-                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+                Reference = new OpenApiReference
+                { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
             },
             Array.Empty<string>()
         }
     });
 });
 
+// Database
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+);
 
-
-builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
+// Identity
 builder.Services.AddIdentity<User, IdentityRole>(options =>
 {
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequiredLength = 8;
     options.Password.RequireUppercase = false;
     options.Password.RequireLowercase = false;
+
     options.User.RequireUniqueEmail = true;
+
     options.SignIn.RequireConfirmedAccount = false;
     options.SignIn.RequireConfirmedEmail = false;
     options.SignIn.RequireConfirmedPhoneNumber = false;
-
 })
-    .AddEntityFrameworkStores<AppDbContext>()
-    .AddDefaultTokenProviders();
+.AddEntityFrameworkStores<AppDbContext>()
+.AddDefaultTokenProviders();
 
-// make sure this is included
-
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-    });
-
-builder.Services.AddSingleton(sp =>
+// CORS for Android + Azure
+builder.Services.AddCors(options =>
 {
-    var cfg = sp.GetRequiredService<IConfiguration>();
-    var apiKey = cfg["OpenAI:ApiKey"]; // make sure appsettings.json has OpenAI:ApiKey
-    if (string.IsNullOrWhiteSpace(apiKey))
-        throw new InvalidOperationException("OpenAI:ApiKey not configured.");
-
-    // keep an OpenAIClient if you also use chat, etc.
-    var openAiClient = new OpenAIClient(apiKey);
-    return openAiClient;
+    options.AddPolicy("AllowAndroidApp", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
 });
 
-// Register EmbeddingClient directly (recommended)
+// SignalR
+builder.Services.AddSignalR();
+
+// Stripe
+builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+
+// OpenAI services
 builder.Services.AddSingleton(sp =>
 {
     var cfg = sp.GetRequiredService<IConfiguration>();
     var apiKey = cfg["OpenAI:ApiKey"];
-    // model name is the first arg
-    return new EmbeddingClient("text-embedding-3-small", apiKey);
+    if (string.IsNullOrWhiteSpace(apiKey))
+        throw new InvalidOperationException("OpenAI:ApiKey not configured.");
+
+    return new OpenAIClient(apiKey);
 });
 
-builder.Services.AddCors(options =>
+builder.Services.AddSingleton(sp =>
 {
-    options.AddPolicy("AllowAndroidApp",
-        policy =>
-        {
-            policy.WithOrigins("http://10.0.2.2:8080", "http://localhost:8080") // For emulator
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
-        });
+    var cfg = sp.GetRequiredService<IConfiguration>();
+    return new EmbeddingClient("text-embedding-3-small", cfg["OpenAI:ApiKey"]);
 });
 
-
-builder.Services.AddSignalR();
-
-builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
-
+// ======================================================
+// 2. BUILD APP
+// ======================================================
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// ======================================================
+// 3. MIDDLEWARE PIPELINE
+// ======================================================
 
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-app.MapHub<NotificationHub>("/notificationHub");
+
+// Swagger enabled on Azure + local
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
 
+// CORS for Android App
 app.UseCors("AllowAndroidApp");
 
 app.UseAuthentication();
 app.UseAuthorization();
 
+// ======================================================
+// 4. ROUTES
+// ======================================================
+
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}"
+);
 
+// API Controllers
 app.MapControllers();
+
+// SignalR Hubs
 app.MapHub<ChatHub>("/chatHub");
+app.MapHub<NotificationHub>("/notificationHub");
 
-
+// ======================================================
 app.Run();
