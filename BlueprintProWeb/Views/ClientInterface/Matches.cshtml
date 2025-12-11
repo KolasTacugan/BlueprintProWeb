@@ -545,7 +545,6 @@
         .results-content::-webkit-scrollbar-thumb:hover {
             background: #94A3B8;
         }
-
         .match-btn[data-status="Pending"] {
             background: #fbbf24 !important;
             color: #000 !important;
@@ -735,12 +734,29 @@
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+        // Show loader immediately when this script runs (before page content is visible)
+        if (window.BlueprintLoader && typeof window.BlueprintLoader.show === 'function') {
+            try { window.BlueprintLoader.show(); } catch (e) { /* silent */ }
+        }
+
+        // Track page initialization state
+        let pageInitialized = false;
+
+        // Function to hide loader when everything is ready
+        function hideLoaderWhenReady() {
+            if (pageInitialized && document.readyState === 'complete') {
+                if (window.BlueprintLoader && typeof window.BlueprintLoader.hide === 'function') {
+                    window.BlueprintLoader.hide();
+                }
+            }
+        }
+
         // Listen for sidebar toggle and adjust main content accordingly
         document.addEventListener('DOMContentLoaded', function() {
             const sidebar = document.querySelector('.sidebar');
             const sidebarToggler = document.querySelector('.sidebar-toggler');
             const mainContent = document.querySelector('main.container');
-            
+
             function adjustMainContent() {
                 if (sidebar && mainContent) {
                     if (sidebar.classList.contains('collapsed')) {
@@ -752,10 +768,10 @@
                     }
                 }
             }
-            
+
             // Adjust on page load
             adjustMainContent();
-            
+
             // Listen for sidebar toggle
             if (sidebarToggler) {
                 sidebarToggler.addEventListener('click', function() {
@@ -777,7 +793,7 @@
                 messageInput.addEventListener('keydown', function(e) {
                     if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault(); // Prevent default line break behavior
-                        
+
                         // Check if there's text to send
                         const messageText = this.value.trim();
                         if (messageText) {
@@ -829,6 +845,10 @@
 
                 });
             });
+
+            // Mark page as initialized and try to hide loader
+            pageInitialized = true;
+            hideLoaderWhenReady();
         });
 
         const chatWindow = document.getElementById('chatWindow');
@@ -1014,5 +1034,10 @@
             const modal = new bootstrap.Modal(document.getElementById('notificationModal'));
             modal.show();
         }
+
+        // Hide loader once page is fully loaded and initialized
+        window.addEventListener('load', function() {
+            hideLoaderWhenReady();
+        });
     </script>
 }
