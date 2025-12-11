@@ -362,91 +362,11 @@
     </style>
 }
 
-<<<<<<< Updated upstream
 <div class="dashboard-content-wrapper">
     <div class="dashboard-main">
         <div class="container-fluid" style="max-width: 1300px;">
             <div class="dashboard-greeting mb-4 pt-4">
                 Welcome, <span class="text-primary">@ViewData["UserFirstName"]</span>!
-=======
-
-@section Scripts {
-    <script>
-        // Listen for sidebar toggle and adjust main content accordingly
-        document.addEventListener('DOMContentLoaded', function() {
-            const sidebar = document.querySelector('.sidebar');
-            const sidebarToggler = document.querySelector('.sidebar-toggler');
-            const mainContent = document.querySelector('main.container');
-            
-            function adjustMainContent() {
-                if (sidebar && mainContent) {
-                    if (sidebar.classList.contains('collapsed')) {
-                        mainContent.style.marginLeft = '110px';
-                        mainContent.style.maxWidth = 'calc(100% - 130px)';
-                    } else {
-                        mainContent.style.marginLeft = '300px';
-                        mainContent.style.maxWidth = 'calc(100% - 320px)';
-                    }
-                }
-            }
-            
-            // Adjust on page load
-            adjustMainContent();
-            
-            // Listen for sidebar toggle
-            if (sidebarToggler) {
-                sidebarToggler.addEventListener('click', function() {
-                    // Wait for the sidebar transition to start
-                    setTimeout(adjustMainContent, 50);
-                });
-            }
-        });
-    </script>
-
-    <script>
-        let projects = @Html.Raw(Json.Serialize(Model.AllProjects));
-        let index = 0;
-
-        function updateProject() {
-            const p = projects[index];
-
-            document.querySelector(".project-badge").innerText =
-                p.projectTitle.length > 8 ? p.projectTitle.substring(0,8) + ".." : p.projectTitle;
-
-            document.querySelector(".project-progress-bar").style.width = p.progressPercentage + "%";
-
-            // update the circles
-            document.querySelector(".progress-text").innerText = p.progressPercentage + "%";
-            document.querySelector(".progress-indicator").style.strokeDashoffset =
-                314 - (p.progressPercentage * 314 / 100);
-
-            // YOU MUST CALL FUNCTIONS TO UPDATE THE OTHER 3 PHASE CIRCLES TOO
-            // (Review, Compliance, Finalization)
-            // or wrap them in a reusable function
-        }
-
-        document.querySelector(".nav-btn.left").addEventListener("click", () => {
-            if (index > 0) {
-                index--;
-                updateProject();
-            }
-        });
-
-        document.querySelector(".nav-btn.right").addEventListener("click", () => {
-            if (index < projects.length - 1) {
-                index++;
-                updateProject();
-            }
-        });
-    </script>
-
-}
-
-<div class="dashboard-greeting mb-4">
-    <div class="greeting-text">
-        Welcome, <span class="text-primary">@ViewData["UserFirstName"]</span>!
-    </div>
-    <div class="greeting-subtitle">
         Your  zoverview�stay on top of things.
     </div>
 </div>
@@ -476,7 +396,6 @@
                     <span class="material-symbols-rounded">handshake</span>
                 </div>
                 Matches
->>>>>>> Stashed changes
             </div>
 
             <div class="dashboard-row">
@@ -614,102 +533,4 @@
             </div>
         </div>
     </div>
-<<<<<<< Updated upstream
 </div>
-=======
-</div>
-
-<!-- Third Row: Project Overview -->
-<div class="dashboard-overview">
-    <div class="overview-header">
-        <div class="overview-icon">
-            <i class="fas fa-chart-pie"></i>
-        </div>
-        Project Overview
-    </div>
-
-    @if (Model.AllProjects != null && Model.AllProjects.Any())
-    {
-        <div id="projectSlider">
-
-            @for (int i = 0; i < Model.AllProjects.Count; i++)
-            {
-                var proj = Model.AllProjects[i];
-
-                <div class="project-slide" data-index="@i" style="display:@(i == 0 ? "block" : "none")">
-
-                    <!-- HEADER (Title + left/right buttons) -->
-                    <div class="project-header" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
-                        <span class="project-badge">
-                            @(proj.ProjectTitle.Length > 12 ? proj.ProjectTitle.Substring(0, 12) + ".." : proj.ProjectTitle)
-                        </span>
-
-                        <div class="nav-buttons" style="display:flex; gap:0.4rem;">
-                            <button class="nav-btn nav-left"><i class="fas fa-chevron-left"></i></button>
-                            <button class="nav-btn nav-right"><i class="fas fa-chevron-right"></i></button>
-                        </div>
-                    </div>
-
-                    <!-- FULL-WIDTH PROGRESS BAR -->
-                    <div class="project-progress" style="margin-bottom:1.5rem;">
-                        <div class="project-progress-bar" style="width:@proj.ProgressPercentage%"></div>
-                    </div>
-
-                    <!-- STATUS + PROGRESS % SIDE BY SIDE -->
-                    <div class="phase-row" style="display:flex; align-items:center; justify-content:space-between;">
-
-                        <div class="phase-left">
-                            @{
-                                bool isFinished = proj.ProgressPercentage >= 100;
-                                string label = isFinished ? "PROJECT STATUS" : "PROJECT PHASE";
-                                string value = isFinished ? "Finished" : proj.Status;
-                            }
-                            <div class="phase-label">@label</div>
-                            <div class="phase-value">@value</div>
-                        </div>
-
-                        <div class="phase-right" style="text-align:right;">
-                            <div class="progress-label">OVERALL PROGRESS</div>
-                            <div class="progress-value">@proj.ProgressPercentage%</div>
-                        </div>
-
-                    </div>
-
-                </div>
-            }
-
-        </div>
-    }
-    else
-    {
-        <div class="text-center text-muted py-4">
-            <p>No active projects yet</p>
-            <a href="/ArchitectInterface/PendingMatches" class="btn btn-primary btn-sm">View Matches</a>
-        </div>
-    }
-</div>
-
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        let current = 0;
-        const slides = document.querySelectorAll(".project-slide");
-        const total = slides.length;
-
-        function showSlide(i) {
-            slides.forEach(s => s.style.display = "none");
-            slides[i].style.display = "block";
-        }
-
-        document.addEventListener("click", (e) => {
-            if (e.target.closest(".nav-left")) {
-                current = (current - 1 + total) % total;
-                showSlide(current);
-            }
-            if (e.target.closest(".nav-right")) {
-                current = (current + 1) % total;
-                showSlide(current);
-            }
-        });
-    });
-</script>
->>>>>>> Stashed changes
