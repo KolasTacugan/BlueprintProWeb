@@ -323,7 +323,8 @@ namespace BlueprintProWeb.Controllers
                 if (string.IsNullOrWhiteSpace(architectId))
                     return BadRequest(new { success = false, message = "ArchitectId is required." });
 
-                // Step 1: Fetch raw UTC conversations
+                var baseUrl = $"{Request.Scheme}://{Request.Host}";
+
                 var rawConversations = await context.Messages
                     .Where(m => m.ArchitectId == architectId || m.ClientId == architectId)
                     .GroupBy(m => m.ClientId)
@@ -337,7 +338,7 @@ namespace BlueprintProWeb.Controllers
                         LastMessage = g.OrderByDescending(m => m.MessageDate)
                             .Select(m => m.MessageBody)
                             .FirstOrDefault(),
-                        LastMessageTime = g.Max(m => m.MessageDate),
+                        LastMessageTimeUtc = g.Max(m => m.MessageDate),
                         ProfileUrl = context.Users
                             .Where(u => u.Id == g.Key)
                             .Select(u => u.user_profilePhoto)
@@ -346,22 +347,26 @@ namespace BlueprintProWeb.Controllers
                     })
                     .ToListAsync();
 
-                // Step 2: Convert timestamps to Philippine time
                 var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
+
                 var conversations = rawConversations
                     .Select(c => new
                     {
                         c.ClientId,
                         c.ClientName,
                         c.LastMessage,
-                        LastMessageTime = TimeZoneInfo.ConvertTimeFromUtc(c.LastMessageTime, phTimeZone),
-                        c.ProfileUrl,
+                        LastMessageTime = TimeZoneInfo.ConvertTimeFromUtc(c.LastMessageTimeUtc, phTimeZone),
+
+                        // FIXED PROFILE URL
+                        ProfileUrl = string.IsNullOrEmpty(c.ProfileUrl)
+                            ? null
+                            : $"{baseUrl}/images/profiles/{Path.GetFileName(c.ProfileUrl)}",
+
                         c.UnreadCount
                     })
                     .OrderByDescending(x => x.LastMessageTime)
                     .ToList();
 
-                // Step 3: Return adjusted list
                 return Ok(new { success = true, messages = conversations });
             }
             catch (Exception ex)
@@ -369,6 +374,8 @@ namespace BlueprintProWeb.Controllers
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }
+
+
 
         [HttpGet("ArchitectMatches")]
         [AllowAnonymous]
@@ -378,6 +385,8 @@ namespace BlueprintProWeb.Controllers
             {
                 if (string.IsNullOrWhiteSpace(architectId))
                     return BadRequest(new { success = false, message = "ArchitectId is required." });
+
+                var baseUrl = $"{Request.Scheme}://{Request.Host}";
 
                 var matches = await context.Matches
                     .Where(m => m.ArchitectId == architectId)
@@ -390,7 +399,12 @@ namespace BlueprintProWeb.Controllers
                         ClientLocation = m.Client.user_Location,
                         ClientStyle = m.Client.user_Style,
                         ClientBudget = m.Client.user_Budget,
-                        ClientPhoto = m.Client.user_profilePhoto,
+
+                        // ✔ FIXED PROFILE PHOTO URL
+                        ClientPhoto = string.IsNullOrEmpty(m.Client.user_profilePhoto)
+                            ? null
+                            : $"{baseUrl}/images/profiles/{Path.GetFileName(m.Client.user_profilePhoto)}",
+
                         MatchStatus = "Matched"
                     })
                     .ToListAsync();
@@ -402,6 +416,7 @@ namespace BlueprintProWeb.Controllers
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }
+
 
         [HttpGet("Architect/Messages")]
         [AllowAnonymous] // or [Authorize] if you add token auth later
@@ -575,7 +590,8 @@ namespace BlueprintProWeb.Controllers
         public async Task<IActionResult> UploadProjectFile(
             [FromForm] string projectId,
             [FromForm] IFormFile file
-        ){
+        )
+        {
             if (file == null || file.Length == 0)
                 return BadRequest(new { success = false, message = "No file uploaded." });
 
