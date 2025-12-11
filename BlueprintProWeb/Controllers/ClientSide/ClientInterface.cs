@@ -678,13 +678,17 @@ namespace BlueprintProWeb.Controllers.ClientSide
             // ✅ SignalR broadcast (show PH time in chat)
             await _hubContext.Clients.User(architectId).SendAsync("ReceiveMessage", new
             {
-                SenderId = currentUser.Id,
-                SenderName = currentUser.user_fname + " " + currentUser.user_lname,
-                MessageBody = messageBody,
-                MessageDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, phTimeZone).ToString("g"),
+                senderId = currentUser.Id,
+                senderName = currentUser.user_fname + " " + currentUser.user_lname,
+                messageBody = messageBody,
+                messageDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, phTimeZone).ToString("g"),
+
                 SenderProfilePhoto = string.IsNullOrEmpty(currentUser.user_profilePhoto)
                     ? "/images/profile.jpg"
                     : currentUser.user_profilePhoto
+                        .Replace("~", "")
+                        .Replace("wwwroot", "")
+
             });
 
             await _hubContext.Clients.User(architectId)

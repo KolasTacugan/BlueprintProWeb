@@ -305,6 +305,13 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             context.Notifications.Add(notif);
             await context.SaveChangesAsync();
 
+            await _hubContext.Clients.User(project.user_clientId)
+                .SendAsync("ReceiveNotification", new
+                {
+                    title = notif.notification_Title,
+                    message = notif.notification_Message
+                });
+
             return RedirectToAction("Projects");
         }
 
@@ -442,12 +449,15 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                     notification_Date = DateTime.Now,
                     notification_isRead = false
                 };
-
                 context.Notifications.Add(notif);
                 await context.SaveChangesAsync();
 
-                // ✅ SIGNALR LIVE UPDATE
-                await _hubContext.Clients.User(clientId).SendAsync("ReceiveNotificationUpdate");
+                await _hubContext.Clients.User(clientId)
+                    .SendAsync("ReceiveNotification", new
+                    {
+                        title = notif.notification_Title,
+                        message = notif.notification_Message
+                    });
 
                 return Json(new { success = true, status = "Approved" });
             }
@@ -465,11 +475,14 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 };
 
                 context.Notifications.Add(notif);
-
                 await context.SaveChangesAsync();
 
-                // ✅ SIGNALR LIVE UPDATE
-                await _hubContext.Clients.User(clientId).SendAsync("ReceiveNotificationUpdate");
+                await _hubContext.Clients.User(clientId)
+                    .SendAsync("ReceiveNotification", new
+                    {
+                        title = notif.notification_Title,
+                        message = notif.notification_Message
+                    });
 
                 return Json(new { success = true, status = "Declined" });
             }
@@ -694,13 +707,15 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             // ✅ Optional real-time update via SignalR
             await _hubContext.Clients.User(clientId).SendAsync("ReceiveMessage", new
             {
-                SenderId = currentUser.Id,
-                SenderName = currentUser.user_fname + " " + currentUser.user_lname,
-                MessageBody = messageBody,
-                MessageDate = phTime.ToString("g"),
-                SenderProfilePhoto = string.IsNullOrEmpty(currentUser.user_profilePhoto)
-                    ? "/images/profile.jpg"
-                    : currentUser.user_profilePhoto
+                senderId = currentUser.Id,
+                senderName = currentUser.user_fname + " " + currentUser.user_lname,
+                messageBody = messageBody,
+                messageDate = phTime.ToString("HH:mm"),
+                senderProfilePhoto = string.IsNullOrEmpty(currentUser.user_profilePhoto)
+                     ? "/images/profile.jpg"
+                     : currentUser.user_profilePhoto
+                        .Replace("~", "")
+                        .Replace("wwwroot", "")
             });
 
             await _hubContext.Clients.User(clientId)
@@ -866,7 +881,11 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 await context.SaveChangesAsync();
 
                 await _hubContext.Clients.User(clientId)
-                .SendAsync("ReceiveNotificationUpdate");
+                    .SendAsync("ReceiveNotification", new
+                    {
+                        title = notif.notification_Title,
+                        message = notif.notification_Message
+                    });
             }
 
             return Json(new { success = true });
@@ -967,7 +986,11 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             await context.SaveChangesAsync();
 
             await _hubContext.Clients.User(project.user_clientId)
-            .SendAsync("ReceiveNotificationUpdate");
+                .SendAsync("ReceiveNotification", new
+                {
+                    title = notif.notification_Title,
+                    message = notif.notification_Message
+                });
 
             return RedirectToAction("ProjectTracker", new { id = project.blueprint_Id });
         }
