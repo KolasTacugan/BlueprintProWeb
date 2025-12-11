@@ -6,6 +6,42 @@
 
 @section Styles {
     <style>
+    .phase-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #ffffff;
+        padding: 18px 22px;
+        margin-bottom: 15px;
+        border-radius: 12px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+
+    .phase-left, .phase-right {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .phase-label, .progress-label {
+        font-size: 0.80rem;
+        color: #6b7280;
+        letter-spacing: 0.5px;
+    }
+
+    .phase-value {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-top: 3px;
+    }
+
+    .progress-value {
+        font-size: 1.6rem;
+        font-weight: 700;
+        margin-top: 3px;
+        color: #1e40af; /* Blue value */
+    }
+</style>
+    <style>
         /* Restore the background image */
         body::before {
             background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
@@ -619,6 +655,20 @@
                 justify-self: center;
             }
         }
+
+        .project-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .nav-buttons {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
     </style>
 }
 
@@ -661,7 +711,7 @@
         Welcome, <span class="text-primary">@ViewData["UserFirstName"]</span>!
     </div>
     <div class="greeting-subtitle">
-        Your overview—stay on top of things.
+        Your overviewÂ—stay on top of things.
     </div>
 </div>
 
@@ -778,108 +828,55 @@
         </div>
         Project Overview
     </div>
-    @if (Model.CurrentProject != null)
-    {
-        <div class="overview-controls">
-            <span class="project-badge">@(Model.CurrentProject.ProjectTitle.Length > 8 ? Model.CurrentProject.ProjectTitle.Substring(0, 8) + ".." : Model.CurrentProject.ProjectTitle)</span>
-            <button class="nav-btn"><i class="fas fa-chevron-left"></i></button>
-            <button class="nav-btn"><i class="fas fa-chevron-right"></i></button>
-            <div class="project-progress">
-                <div class="project-progress-bar" style="width: @(Model.CurrentProject.ProgressPercentage)%"></div>
-            </div>
-        </div>
-        <div class="overview-circles">
-            <div class="overview-circle">
-                @{
 
-                    var reviewProgress = Model.CurrentProject.ProgressPercentage >= 33 ? 100 : 
-                                       Model.CurrentProject.ProgressPercentage < 33 && Model.CurrentProject.ProgressPercentage > 0 ? 
-                                       (Model.CurrentProject.ProgressPercentage * 100 / 33) : 0;
-                    var reviewCircumference = 2 * Math.PI * 42; // 2?r where r = 42
-                    var reviewOffset = reviewCircumference - (reviewProgress * reviewCircumference / 100);
-                }
-                <svg width="110" height="110" class="phase-circle">
-                    <defs>
-                        <linearGradient id="reviewGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#344EAD;stop-opacity:0.8" />
-                            <stop offset="100%" style="stop-color:#2563EB;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                    <circle cx="55" cy="55" r="42" fill="none" stroke="#E2E8F0" stroke-width="10"></circle>
-                    <circle cx="55" cy="55" r="42" fill="none" stroke="url(#reviewGradient)" stroke-width="10"
-                            stroke-dasharray="@reviewCircumference" stroke-dashoffset="@reviewOffset"
-                            style="transform: rotate(-90deg); transform-origin: 55px 55px; stroke-linecap: round;"
-                            class="phase-progress-indicator"></circle>
-                    <text x="55" y="60" text-anchor="middle" class="progress-text" style="font-size: 0.9rem;">@((int)reviewProgress)%</text>
-                </svg>
-                <div class="phase-label">Review</div>
-            </div>
-            
-            <div class="overview-circle">
-                @{
-                    var complianceProgress = Model.CurrentProject.ProgressPercentage >= 66 ? 100 : 
-                                           Model.CurrentProject.ProgressPercentage >= 33 && Model.CurrentProject.ProgressPercentage < 66 ? 
-                                           ((Model.CurrentProject.ProgressPercentage - 33) * 100 / 33) : 0;
-                    var complianceOffset = reviewCircumference - (complianceProgress * reviewCircumference / 100);
-                }
-                <svg width="110" height="110" class="phase-circle">
-                    <defs>
-                        <linearGradient id="complianceGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#2563EB;stop-opacity:0.8" />
-                            <stop offset="100%" style="stop-color:#344EAD;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                    <circle cx="55" cy="55" r="42" fill="none" stroke="#E2E8F0" stroke-width="10"></circle>
-                    <circle cx="55" cy="55" r="42" fill="none" stroke="url(#complianceGradient)" stroke-width="10"
-                            stroke-dasharray="@reviewCircumference" stroke-dashoffset="@complianceOffset"
-                            style="transform: rotate(-90deg); transform-origin: 55px 55px; stroke-linecap: round;"
-                            class="phase-progress-indicator"></circle>
-                    <text x="55" y="60" text-anchor="middle" class="progress-text" style="font-size: 0.9rem;">@((int)complianceProgress)%</text>
-                </svg>
-                <div class="phase-label">Compliance</div>
-            </div>
-            
-            <div class="overview-circle">
-                @{
-                    var finalizationProgress = Model.CurrentProject.ProgressPercentage >= 90 ? 100 : 
-                                             Model.CurrentProject.ProgressPercentage >= 66 && Model.CurrentProject.ProgressPercentage < 90 ? 
-                                             ((Model.CurrentProject.ProgressPercentage - 66) * 100 / 24) : 0;
-                    var finalizationOffset = reviewCircumference - (finalizationProgress * reviewCircumference / 100);
-                }
-                <svg width="110" height="110" class="phase-circle">
-                    <defs>
-                        <linearGradient id="finalizationGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#344EAD;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#2563EB;stop-opacity:0.8" />
-                        </linearGradient>
-                    </defs>
-                    <circle cx="55" cy="55" r="42" fill="none" stroke="#E2E8F0" stroke-width="10"></circle>
-                    <circle cx="55" cy="55" r="42" fill="none" stroke="url(#finalizationGradient)" stroke-width="10"
-                            stroke-dasharray="@reviewCircumference" stroke-dashoffset="@finalizationOffset"
-                            style="transform: rotate(-90deg); transform-origin: 55px 55px; stroke-linecap: round;"
-                            class="phase-progress-indicator"></circle>
-                    <text x="55" y="60" text-anchor="middle" class="progress-text" style="font-size: 0.9rem;">@((int)finalizationProgress)%</text>
-                </svg>
-                <div class="phase-label">Finalization</div>
-            </div>
-            
-            <div class="overview-circle progress-circle">
-                <svg width="120" height="120" class="circle-chart progress-chart">
-                    <defs>
-                        <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#344EAD;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#2563EB;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                    <circle cx="60" cy="60" r="50" fill="none" stroke="#E2E8F0" stroke-width="10"></circle>
-                    <circle cx="60" cy="60" r="50" fill="none" stroke="url(#progressGradient)" stroke-width="10"
-                            stroke-dasharray="314" stroke-dashoffset="@(314 - (Model.CurrentProject.ProgressPercentage * 314 / 100))"
-                            style="transform: rotate(-90deg); transform-origin: 60px 60px; stroke-linecap: round;"
-                            class="progress-indicator"></circle>
-                    <text x="60" y="65" text-anchor="middle" class="progress-text">@Model.CurrentProject.ProgressPercentage%</text>
-                </svg>
-                <div class="circle-label progress-label">Overall Progress</div>
-            </div>
+    @if (Model.Projects != null && Model.Projects.Any())
+    {
+        <div id="projectSlider">
+
+            @for (int i = 0; i < Model.Projects.Count; i++)
+            {
+                var proj = Model.Projects[i];
+
+                <div class="project-slide" data-index="@i" style="display:@(i == 0 ? "block" : "none")">
+
+                    <div class="project-header">
+                        <span class="project-badge">
+                            @(proj.ProjectTitle.Length > 12 ? proj.ProjectTitle.Substring(0, 12) + ".." : proj.ProjectTitle)
+                        </span>
+
+                        <div class="nav-buttons">
+                            <button class="nav-btn nav-left"><i class="fas fa-chevron-left"></i></button>
+                            <button class="nav-btn nav-right"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- PROGRESS BAR -->
+                    <div class="project-progress">
+                        <div class="project-progress-bar" style="width:@proj.ProgressPercentage%"></div>
+                    </div>
+
+                    <!-- PROJECT DETAILS (PHASE + PROGRESS NUMBER) -->
+                    <div class="phase-row">
+                        <div class="phase-left">
+                            @{
+                                bool isFinished = proj.ProgressPercentage >= 100;
+                                string label = isFinished ? "PROJECT STATUS" : "PROJECT PHASE";
+                                string value = isFinished ? "Finished" : proj.Status;
+                            }
+
+                            <div class="phase-label">@label</div>
+                            <div class="phase-value">@value</div>
+                        </div>
+
+                        <div class="phase-right">
+                            <div class="progress-label">OVERALL PROGRESS</div>
+                            <div class="progress-value">@proj.ProgressPercentage%</div>
+                        </div>
+                    </div>
+
+                </div>
+            }
+
         </div>
     }
     else
@@ -890,3 +887,27 @@
         </div>
     }
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        let current = 0;
+        const slides = document.querySelectorAll(".project-slide");
+        const total = slides.length;
+
+        function showSlide(i) {
+            slides.forEach(s => s.style.display = "none");
+            slides[i].style.display = "block";
+        }
+
+        document.addEventListener("click", (e) => {
+            if (e.target.closest(".nav-left")) {
+                current = (current - 1 + total) % total;
+                showSlide(current);
+            }
+            if (e.target.closest(".nav-right")) {
+                current = (current + 1) % total;
+                showSlide(current);
+            }
+        });
+    });
+</script>
