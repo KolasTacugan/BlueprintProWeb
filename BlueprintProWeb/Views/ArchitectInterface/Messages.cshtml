@@ -83,38 +83,6 @@
             display: block;
         }
 
-        .search-container {
-            margin-bottom: 1.5rem;
-            position: relative;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 0.75rem 1rem 0.75rem 2.5rem;
-            border: 1px solid #E2E8F0;
-            border-radius: 12px;
-            background: #F8FAFC;
-            font-size: 0.875rem;
-            font-family: 'Raleway', sans-serif;
-            transition: all 0.2s ease;
-        }
-
-            .search-input:focus {
-                outline: none;
-                border-color: #344EAD;
-                background: white;
-                box-shadow: 0 0 0 3px rgba(52, 78, 173, 0.1);
-            }
-
-        .search-icon {
-            position: absolute;
-            left: 0.875rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #64748B;
-            font-size: 1rem;
-        }
-
         .section-label {
             font-size: 0.75rem;
             font-weight: 700;
@@ -123,13 +91,63 @@
             letter-spacing: 0.05em;
             margin-bottom: 1rem;
             font-family: 'Raleway', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .scroll-indicator {
+            display: flex;
+            align-items: center;
+            color: #344EAD;
+        }
+
+        .scroll-chevron {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #344EAD, #2563EB);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            box-shadow: 0 2px 8px rgba(52, 78, 173, 0.3);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .scroll-chevron:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(52, 78, 173, 0.4);
         }
 
         .matches-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            display: flex;
+            flex-direction: row;
             gap: 1rem;
             margin-bottom: 2rem;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding-bottom: 0.5rem;
+            scroll-behavior: smooth;
+        }
+
+        .matches-grid::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .matches-grid::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .matches-grid::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 3px;
+        }
+
+        .matches-grid::-webkit-scrollbar-thumb:hover {
+            background: #94A3B8;
         }
 
         .match-item {
@@ -143,6 +161,8 @@
             transition: all 0.3s ease;
             background: #F8FAFC;
             border: 1px solid #E2E8F0;
+            min-width: 100px;
+            flex-shrink: 0;
         }
 
             .match-item:hover {
@@ -783,15 +803,15 @@
             <p class="conversations-subtitle">Connect with your clients</p>
         </div>
 
-        <div class="search-container">
-            <span class="search-icon material-symbols-rounded">search</span>
-            <input type="text" class="search-input" placeholder="Search conversations..." />
-        </div>
-
         <!-- Matches Section -->
         @if (Model.Matches.Any())
         {
-            <div class="section-label">Available Matches</div>
+            <div class="section-label">
+                <span>Available Matches</span>
+                <div class="scroll-indicator">
+                    <span class="material-symbols-rounded scroll-chevron">chevron_right</span>
+                </div>
+            </div>
             <div class="matches-grid">
                 @foreach (var match in Model.Matches)
                 {

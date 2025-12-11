@@ -343,12 +343,33 @@ namespace BlueprintProWeb.Controllers
                     .Where(bp => request.BlueprintIds.Contains(bp.blueprintId))
                     .ToListAsync();
 
+                if (!purchasedBlueprints.Any())
+                    return NotFound(new { success = false, message = "No matching blueprints found." });
+
                 foreach (var bp in purchasedBlueprints)
                 {
+                    // Mark blueprint as sold
                     bp.blueprintIsForSale = false;
+
+                    // Assign buyer
                     bp.clentId = request.ClientId;
+
+                    // AUTOMATIC MATCHING
+                    if (!string.IsNullOrEmpty(bp.architectId))
+                    {
+                        var match = new Match
+                        {
+                            ClientId = request.ClientId,
+                            ArchitectId = bp.architectId,
+                            MatchStatus = "Approved",
+                            MatchDate = DateTime.UtcNow
+                        };
+
+                        context.Matches.Add(match);
+                    }
                 }
 
+                // Clear user cart
                 var cart = await context.Carts
                     .Include(c => c.Items)
                     .FirstOrDefaultAsync(c => c.UserId == request.ClientId);
@@ -365,9 +386,10 @@ namespace BlueprintProWeb.Controllers
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }
-    
 
-    public class CompletePurchaseRequest
+
+
+        public class CompletePurchaseRequest
     {
         public string ClientId { get; set; } = "";
         public List<int> BlueprintIds { get; set; } = new();
@@ -907,7 +929,6 @@ namespace BlueprintProWeb.Controllers
 
             return Ok(response);
         }
-
 
         // -------------------- HELPERS --------------------
         private double CosineSimilarity(float[] v1, float[] v2)
