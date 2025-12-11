@@ -653,6 +653,16 @@
             .chat-messages::-webkit-scrollbar-thumb:hover {
                 background: #94A3B8;
             }
+
+        .architect-name-link {
+            color: #0d3c80;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+            .architect-name-link:hover {
+                text-decoration: underline;
+            }
     </style>
 }
 
@@ -794,6 +804,53 @@
 
         });
     </script>
+    <script>
+        $(document).on("click", "#openArchitectProfile", function () {
+            const architectId = $(this).data("architect-id");
+
+            if (!architectId) return;
+
+            $.ajax({
+                url: "/ClientInterface/GetArchitectProfile",
+                type: "GET",
+                data: { id: architectId },
+                success: function (res) {
+
+                    // photo
+                    $("#architectProfilePhoto").attr("src", res.photo);
+
+                    // basic info
+                    $("#architectProfileName").text(res.fullName);
+                    $("#architectProfileEmail").text(res.email || "No email available");
+                    $("#architectProfilePhone").text(res.phone || "No phone available");
+
+                    // architect details
+                    $("#architectProfileLicense").text(res.license || "Not provided");
+                    $("#architectProfileStyle").text(res.style || "Not provided");
+                    $("#architectProfileSpecialization").text(res.specialization || "Not provided");
+                    $("#architectProfileLocation").text(res.location || "Not provided");
+
+                    // credentials file (optional)
+                    if (res.credentialsFile) {
+                        $("#architectProfileCredentials")
+                            .attr("href", res.credentialsFile)
+                            .show();
+                    } else {
+                        $("#architectProfileCredentials")
+                            .attr("href", "#")
+                            .hide();
+                    }
+
+                    // show modal
+                    $("#architectProfileModal").modal("show");
+                },
+                error: function () {
+                    alert("Unable to load architect profile.");
+                }
+            });
+        });
+    </script>
+
 
 }
 
@@ -888,9 +945,16 @@
             <div class="chat-header">
                 <div class="chat-user-info">
                     <img src="@chatPhoto" class="chat-avatar" alt="@Model.ActiveChat.ArchitectName" />
+
                     <div class="chat-user-details">
-                        <h3>@Model.ActiveChat.ArchitectName</h3>
-                        <div class="chat-user-status">Online</div>
+                        <h3>
+                            <a href="javascript:void(0);"
+                               id="openArchitectProfile"
+                               data-architect-id="@Model.ActiveChat.ArchitectId"
+                               class="architect-name-link">
+                                @Model.ActiveChat.ArchitectName
+                            </a>
+                        </h3>
                     </div>
                 </div>
             </div>
@@ -951,5 +1015,43 @@
                 </div>
             </div>
         }
+    </div>
+</div>
+
+<!-- Architect Profile Modal -->
+<div class="modal fade" id="architectProfileModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Architect Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="profile-container">
+                    <div class="profile-main-card p-3">
+                        <div class="profile-info d-flex align-items-center gap-3 mb-3">
+                            <div class="avatar">
+                                <img id="architectProfilePhoto" src="~/images/profile.jpg" alt="Avatar" style="width:64px;height:64px;border-radius:50%;">
+                            </div>
+                            <div class="user-details">
+                                <h3 id="architectProfileName" class="architect-name mb-1 fw-bold"></h3>
+                                <div id="architectProfileEmail" class="text-muted"></div>
+                                <div id="architectProfilePhone" class="text-muted"></div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <p><strong>License No:</strong> <span id="architectProfileLicense"></span></p>
+                            <p><strong>Style:</strong> <span id="architectProfileStyle"></span></p>
+                            <p><strong>Specialization:</strong> <span id="architectProfileSpecialization"></span></p>
+                            <p><strong>Location:</strong> <span id="architectProfileLocation"></span></p>
+                            <p>
+                                <strong>Credentials File:</strong>
+                                <a id="architectProfileCredentials" href="#" target="_blank" class="text-decoration-underline archi-cred">Architect's Credentials</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>

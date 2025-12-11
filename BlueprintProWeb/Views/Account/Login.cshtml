@@ -3,48 +3,324 @@
 
 @{
 	ViewData["Title"] = "Login";
-	Layout = "~/Views/Shared/_AccountLayout.cshtml";
+	Layout = null;
 }
 
-<div class="account-container">
-	<div class="account-box">
-		<h2 class="text-center mb-4">Login</h2>	
-		<form asp-action="Login" method="post">
-			<div asp-validation-summary="ModelOnly" class="text-danger"></div>
-			<div class="mb3">
-				<label asp-for="Email" class="form-label"></label>
-				<input asp-for="Email" class="form-control" />
-				<span asp-validation-for="Email" class="text-danger"></span>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>@ViewData["Title"] - BlueprintPro</title>
+	<link rel="icon" type="image/png" href="~/images/BBP Logo.png" />
+	<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+	<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+	<style>
+		* {
+			font-family: 'Raleway', sans-serif;
+		}
+
+		body {
+			margin: 0;
+			padding: 20px;
+			height: 100vh;
+			background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+			box-sizing: border-box;
+		}
+
+		.login-container {
+			display: flex;
+			height: calc(100vh - 40px);
+			width: 100%;
+			background: white;
+			border-radius: 24px;
+			overflow: hidden;
+			box-shadow: 0 20px 60px rgba(13, 60, 128, 0.15);
+			position: relative;
+		}
+
+		.login-left {
+			flex: 1;
+			position: relative;
+			background: url("/images/bldg_img_1.png") center/cover no-repeat;
+			overflow: hidden;
+			clip-path: polygon(0 0, 85% 0, 70% 100%, 0 100%);
+		}
+
+		.login-right {
+			flex: 1;
+			background: #fff;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			padding: 2rem;
+			margin-left: -10%;
+			padding-left: 15%;
+		}
+
+		.login-form-container {
+			width: 100%;
+			max-width: 400px;
+		}
+
+		.login-welcome {
+			text-align: center;
+			margin-bottom: 2rem;
+		}
+
+		.login-title {
+			font-size: 2.5rem;
+			font-weight: 800;
+			color: #091635;
+			margin-bottom: 0.5rem;
+		}
+
+		.login-subtitle {
+			color: #6c757d;
+			font-weight: 500;
+		}
+
+		.form-group {
+			margin-bottom: 1.5rem;
+		}
+
+		.form-label {
+			font-weight: 600;
+			color: #091635;
+			margin-bottom: 0.5rem;
+		}
+
+		.form-control {
+			border: 2px solid #e9ecef;
+			border-radius: 10px;
+			padding: 0.75rem 1rem;
+			font-size: 1rem;
+			transition: all 0.3s ease;
+			background: #fff;
+		}
+
+			.form-control:focus {
+				border-color: #0D3C80;
+				box-shadow: 0 0 0 0.2rem rgba(13, 60, 128, 0.1);
+			}
+
+		.forgot-password {
+			text-align: right;
+			margin-bottom: 1rem;
+		}
+
+			.forgot-password a {
+				color: #0D3C80;
+				text-decoration: none;
+				font-weight: 500;
+				font-size: 0.9rem;
+			}
+
+				.forgot-password a:hover {
+					text-decoration: underline;
+					color: #071744;
+				}
+
+		.form-check {
+			margin-bottom: 1.5rem;
+		}
+
+		.form-check-label {
+			font-weight: 500;
+			color: #6c757d;
+		}
+
+		.form-check-input:checked {
+			background-color: #0D3C80;
+			border-color: #0D3C80;
+		}
+
+		.form-check-input:focus {
+			border-color: #0D3C80;
+			box-shadow: 0 0 0 0.25rem rgba(13, 60, 128, 0.25);
+		}
+
+		.login-btn {
+			width: 100%;
+			padding: 0.875rem;
+			background: linear-gradient(135deg, #0D3C80 0%, #071744 100%);
+			border: none;
+			border-radius: 25px;
+			color: white;
+			font-weight: 700;
+			font-size: 1rem;
+			transition: all 0.3s ease;
+			margin-bottom: 1.5rem;
+		}
+
+			.login-btn:hover {
+				transform: translateY(-2px);
+				box-shadow: 0 8px 25px rgba(13, 60, 128, 0.3);
+				background: linear-gradient(135deg, #071744 0%, #0D3C80 100%);
+			}
+
+		.register-link {
+			text-align: center;
+			margin-bottom: 1rem;
+		}
+
+			.register-link a {
+				color: #0D3C80;
+				text-decoration: none;
+				font-weight: 600;
+			}
+
+				.register-link a:hover {
+					text-decoration: underline;
+					color: #071744;
+				}
+
+		.back-link {
+			text-align: center;
+		}
+
+			.back-link a {
+				color: #6c757d;
+				text-decoration: none;
+				font-weight: 500;
+			}
+
+				.back-link a:hover {
+					color: #0D3C80;
+					text-decoration: underline;
+				}
+
+		.text-danger {
+			font-size: 0.875rem;
+			margin-top: 0.25rem;
+		}
+
+		/* Responsive Design */
+		@@media (max-width: 768px) {
+			body
+
+		{
+			padding: 10px;
+		}
+
+		.login-container {
+			flex-direction: column;
+			height: calc(100vh - 20px);
+		}
+
+		.login-left {
+			height: 40vh;
+			clip-path: polygon(0 0, 100% 0, 100% 85%, 0 95%);
+		}
+
+		.login-right {
+			height: 60vh;
+			padding: 1rem;
+			margin-left: 0;
+			padding-left: 2rem;
+			margin-top: -5%;
+			padding-top: 10%;
+		}
+
+		.login-title {
+			font-size: 2rem;
+		}
+
+		}
+
+		@@media (max-width: 480px) {
+			body
+
+		{
+			padding: 5px;
+		}
+
+		.login-container {
+			border-radius: 16px;
+			height: calc(100vh - 10px);
+		}
+
+		.login-right {
+			padding: 1rem;
+		}
+
+		.login-title {
+			font-size: 1.75rem;
+		}
+
+		}
+	</style>
+
+	<div class="login-container">
+		<!-- Left Side - Display Image Only -->
+		<div class="login-left">
+			<!-- Pure image display - no content overlay -->
+		</div>
+
+		<!-- Right Side - Login Form -->
+		<div class="login-right">
+			<div class="login-form-container">
+				<div class="login-welcome">
+					<h2 class="login-title">Sign In</h2>
+					<p class="login-subtitle">Welcome to BlueprintPro</p>
+				</div>
+
+				<form asp-action="Login" method="post">
+					<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+					<div class="form-group">
+						<label asp-for="Email" class="form-label">Email</label>
+						<input asp-for="Email" class="form-control" placeholder="Enter your email" />
+						<span asp-validation-for="Email" class="text-danger"></span>
+					</div>
+
+					<div class="form-group">
+						<label asp-for="Password" class="form-label">Password</label>
+						<input asp-for="Password" type="password" class="form-control" placeholder="Enter your password" />
+						<span asp-validation-for="Password" class="text-danger"></span>
+					</div>
+
+					<div class="forgot-password">
+						<a asp-controller="Account" asp-action="VerifyEmail">
+							Forgot password ?
+						</a>
+					</div>
+
+					<div class="form-check">
+						<input asp-for="RememberMe" class="form-check-input" type="checkbox" />
+						<label class="form-check-label" asp-for="RememberMe">
+							@Html.DisplayNameFor(a => a.RememberMe)
+						</label>
+					</div>
+
+					<input type="submit" value="Login" class="login-btn" />
+
+					<div class="register-link">
+						Don't have an account? <a asp-controller="Account" asp-action="ChooseRole">Sign up</a>
+					</div>
+
+					<div class="back-link">
+						<a asp-controller="Home" asp-action="Index">Back</a>
+					</div>
+				</form>
 			</div>
-			<div class="mb3">
-				<label asp-for="Password" class="form-label"></label>
-				<input asp-for="Password" type="password" class="form-control" />
-				<span asp-validation-for="Password" class="text-danger"></span>
-			</div>
-			<div class="float-end">
-				<a asp-controller="Account" asp-action="VerifyEmail" class="text-decoration-none">
-					Forgot your password?
-				</a>
-			</div>
-			<div class="form-check mb-3">
-				<label class="form-check-label">
-					<input asp-for="RememberMe" class="form-check-input"></input>
-					@Html.DisplayNameFor(a=> a.RememberMe)
-				</label>
-			</div>
-			<input type="submit" value="Login" class="btn btn-success w-100 p-2" />
-			<p class="text-center mt-2">
-				Don't have an account? <a asp-controller="Account" asp-action="ChooseRole" class="text-decoration-none">Register</a>
-			</p>
-			<div class="text-center">
-				<a asp-controller="Home" asp-action="Index" class="text-decoration-none mt-3">Back</a>
-			</div>
-		</form>
+		</div>
 	</div>
-</div>
-@section Scripts {
-	@{
-		await Html.RenderPartialAsync("_ValidationScriptsPartial.cshtml");
-	
+
+	<script src="~/lib/jquery/dist/jquery.min.js"></script>
+	<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="~/js/site.js" asp-append-version="true"></script>
+
+	@section Scripts {
+		@{
+			await Html.RenderPartialAsync("_ValidationScriptsPartial.cshtml");
+		}
 	}
-}
+</body>
+</html>
