@@ -340,16 +340,30 @@ namespace BlueprintProWeb.Controllers.ClientSide
 
             foreach (var bp in purchasedBlueprints)
             {
-                // ✅ Mark as sold
+                // Mark blueprint as sold
                 bp.blueprintIsForSale = false;
 
-                // ✅ Record buyer (if your model has clientId)
+                // Record buyer (client)
                 bp.clentId = user.Id;
 
-                // Optionally log or handle transfer ownership timestamp, etc.
+                // AUTOMATIC MATCHING
+                // Ensure the blueprint has an architect assigned
+                if (!string.IsNullOrEmpty(bp.architectId))
+                {
+                    // Create Match record
+                    var match = new Match
+                    {
+                        ClientId = user.Id,
+                        ArchitectId = bp.architectId,
+                        MatchStatus = "Approved", // You can change to "Pending"
+                        MatchDate = DateTime.UtcNow
+                    };
+
+                    context.Matches.Add(match);
+                }
             }
 
-            // ✅ Clear user's cart after successful purchase
+            // Clear user's cart after successful purchase
             var cart = await context.Carts
                 .Include(c => c.Items)
                 .FirstOrDefaultAsync(c => c.UserId == user.Id);
@@ -361,6 +375,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
 
             return Json(new { success = true, message = "Purchase completed successfully." });
         }
+
 
 
         public async Task<IActionResult> Projects()

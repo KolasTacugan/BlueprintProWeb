@@ -9,6 +9,7 @@
     min-height: 100vh;
     padding: 2rem 0;
 }
+
 .account-box {
     background-color: #ffffff;
     padding: 30px;
@@ -17,5 +18,10 @@
     max-width: 500px;
     width: 100%;
     opacity:.9;
+}
+
+/* Global font family for account pages */
+* {
+    font-family: 'Raleway', sans-serif;
 }
 
