@@ -100,31 +100,29 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 })
                 .ToListAsync();
 
-            // Current/most recent project - get the raw data first with ProjectTracker
-            var currentProjectRaw = await context.Projects
+            var allProjectsRaw = await context.Projects
                 .Where(p => p.user_clientId == userId)
                 .Include(p => p.Architect)
                 .OrderByDescending(p => p.project_startDate)
-                .FirstOrDefaultAsync();
+                .ToListAsync();
 
-            // Calculate project overview with actual ProjectTracker data
-            ProjectOverview? currentProject = null;
-            if (currentProjectRaw != null)
+            var projects = new List<ProjectOverview>();
+
+            foreach (var p in allProjectsRaw)
             {
-                // Get the actual ProjectTracker status
-                var projectTracker = await context.ProjectTrackers
-                    .FirstOrDefaultAsync(pt => pt.project_Id == currentProjectRaw.project_Id);
+                var tracker = await context.ProjectTrackers
+                    .FirstOrDefaultAsync(pt => pt.project_Id == p.project_Id);
 
-                var actualStatus = projectTracker?.projectTrack_Status ?? currentProjectRaw.project_Status;
-                
-                currentProject = new ProjectOverview
+                var actualStatus = tracker?.projectTrack_Status ?? p.project_Status;
+
+                projects.Add(new ProjectOverview
                 {
-                    ProjectTitle = currentProjectRaw.project_Title,
+                    ProjectTitle = p.project_Title,
                     Status = actualStatus,
-                    ProgressPercentage = CalculateProjectProgressFromTracker(actualStatus, currentProjectRaw.project_Status),
-                    StartDate = currentProjectRaw.project_startDate,
-                    ArchitectName = $"{currentProjectRaw.Architect.user_fname} {currentProjectRaw.Architect.user_lname}"
-                };
+                    ProgressPercentage = CalculateProjectProgressFromTracker(actualStatus, p.project_Status),
+                    StartDate = p.project_startDate,
+                    ArchitectName = $"{p.Architect.user_fname} {p.Architect.user_lname}"
+                });
             }
 
             var dashboardViewModel = new ClientDashboardViewModel
@@ -134,8 +132,9 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 TotalProjects = totalProjects,
                 RecentMatches = recentMatches,
                 RecentPurchases = recentPurchases,
-                CurrentProject = currentProject
+                Projects = projects // <==== NEW
             };
+
 
             return View(dashboardViewModel);
         }
@@ -681,13 +680,17 @@ namespace BlueprintProWeb.Controllers.ClientSide
             // ✅ SignalR broadcast (show PH time in chat)
             await _hubContext.Clients.User(architectId).SendAsync("ReceiveMessage", new
             {
-                SenderId = currentUser.Id,
-                SenderName = currentUser.user_fname + " " + currentUser.user_lname,
-                MessageBody = messageBody,
-                MessageDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, phTimeZone).ToString("g"),
+                senderId = currentUser.Id,
+                senderName = currentUser.user_fname + " " + currentUser.user_lname,
+                messageBody = messageBody,
+                messageDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, phTimeZone).ToString("g"),
+
                 SenderProfilePhoto = string.IsNullOrEmpty(currentUser.user_profilePhoto)
                     ? "/images/profile.jpg"
                     : currentUser.user_profilePhoto
+                        .Replace("~", "")
+                        .Replace("wwwroot", "")
+
             });
 
             await _hubContext.Clients.User(architectId)
@@ -919,6 +922,26 @@ namespace BlueprintProWeb.Controllers.ClientSide
             }
 
             return Json(new { success = true, message = "✅ Match request sent successfully." });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetPurchasedBlueprints()
+        {
+            var user = await userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            var purchased = await context.Blueprints
+                .Where(bp => bp.clentId == user.Id && !bp.blueprintIsForSale)
+                .Select(bp => new {
+                    id = bp.blueprintId,
+                    name = bp.blueprintName,
+                    image = bp.blueprintImage,
+                    price = bp.blueprintPrice,
+                    style = bp.blueprintStyle
+                })
+                .ToListAsync();
+
+            return Json(purchased);
         }
     }
 }

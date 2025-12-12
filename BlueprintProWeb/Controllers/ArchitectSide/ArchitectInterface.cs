@@ -56,7 +56,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
 
             // Total Matches - count all matches where this user is the architect
             var totalMatches = await context.Matches
-                .CountAsync(m => m.ArchitectId == userId);
+                .CountAsync(m => m.ArchitectId == userId&& m.MatchStatus == "Approved");
 
             // Total Uploads - count blueprints uploaded by this architect
             var totalUploads = await context.Blueprints
@@ -68,7 +68,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
 
             // Recent matches (last 5)
             var recentMatches = await context.Matches
-                .Where(m => m.ArchitectId == userId)
+                .Where(m => m.ArchitectId == userId && m.MatchStatus == "Approved")
                 .Include(m => m.Client)
                 .OrderByDescending(m => m.MatchDate)
                 .Take(5)
@@ -97,32 +97,36 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 })
                 .ToListAsync();
 
-            // Current/most recent project - get the raw data first with ProjectTracker
-            var currentProjectRaw = await context.Projects
+            // Get ALL projects
+            var allProjectsRaw = await context.Projects
                 .Where(p => p.user_architectId == userId)
                 .Include(p => p.Client)
                 .OrderByDescending(p => p.project_startDate)
-                .FirstOrDefaultAsync();
+                .ToListAsync();
 
-            // Calculate project overview with actual ProjectTracker data
-            ProjectOverview? currentProject = null;
-            if (currentProjectRaw != null)
+            // Convert to your ProjectOverview list
+            var allProjects = new List<ProjectOverview>();
+
+            foreach (var project in allProjectsRaw)
             {
-                // Get the actual ProjectTracker status
-                var projectTracker = await context.ProjectTrackers
-                    .FirstOrDefaultAsync(pt => pt.project_Id == currentProjectRaw.project_Id);
+                var tracker = await context.ProjectTrackers
+                    .FirstOrDefaultAsync(pt => pt.project_Id == project.project_Id);
 
-                var actualStatus = projectTracker?.projectTrack_Status ?? currentProjectRaw.project_Status;
-                
-                currentProject = new ProjectOverview
+                var status = tracker?.projectTrack_Status ?? project.project_Status;
+
+                allProjects.Add(new ProjectOverview
                 {
-                    ProjectTitle = currentProjectRaw.project_Title,
-                    Status = actualStatus,
-                    ProgressPercentage = CalculateProjectProgressFromTracker(actualStatus, currentProjectRaw.project_Status),
-                    StartDate = currentProjectRaw.project_startDate,
-                    ArchitectName = $"{currentProjectRaw.Client.user_fname} {currentProjectRaw.Client.user_lname}" // Client name for architect view
-                };
+                    ProjectTitle = project.project_Title,
+                    Status = status,
+                    ProgressPercentage = CalculateProjectProgressFromTracker(status, project.project_Status),
+                    StartDate = project.project_startDate,
+                    ArchitectName = $"{project.Client.user_fname} {project.Client.user_lname}"
+                });
             }
+
+            // Pick the first one as current
+            var currentProject = allProjects.FirstOrDefault();
+
 
             var dashboardViewModel = new ArchitectDashboardViewModel
             {
@@ -131,7 +135,8 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 TotalProjects = totalProjects,
                 RecentMatches = recentMatches,
                 RecentUploads = recentUploads,
-                CurrentProject = currentProject
+                CurrentProject = currentProject,
+                AllProjects = allProjects
             };
 
             return View(dashboardViewModel);
@@ -305,6 +310,13 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             context.Notifications.Add(notif);
             await context.SaveChangesAsync();
 
+            await _hubContext.Clients.User(project.user_clientId)
+                .SendAsync("ReceiveNotification", new
+                {
+                    title = notif.notification_Title,
+                    message = notif.notification_Message
+                });
+
             return RedirectToAction("Projects");
         }
 
@@ -442,12 +454,15 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                     notification_Date = DateTime.Now,
                     notification_isRead = false
                 };
-
                 context.Notifications.Add(notif);
                 await context.SaveChangesAsync();
 
-                // ✅ SIGNALR LIVE UPDATE
-                await _hubContext.Clients.User(clientId).SendAsync("ReceiveNotificationUpdate");
+                await _hubContext.Clients.User(clientId)
+                    .SendAsync("ReceiveNotification", new
+                    {
+                        title = notif.notification_Title,
+                        message = notif.notification_Message
+                    });
 
                 return Json(new { success = true, status = "Approved" });
             }
@@ -465,11 +480,14 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 };
 
                 context.Notifications.Add(notif);
-
                 await context.SaveChangesAsync();
 
-                // ✅ SIGNALR LIVE UPDATE
-                await _hubContext.Clients.User(clientId).SendAsync("ReceiveNotificationUpdate");
+                await _hubContext.Clients.User(clientId)
+                    .SendAsync("ReceiveNotification", new
+                    {
+                        title = notif.notification_Title,
+                        message = notif.notification_Message
+                    });
 
                 return Json(new { success = true, status = "Declined" });
             }
@@ -694,13 +712,15 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             // ✅ Optional real-time update via SignalR
             await _hubContext.Clients.User(clientId).SendAsync("ReceiveMessage", new
             {
-                SenderId = currentUser.Id,
-                SenderName = currentUser.user_fname + " " + currentUser.user_lname,
-                MessageBody = messageBody,
-                MessageDate = phTime.ToString("g"),
-                SenderProfilePhoto = string.IsNullOrEmpty(currentUser.user_profilePhoto)
-                    ? "/images/profile.jpg"
-                    : currentUser.user_profilePhoto
+                senderId = currentUser.Id,
+                senderName = currentUser.user_fname + " " + currentUser.user_lname,
+                messageBody = messageBody,
+                messageDate = phTime.ToString("HH:mm"),
+                senderProfilePhoto = string.IsNullOrEmpty(currentUser.user_profilePhoto)
+                     ? "/images/profile.jpg"
+                     : currentUser.user_profilePhoto
+                        .Replace("~", "")
+                        .Replace("wwwroot", "")
             });
 
             await _hubContext.Clients.User(clientId)
@@ -866,7 +886,11 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 await context.SaveChangesAsync();
 
                 await _hubContext.Clients.User(clientId)
-                .SendAsync("ReceiveNotificationUpdate");
+                    .SendAsync("ReceiveNotification", new
+                    {
+                        title = notif.notification_Title,
+                        message = notif.notification_Message
+                    });
             }
 
             return Json(new { success = true });
@@ -967,7 +991,11 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             await context.SaveChangesAsync();
 
             await _hubContext.Clients.User(project.user_clientId)
-            .SendAsync("ReceiveNotificationUpdate");
+                .SendAsync("ReceiveNotification", new
+                {
+                    title = notif.notification_Title,
+                    message = notif.notification_Message
+                });
 
             return RedirectToAction("ProjectTracker", new { id = project.blueprint_Id });
         }
@@ -1325,5 +1353,24 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             return RedirectToAction("Projects");
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetUploadedBlueprints()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            var uploaded = await context.Blueprints
+                .Where(bp => bp.architectId == user.Id)
+                .Select(bp => new {
+                    id = bp.blueprintId,
+                    name = bp.blueprintName,
+                    image = bp.blueprintImage,
+                    price = bp.blueprintPrice,
+                    style = bp.blueprintStyle
+                })
+                .ToListAsync();
+
+            return Json(uploaded);
+        }
     }
 }

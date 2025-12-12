@@ -432,7 +432,7 @@ namespace BlueprintProWeb.Controllers
         
         [HttpGet("Matches")]
         [AllowAnonymous] // or require auth if you prefer
-        public async Task<IActionResult> GetMatches([FromQuery] string? query)
+        public async Task<IActionResult> GetMatches([FromQuery] string clientId, [FromQuery] string? query)
         {
             try
             {
@@ -441,10 +441,10 @@ namespace BlueprintProWeb.Controllers
                 // Expand query with GPT
                 var chatClient = _openAi.GetChatClient("gpt-5-mini");
                 var messages = new List<ChatMessage>
-        {
-            new SystemChatMessage("You are an assistant that rewrites client needs into a natural request for an architect."),
-            new UserChatMessage($"User request: {searchQuery}. Expand into 2–3 descriptive sentences.")
-        };
+                {
+                    new SystemChatMessage("You are an assistant that rewrites client needs into a natural request for an architect."),
+                    new UserChatMessage($"User request: {searchQuery}. Expand into 2–3 descriptive sentences.")
+                };
                 var gptResponse = await chatClient.CompleteChatAsync(messages);
                 var expansion = gptResponse.Value.Content[0].Text;
                 var finalQuery = $"{searchQuery}. Expanded: {expansion}";
@@ -485,6 +485,12 @@ namespace BlueprintProWeb.Controllers
                     ArchitectLocation = x.Architect.user_Location,
                     ArchitectBudget = x.Architect.user_Budget,
                     MatchStatus = x.Architect.IsPro ? "AI + Portfolio Match (Pro)" : "AI + Portfolio Match",
+                    RealMatchStatus = string.IsNullOrEmpty(clientId)
+                        ? null
+                        : context.Matches
+                            .Where(m => m.ClientId == clientId && m.ArchitectId == x.Architect.Id)
+                            .Select(m => m.MatchStatus)
+                            .FirstOrDefault(),
                     MatchDate = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss")
                 }).ToList();
 
@@ -528,6 +534,35 @@ namespace BlueprintProWeb.Controllers
 
             context.Matches.Add(match);
             await context.SaveChangesAsync();
+
+            // 🔹 Create notification for the architect (MISSING IN YOUR VERSION)
+            var architect = await context.Users.FindAsync(request.ArchitectId);
+            var client = await context.Users.FindAsync(request.ClientId);
+
+            if (architect != null && client != null)
+            {
+                var notif = new Notification
+                {
+                    user_Id = architect.Id,
+                    notification_Title = "New Match Request",
+                    notification_Message = $"{client.user_fname} {client.user_lname} wants to match with you.",
+                    notification_Date = DateTime.Now,
+                    notification_isRead = false
+                };
+
+                context.Notifications.Add(notif);
+                await context.SaveChangesAsync();
+
+                // 🔹 Real-time update (SignalR)
+                await _hubContext.Clients
+                    .User(architect.Id)
+                    .SendAsync("ReceiveNotification", new
+                    {
+                        title = notif.notification_Title,
+                        message = notif.notification_Message,
+                        date = notif.notification_Date.ToString("g")
+                    });
+            }
 
             return Ok(new { success = true, message = "Match request sent successfully." });
         }
@@ -708,6 +743,15 @@ namespace BlueprintProWeb.Controllers
                     return BadRequest(new { success = false, message = "ClientId, ArchitectId, and MessageBody are required." });
                 }
 
+                // 🔍 Fetch client user (for name + profile photo like Web)
+                var clientUser = await userManager.FindByIdAsync(request.ClientId);
+                if (clientUser == null)
+                    return BadRequest(new { success = false, message = "Client not found." });
+
+                // 🌏 PH timezone
+                var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
+                var phTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, phTimeZone);
+
                 var message = new Message
                 {
                     MessageId = Guid.NewGuid(),
@@ -722,13 +766,27 @@ namespace BlueprintProWeb.Controllers
                 context.Messages.Add(message);
                 await context.SaveChangesAsync();
 
-                // Optional SignalR broadcast
+                // 🧩 Profile photo logic (same as web)
+                string senderPhoto =
+                    string.IsNullOrEmpty(clientUser.user_profilePhoto)
+                        ? "/images/profile.jpg"
+                        : clientUser.user_profilePhoto
+                            .Replace("~", "")
+                            .Replace("wwwroot", "");
+
+                // 📡 SignalR (MATCHES WEB VERSION)
                 await _hubContext.Clients.User(request.ArchitectId).SendAsync("ReceiveMessage", new
                 {
-                    SenderId = message.SenderId,
-                    MessageBody = message.MessageBody,
-                    MessageDate = message.MessageDate.ToString("g")
+                    senderId = clientUser.Id,
+                    senderName = clientUser.user_fname + " " + clientUser.user_lname,
+                    messageBody = request.MessageBody,
+                    messageDate = phTime.ToString("g"),
+                    senderProfilePhoto = senderPhoto
                 });
+
+                // 🔔 Same update ping as web version
+                await _hubContext.Clients.User(request.ArchitectId)
+                    .SendAsync("ReceiveMessageUpdate");
 
                 return Ok(new { success = true, message = "Message sent successfully." });
             }
@@ -958,6 +1016,9 @@ namespace BlueprintProWeb.Controllers
 
             [JsonPropertyName("MatchStatus")]
             public string MatchStatus { get; set; } = "AI Match";
+
+            [JsonPropertyName("RealMatchStatus")]
+            public string RealMatchStatus { get; set; }
 
             [JsonPropertyName("MatchDate")]
             public string? MatchDate { get; set; }

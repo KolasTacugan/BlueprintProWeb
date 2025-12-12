@@ -83,38 +83,6 @@
             display: block;
         }
 
-        .search-container {
-            margin-bottom: 1.5rem;
-            position: relative;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 0.75rem 1rem 0.75rem 2.5rem;
-            border: 1px solid #E2E8F0;
-            border-radius: 12px;
-            background: #F8FAFC;
-            font-size: 0.875rem;
-            font-family: 'Raleway', sans-serif;
-            transition: all 0.2s ease;
-        }
-
-            .search-input:focus {
-                outline: none;
-                border-color: #344EAD;
-                background: white;
-                box-shadow: 0 0 0 3px rgba(52, 78, 173, 0.1);
-            }
-
-        .search-icon {
-            position: absolute;
-            left: 0.875rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #64748B;
-            font-size: 1rem;
-        }
-
         .section-label {
             font-size: 0.75rem;
             font-weight: 700;
@@ -155,17 +123,18 @@
         }
 
         .matches-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            display: flex;
+            flex-direction: row;
             gap: 1rem;
             margin-bottom: 2rem;
             overflow-x: auto;
+            overflow-y: hidden;
             padding-bottom: 0.5rem;
+            scroll-behavior: smooth;
         }
 
         .matches-grid::-webkit-scrollbar {
-            width: 4px;
-            height: 4px;
+            height: 6px;
         }
 
         .matches-grid::-webkit-scrollbar-track {
@@ -174,7 +143,7 @@
 
         .matches-grid::-webkit-scrollbar-thumb {
             background: #CBD5E1;
-            border-radius: 2px;
+            border-radius: 3px;
         }
 
         .matches-grid::-webkit-scrollbar-thumb:hover {
@@ -192,6 +161,8 @@
             transition: all 0.3s ease;
             background: #F8FAFC;
             border: 1px solid #E2E8F0;
+            min-width: 100px;
+            flex-shrink: 0;
         }
 
             .match-item:hover {
@@ -678,10 +649,41 @@
             .chat-messages::-webkit-scrollbar-thumb:hover {
                 background: #94A3B8;
             }
+
+        .client-name-link {
+            text-decoration: none;
+            color: #0d3c80;
+            cursor: pointer;
+        }
+
+            .client-name-link:hover {
+                text-decoration: underline;
+            }
     </style>
 }
 
 @section Scripts {
+    <script>
+        function insertMessageToChat(msg) {
+            const chatContainer = document.getElementById("chat-container");
+
+            if (!chatContainer) return;
+
+            const bubble = document.createElement("div");
+            bubble.classList.add("message-group");
+            bubble.innerHTML = `
+                <div class="message-container">
+                    <img src="${msg.senderProfilePhoto}" class="message-avatar" />
+                    <div class="message-bubble other">${msg.messageBody}</div>
+                </div>
+                <div class="message-time">${msg.messageDate}</div>
+            `;
+
+            chatContainer.appendChild(bubble);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+    </script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const sidebar = document.querySelector('.sidebar');
@@ -743,8 +745,104 @@
                     // Allow Shift+Enter for line breaks
                 });
             }
+
+            // Scroll matches grid on chevron click
+            const scrollChevron = document.querySelector('.scroll-chevron');
+            const matchesGrid = document.querySelector('.matches-grid');
+            if (scrollChevron && matchesGrid) {
+                scrollChevron.addEventListener('click', () => {
+                    matchesGrid.scrollBy({ left: 200, behavior: 'smooth' });
+                });
+            }
         });
     </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+
+            const userId = '@User?.FindFirst("sub")?.Value';
+
+            // ---------------------------
+            // CONNECT TO NOTIFICATION HUB
+            // ---------------------------
+            const notifConnection = new signalR.HubConnectionBuilder()
+                .withUrl("/notificationHub")
+                .withAutomaticReconnect()
+                .build();
+
+            notifConnection.on("ReceiveNotification", () => {
+                loadArchitectNotifications();
+            });
+
+            notifConnection.on("UpdateUnreadMessagesCount", () => {
+                loadArchitectUnreadMessages();
+            });
+
+            await notifConnection.start()
+                .then(() => console.log("NotificationHub connected (Architect Messages)"))
+                .catch(err => console.error(err));
+
+
+            // ---------------------
+            // CONNECT TO CHAT HUB
+            // ---------------------
+            const chatConnection = new signalR.HubConnectionBuilder()
+                .withUrl(`/chatHub?clientId=${userId}`)
+                .withAutomaticReconnect()
+                .build();
+
+            chatConnection.on("ReceiveMessage", (data) => {
+                console.log("Architect ReceivedMessage:", data);
+
+                // If architect is currently viewing chat with this client → update chat UI instantly
+                insertMessageToChat(data);
+
+                // Update side panel unread count
+                loadArchitectUnreadMessages();
+            });
+
+            chatConnection.on("UpdateUnreadMessagesCount", () => {
+                loadArchitectUnreadMessages();
+            });
+
+            await chatConnection.start()
+                .then(() => console.log("ChatHub connected (Architect Messages)"))
+                .catch(err => console.error(err));
+
+        });
+    </script>3
+    <script>
+        $(document).on("click", "#openClientProfile", function () {
+            const clientId = $(this).data("client-id");
+
+            if (!clientId) return;
+
+            $.ajax({
+                url: "/ArchitectInterface/GetClientProfile",
+                type: "GET",
+                data: { clientId: clientId },
+                success: function (res) {
+                    if (!res.success) {
+                        alert("Error: " + res.message);
+                        return;
+                    }
+
+                    // Fill modal fields
+                    $("#clientProfileName").text(res.name);
+                    $("#clientProfileEmail").text(res.email || "No email");
+                    $("#clientProfilePhone").text(res.phone || "No phone");
+                    $(".profile-container img").attr("src", res.profilePhoto);
+
+                    // Show modal
+                    $("#clientProfileModal").modal("show");
+                },
+                error: function () {
+                    alert("Failed to load client profile.");
+                }
+            });
+        });
+    </script>
+
 }
 
 <div class="messages-layout">
@@ -753,11 +851,6 @@
         <div class="conversations-header">
             <h1 class="conversations-title">Messages</h1>
             <p class="conversations-subtitle">Connect with your clients</p>
-        </div>
-
-        <div class="search-container">
-            <span class="search-icon material-symbols-rounded">search</span>
-            <input type="text" class="search-input" placeholder="Search conversations..." />
         </div>
 
         <!-- Matches Section -->
@@ -838,9 +931,16 @@
             <div class="chat-header">
                 <div class="chat-user-info">
                     <img src="@chatPhoto" class="chat-avatar" alt="@Model.ActiveChat.ClientName" />
+
                     <div class="chat-user-details">
-                        <h3>@Model.ActiveChat.ClientName</h3>
-                        <div class="chat-user-status">Online</div>
+                        <h3>
+                            <a href="javascript:void(0);"
+                               id="openClientProfile"
+                               data-client-id="@Model.ActiveChat.ClientId"
+                               class="client-name-link">
+                                @Model.ActiveChat.ClientName
+                            </a>
+                        </h3>
                     </div>
                 </div>
             </div>
@@ -902,5 +1002,36 @@
                 </div>
             </div>
         }
+    </div>
+</div>
+
+<!-- Client Profile Modal -->
+<div class="modal fade" id="clientProfileModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user"></i>
+                    Client Profile
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="profile-container">
+                    <div class="profile-main-card p-3">
+                        <div class="profile-info d-flex align-items-center gap-3 mb-3">
+                            <div class="avatar">
+                                <img src="~/images/profile.jpg" alt="Avatar" style="width:64px;height:64px;border-radius:50%;">
+                            </div>
+                            <div class="user-details">
+                                <h3 id="clientProfileName" class="client-name mb-1 fw-bold"></h3>
+                                <div id="clientProfileEmail" class="text-muted"></div>
+                                <div id="clientProfilePhone" class="text-muted"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>

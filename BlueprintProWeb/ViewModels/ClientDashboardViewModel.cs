@@ -10,6 +10,8 @@ namespace BlueprintProWeb.ViewModels
         public List<MatchSummary> RecentMatches { get; set; } = new();
         public List<BlueprintPurchase> RecentPurchases { get; set; } = new();
         public ProjectOverview? CurrentProject { get; set; }
+        public List<ProjectOverview> Projects { get; set; } = new();
+
     }
 
     public class MatchSummary

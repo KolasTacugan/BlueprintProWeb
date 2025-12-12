@@ -420,88 +420,128 @@
 
     @RenderSection("Scripts", required: false)
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
+        document.addEventListener("DOMContentLoaded", async () => {
 
-            // SIDEBAR TOGGLER
-            const sidebar = document.querySelector('.sidebar');
-            const sidebarToggler = document.querySelector('.sidebar-toggler');
-
-            if (sidebar && sidebarToggler) {
-                sidebarToggler.addEventListener("click", () => {
-                    sidebar.classList.toggle("collapsed");
-                });
-            } else {
-                console.error("Sidebar or toggler not found in DOM");
+            const userId = '@User?.FindFirst("sub")?.Value';
+            if (!userId) {
+                console.warn("User not found, SignalR disabled.");
+                return;
             }
 
-            // INITIAL UNREAD MESSAGES
-            loadArchitectUnreadMessages();
-            loadArchitectNotifications();
+            // -----------------------------
+            // 1. NOTIFICATION HUB
+            // -----------------------------
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/notificationHub")
+                .withAutomaticReconnect()
+                .build();
+
+            // NotificationHub EVENTS
+            connection.on("ReceiveNotification", () => {
+                console.log("Notification received!");
+                loadArchitectNotifications();
+            });
+
+            await connection.start()
+                .then(() => console.log("NotificationHub connected"))
+                .catch(err => console.error("NotificationHub error:", err));
+
+
+            // -----------------------------
+            // 2. CHAT HUB
+            // -----------------------------
+            const chatConnection = new signalR.HubConnectionBuilder()
+                .withUrl(`/chatHub?clientId=${userId}`)
+                .withAutomaticReconnect()
+                .build();
+
+            // ChatHub EVENTS
+            chatConnection.on("ReceiveMessage", () => {
+                console.log("Chat message received!");
+                loadArchitectUnreadMessages();
+            });
+
+            chatConnection.on("ReceiveMessageUpdate", () => {
+                console.log("Chat message UPDATED!");
+                loadArchitectUnreadMessages();
+            });
+
+            chatConnection.on("UpdateUnreadMessagesCount", () => {
+                console.log("Unread count updated!");
+                loadArchitectUnreadMessages();
+            });
+
+            await chatConnection.start()
+                .then(() => console.log("ChatHub connected"))
+                .catch(err => console.error("ChatHub error:", err));
+
         });
 
-        async function loadArchitectUnreadMessages() {
-            try {
-                const res = await fetch('/ArchitectInterface/GetUnreadMessagesCount');
-                const count = await res.json();
-
-                const msgBadge = document.getElementById("msgBadgeArchitect");
-
-                if (count > 0) {
-                    msgBadge.innerText = count;
-                    msgBadge.classList.remove("d-none");
-                } else {
-                    msgBadge.classList.add("d-none");
-                }
-            } catch (err) {
-                console.error("Error loading unread messages:", err);
-            }
-        }
-
+        // -----------------------------
+        // 3. LOAD FUNCTIONS
+        // -----------------------------
         async function loadArchitectNotifications() {
             try {
-                const notifBadge = document.getElementById('notifBadge');
-                const unread = document.querySelectorAll(
-                    '.list-group-item:not([style*="opacity: 0.6"])'
-                ).length;
+                const res = await fetch('/ArchitectInterface/GetUnreadNotificationsCount');
+                const unread = await res.json();
+                const notifBadge = document.getElementById("notifBadge");
 
-                unread > 0
-                    ? notifBadge.classList.remove('d-none')
-                    : notifBadge.classList.add('d-none');
-
+                if (unread > 0) {
+                    notifBadge.innerText = unread;
+                    notifBadge.classList.remove("d-none");
+                } else {
+                    notifBadge.classList.add("d-none");
+                }
             } catch (err) {
                 console.error("Error loading notifications:", err);
             }
         }
 
-        // REAL TIME SCRIPTS
+        async function loadArchitectUnreadMessages() {
+            try {
+                const res = await fetch('/ArchitectInterface/GetUnreadMessagesCount');
+                const unread = await res.json();
+                const msgBadge = document.getElementById("msgBadgeArchitect");
+
+                if (unread > 0) {
+                    msgBadge.innerText = unread;
+                    msgBadge.classList.remove("d-none");
+                } else {
+                    msgBadge.classList.add("d-none");
+                }
+            } catch (err) {
+                console.error("Error loading message badges:", err);
+            }
+        }
+
+        // -----------------------------
+        // 4. DOM READY
+        // -----------------------------
         document.addEventListener("DOMContentLoaded", async () => {
 
-            const userId = '@User?.FindFirst("sub")?.Value';   // FIXED ✔
+            // Sidebar toggler
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarToggler = document.querySelector('.sidebar-toggler');
+            if (sidebar && sidebarToggler) {
+                sidebarToggler.addEventListener("click", () => {
+                    sidebar.classList.toggle("collapsed");
+                });
+            }
 
-            if (!userId) return;
-
-            const connection = new signalR.HubConnectionBuilder()
-                .withUrl("/notificationHub")
-                .build();
-
-            connection.on("ReceiveNotification", () => {
-                const notifBadge = document.getElementById("notifBadge");
-                notifBadge.classList.remove("d-none");
-                loadArchitectNotifications();
-            });
-
-            connection.on("ReceiveMessage", () => {
-                const msgBadge = document.getElementById("msgBadgeArchitect");
-                msgBadge.classList.remove("d-none");
-                loadArchitectUnreadMessages();
-            });
-
-            await connection.start().catch(err => console.error(err));
-
+            // Initial load
             loadArchitectUnreadMessages();
             loadArchitectNotifications();
+
+            // -----------------------------
+            // 5. START SIGNALR CONNECTION
+            // -----------------------------
+            try {
+                await connection.start();
+                console.log("SignalR Connected", connection.connectionId);
+            } catch (err) {
+                console.error("SignalR connection error:", err);
+            }
         });
     </script>
-
 </body>
 </html></html>

@@ -1,4 +1,4 @@
-@model BlueprintProWeb.ViewModels.ArchitectDashboardViewModel
+﻿@model BlueprintProWeb.ViewModels.ArchitectDashboardViewModel
 @{
     ViewData["Title"] = "ArchitectDashboard";
     Layout = "~/Views/Shared/_ArchitectSharedLayout.cshtml";
@@ -80,24 +80,24 @@
             transition: all 0.2s ease;
         }
 
-        .stat-card:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            transform: translateY(-2px);
-        }
+            .stat-card:hover {
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                transform: translateY(-2px);
+            }
 
-        .stat-card .stat-value {
-            color: #344EAD;
-            font-size: 2.25rem; /* Match Client Dashboard font size */
-            font-weight: 700;
-            margin-bottom: 0.25rem;
-            line-height: 1;
-        }
+            .stat-card .stat-value {
+                color: #344EAD;
+                font-size: 2.25rem; /* Match Client Dashboard font size */
+                font-weight: 700;
+                margin-bottom: 0.25rem;
+                line-height: 1;
+            }
 
-        .stat-card .stat-label {
-            color: #1a202c; /* Much darker text */
-            font-size: 0.9rem; /* Slightly smaller */
-            font-weight: 600;
-        }
+            .stat-card .stat-label {
+                color: #1a202c; /* Much darker text */
+                font-size: 0.9rem; /* Slightly smaller */
+                font-weight: 600;
+            }
 
         /* Second row - matches and blueprint card side by side with gap */
         .dashboard-content-row {
@@ -161,13 +161,13 @@
             letter-spacing: 0.5px;
         }
 
-        .matches-link:hover {
-            background: linear-gradient(135deg, #2563EB 0%, #1d4ed8 100%);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(52, 78, 173, 0.3);
-            color: white;
-            text-decoration: none;
-        }
+            .matches-link:hover {
+                background: linear-gradient(135deg, #2563EB 0%, #1d4ed8 100%);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 8px rgba(52, 78, 173, 0.3);
+                color: white;
+                text-decoration: none;
+            }
 
         .matches-table {
             width: 100%;
@@ -177,41 +177,41 @@
             flex: 1;
         }
 
-        .matches-table th {
-            background: #F1F7F9;
-            color: #1a202c; /* Much darker text */
-            font-weight: 600;
-            font-size: 0.8rem; /* Smaller text */
-            border: none;
-            padding: 0.75rem 1rem; /* Reduced padding */
-            text-align: left;
-        }
+            .matches-table th {
+                background: #F1F7F9;
+                color: #1a202c; /* Much darker text */
+                font-weight: 600;
+                font-size: 0.8rem; /* Smaller text */
+                border: none;
+                padding: 0.75rem 1rem; /* Reduced padding */
+                text-align: left;
+            }
 
-        /* Adjust column widths for better layout */
-        .matches-table th:first-child,
-        .matches-table td:first-child {
-            width: 35%; /* Client Name column */
-        }
+                /* Adjust column widths for better layout */
+                .matches-table th:first-child,
+                .matches-table td:first-child {
+                    width: 35%; /* Client Name column */
+                }
 
-        .matches-table th:nth-child(2),
-        .matches-table td:nth-child(2) {
-            width: 30%; /* Looking for column */
-        }
+                .matches-table th:nth-child(2),
+                .matches-table td:nth-child(2) {
+                    width: 30%; /* Looking for column */
+                }
 
-        .matches-table th:last-child,
-        .matches-table td:last-child {
-            width: 35%; /* Message column - wider */
-            text-align: center;
-            padding: 0.75rem 1rem;
-        }
+                .matches-table th:last-child,
+                .matches-table td:last-child {
+                    width: 35%; /* Message column - wider */
+                    text-align: center;
+                    padding: 0.75rem 1rem;
+                }
 
-        .matches-table td {
-            background: #F1F7F9;
-            color: #2d3748; /* Darker text */
-            font-size: 0.8rem; /* Smaller text */
-            border: none;
-            padding: 0.75rem 1rem; /* Reduced padding */
-        }
+            .matches-table td {
+                background: #F1F7F9;
+                color: #2d3748; /* Darker text */
+                font-size: 0.8rem; /* Smaller text */
+                border: none;
+                padding: 0.75rem 1rem; /* Reduced padding */
+            }
 
         /* Clickable client name styling */
         .client-name-link {
@@ -223,11 +223,11 @@
             padding: 0.2rem 0.4rem;
         }
 
-        .client-name-link:hover {
-            background: rgba(52, 78, 173, 0.1);
-            color: #2563EB;
-            text-decoration: none;
-        }
+            .client-name-link:hover {
+                background: rgba(52, 78, 173, 0.1);
+                color: #2563EB;
+                text-decoration: none;
+            }
 
         .dashboard-blueprints {
             background: #FFFFFF;
@@ -286,13 +286,13 @@
             letter-spacing: 0.5px;
         }
 
-        .blueprint-link:hover {
-            background: linear-gradient(135deg, #2563EB 0%, #1d4ed8 100%);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(52, 78, 173, 0.3);
-            color: white;
-            text-decoration: none;
-        }
+            .blueprint-link:hover {
+                background: linear-gradient(135deg, #2563EB 0%, #1d4ed8 100%);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 8px rgba(52, 78, 173, 0.3);
+                color: white;
+                text-decoration: none;
+            }
 
         .blueprint-content {
             color: #4a5568; /* Darker text */
@@ -325,10 +325,44 @@
             width: 100%;
         }
 
-        .blueprint-name-link:hover {
-            color: #344EAD;
-            text-decoration: none;
-            transform: translateX(2px);
+            .blueprint-name-link:hover {
+                color: #344EAD;
+                text-decoration: none;
+                transform: translateX(2px);
+            }
+
+        /* Uploaded Blueprints Modal Styles */
+        .uploaded-blueprint-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .uploaded-blueprint-item:last-child {
+            border-bottom: none;
+        }
+
+        .uploaded-blueprint-item img {
+            width: 80px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-right: 1rem;
+            border: 2px solid rgba(52, 78, 173, 0.1);
+        }
+
+        .blueprint-info h5 {
+            margin: 0;
+            font-size: 1rem;
+            color: #1a202c;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .blueprint-info p {
+            margin: 0.25rem 0;
+            font-size: 0.9rem;
+            color: #64748b;
         }
 
         /* Project Overview section */
@@ -391,9 +425,9 @@
             transition: all 0.2s ease;
         }
 
-        .nav-btn:hover {
-            background: #E2E8F0;
-        }
+            .nav-btn:hover {
+                background: #E2E8F0;
+            }
 
         .project-progress {
             flex: 1;
@@ -439,11 +473,11 @@
             margin-bottom: 0.75rem; /* Reduced spacing */
         }
 
-        .circle-chart text {
-            font-size: 0.9rem; /* Smaller text */
-            font-weight: 700;
-            fill: #1a202c; /* Much darker text */
-        }
+            .circle-chart text {
+                font-size: 0.9rem; /* Smaller text */
+                font-weight: 700;
+                fill: #1a202c; /* Much darker text */
+            }
 
         .circle-label {
             color: #2d3748; /* Darker text */
@@ -508,11 +542,11 @@
             transition: all 0.2s ease;
         }
 
-        .project-detail-item:hover {
-            background: #F1F7F9;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
+            .project-detail-item:hover {
+                background: #F1F7F9;
+                transform: translateY(-1px);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            }
 
         .detail-icon {
             width: 36px;
@@ -613,12 +647,12 @@
             box-shadow: 0 2px 8px rgba(52, 78, 173, 0.2);
         }
 
-        .primary-action:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(52, 78, 173, 0.3);
-            color: white;
-            text-decoration: none;
-        }
+            .primary-action:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(52, 78, 173, 0.3);
+                color: white;
+                text-decoration: none;
+            }
 
         .secondary-action {
             background: #F8FAFC;
@@ -626,13 +660,13 @@
             border: 2px solid #E2E8F0;
         }
 
-        .secondary-action:hover {
-            background: #F1F7F9;
-            border-color: #344EAD;
-            transform: translateY(-1px);
-            color: #344EAD;
-            text-decoration: none;
-        }
+            .secondary-action:hover {
+                background: #F1F7F9;
+                border-color: #344EAD;
+                transform: translateY(-1px);
+                color: #344EAD;
+                text-decoration: none;
+            }
 
         /* Message icon styling */
         .message-icon-btn {
@@ -651,12 +685,12 @@
             text-decoration: none;
         }
 
-        .message-icon-btn:hover {
-            background: #344EAD;
-            color: white;
-            transform: scale(1.05);
-            text-decoration: none;
-        }
+            .message-icon-btn:hover {
+                background: #344EAD;
+                color: white;
+                transform: scale(1.05);
+                text-decoration: none;
+            }
 
         /* Responsive adjustments */
         @@media (max-width: 1200px) {
@@ -689,16 +723,16 @@
                 height: 100px;
             }
 
-            .phase-circle circle {
-                r: 38;
-                cx: 50;
-                cy: 50;
-            }
+                .phase-circle circle {
+                    r: 38;
+                    cx: 50;
+                    cy: 50;
+                }
 
-            .phase-circle text {
-                x: 50;
-                y: 55;
-            }
+                .phase-circle text {
+                    x: 50;
+                    y: 55;
+                }
 
             .project-details-section {
                 grid-template-columns: 1fr;
@@ -740,17 +774,17 @@
                 height: 85px;
             }
 
-            .phase-circle circle {
-                r: 32;
-                cx: 42.5;
-                cy: 42.5;
-            }
+                .phase-circle circle {
+                    r: 32;
+                    cx: 42.5;
+                    cy: 42.5;
+                }
 
-            .phase-circle text {
-                x: 42.5;
-                y: 47;
-                font-size: 0.8rem;
-            }
+                .phase-circle text {
+                    x: 42.5;
+                    y: 47;
+                    font-size: 0.8rem;
+                }
 
             .circle-chart {
                 width: 80px; /* Even smaller on mobile */
@@ -807,7 +841,7 @@
             const sidebar = document.querySelector('.sidebar');
             const sidebarToggler = document.querySelector('.sidebar-toggler');
             const mainContent = document.querySelector('main.container');
-            
+
             function adjustMainContent() {
                 if (sidebar && mainContent) {
                     if (sidebar.classList.contains('collapsed')) {
@@ -819,10 +853,10 @@
                     }
                 }
             }
-            
+
             // Adjust on page load
             adjustMainContent();
-            
+
             // Listen for sidebar toggle
             if (sidebarToggler) {
                 sidebarToggler.addEventListener('click', function() {
@@ -832,6 +866,56 @@
             }
         });
     </script>
+
+    <script>
+        // Uploaded Blueprints Modal Function
+        window.openUploadedBlueprintsModal = async function() {
+            try {
+                const res = await fetch('/ArchitectInterface/GetUploadedBlueprints');
+                if (!res.ok) throw new Error('Failed to fetch uploaded blueprints');
+
+                const blueprints = await res.json();
+
+                const container = document.getElementById('uploadedBlueprintsList');
+                container.innerHTML = '';
+
+                if (blueprints.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-folder-open"></i>
+                            </div>
+                            <div class="empty-state-title">No Uploaded Blueprints</div>
+                            <div class="empty-state-subtitle">
+                                You haven't uploaded any blueprints yet. Visit the blueprints page to add new designs.
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    blueprints.forEach(bp => {
+                        const item = document.createElement('div');
+                        item.className = 'uploaded-blueprint-item';
+                        const imageSrc = bp.image ? `/images/${bp.image}` : '/images/placeholder-blueprint.png';
+                        item.innerHTML = `
+                            <img src="${imageSrc}" alt="${bp.name}" />
+                            <div class="blueprint-info">
+                                <h5>${bp.name}</h5>
+                                <p>Style: ${bp.style || 'N/A'}</p>
+                                <p>Price: ₱${bp.price ? bp.price.toLocaleString() : 'N/A'}</p>
+                            </div>
+                        `;
+                        container.appendChild(item);
+                    });
+                }
+
+                const modal = new bootstrap.Modal(document.getElementById('uploadedBlueprintsModal'));
+                modal.show();
+            } catch (err) {
+                console.error(err);
+                alert('Failed to load uploaded blueprints.');
+            }
+        };
+    </script>
 }
 
 <div class="dashboard-greeting mb-4">
@@ -839,7 +923,7 @@
         Welcome, <span class="text-primary">@ViewData["UserFirstName"]</span>!
     </div>
     <div class="greeting-subtitle">
-        Your  zoverview�stay on top of things.
+        Your overview stay on top of things.
     </div>
 </div>
 
@@ -887,7 +971,7 @@
                         {
                             <tr>
                                 <td>
-                                    <a href="/ArchitectInterface/Messages?clientId=@match.ClientId" 
+                                    <a href="/ArchitectInterface/Messages?clientId=@match.ClientId"
                                        class="client-name-link"
                                        title="Chat with @match.ClientName">
                                         @match.ClientName
@@ -895,8 +979,8 @@
                                 </td>
                                 <td>@match.ClientNeeds</td>
                                 <td>
-                                    <a href="/ArchitectInterface/Messages?clientId=@match.ClientId" 
-                                       class="message-icon-btn" 
+                                    <a href="/ArchitectInterface/Messages?clientId=@match.ClientId"
+                                       class="message-icon-btn"
                                        title="Send message to @match.ClientName">
                                         <span class="material-symbols-rounded">chat_bubble</span>
                                     </a>
@@ -932,9 +1016,10 @@
                 @foreach (var upload in Model.RecentUploads.Take(3))
                 {
                     <div class="blueprint-item">
-                        <a href="/ArchitectInterface/ProjectTracker/@upload.BlueprintId" 
+                        <a href="javascript:void(0);" 
                            class="blueprint-name-link"
-                           title="View project details for @upload.BlueprintName">
+                           title="View uploaded blueprints"
+                           onclick="openUploadedBlueprintsModal()">
                             @upload.BlueprintName
                         </a>
                     </div>
@@ -956,108 +1041,63 @@
         </div>
         Project Overview
     </div>
-    @if (Model.CurrentProject != null)
-    {
-        <div class="overview-controls">
-            <span class="project-badge">@(Model.CurrentProject.ProjectTitle.Length > 8 ? Model.CurrentProject.ProjectTitle.Substring(0, 8) + ".." : Model.CurrentProject.ProjectTitle)</span>
-            <button class="nav-btn"><i class="fas fa-chevron-left"></i></button>
-            <button class="nav-btn"><i class="fas fa-chevron-right"></i></button>
-            <div class="project-progress">
-                <div class="project-progress-bar" style="width: @(Model.CurrentProject.ProgressPercentage)%"></div>
-            </div>
-        </div>
 
-        <div class="overview-circles">
-            <div class="overview-circle">
-                @{
-                    var reviewProgress = Model.CurrentProject.ProgressPercentage >= 33 ? 100 : 
-                                       Model.CurrentProject.ProgressPercentage < 33 && Model.CurrentProject.ProgressPercentage > 0 ? 
-                                       (Model.CurrentProject.ProgressPercentage * 100 / 33) : 0;
-                    var reviewCircumference = 2 * Math.PI * 42; // 2?r where r = 42
-                    var reviewOffset = reviewCircumference - (reviewProgress * reviewCircumference / 100);
-                }
-                <svg width="110" height="110" class="phase-circle">
-                    <defs>
-                        <linearGradient id="reviewGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#344EAD;stop-opacity:0.8" />
-                            <stop offset="100%" style="stop-color:#2563EB;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                    <circle cx="55" cy="55" r="42" fill="none" stroke="#E2E8F0" stroke-width="10"></circle>
-                    <circle cx="55" cy="55" r="42" fill="none" stroke="url(#reviewGradient)" stroke-width="10"
-                            stroke-dasharray="@reviewCircumference" stroke-dashoffset="@reviewOffset"
-                            style="transform: rotate(-90deg); transform-origin: 55px 55px; stroke-linecap: round;"
-                            class="phase-progress-indicator"></circle>
-                    <text x="55" y="60" text-anchor="middle" class="progress-text" style="font-size: 0.9rem;">@((int)reviewProgress)%</text>
-                </svg>
-                <div class="phase-label">Review</div>
-            </div>
-            
-            <div class="overview-circle">
-                @{
-                    var complianceProgress = Model.CurrentProject.ProgressPercentage >= 66 ? 100 : 
-                                           Model.CurrentProject.ProgressPercentage >= 33 && Model.CurrentProject.ProgressPercentage < 66 ? 
-                                           ((Model.CurrentProject.ProgressPercentage - 33) * 100 / 33) : 0;
-                    var complianceOffset = reviewCircumference - (complianceProgress * reviewCircumference / 100);
-                }
-                <svg width="110" height="110" class="phase-circle">
-                    <defs>
-                        <linearGradient id="complianceGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#2563EB;stop-opacity:0.8" />
-                            <stop offset="100%" style="stop-color:#344EAD;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                    <circle cx="55" cy="55" r="42" fill="none" stroke="#E2E8F0" stroke-width="10"></circle>
-                    <circle cx="55" cy="55" r="42" fill="none" stroke="url(#complianceGradient)" stroke-width="10"
-                            stroke-dasharray="@reviewCircumference" stroke-dashoffset="@complianceOffset"
-                            style="transform: rotate(-90deg); transform-origin: 55px 55px; stroke-linecap: round;"
-                            class="phase-progress-indicator"></circle>
-                    <text x="55" y="60" text-anchor="middle" class="progress-text" style="font-size: 0.9rem;">@((int)complianceProgress)%</text>
-                </svg>
-                <div class="phase-label">Compliance</div>
-            </div>
-            
-            <div class="overview-circle">
-                @{
-                    var finalizationProgress = Model.CurrentProject.ProgressPercentage >= 90 ? 100 : 
-                                             Model.CurrentProject.ProgressPercentage >= 66 && Model.CurrentProject.ProgressPercentage < 90 ? 
-                                             ((Model.CurrentProject.ProgressPercentage - 66) * 100 / 24) : 0;
-                    var finalizationOffset = reviewCircumference - (finalizationProgress * reviewCircumference / 100);
-                }
-                <svg width="110" height="110" class="phase-circle">
-                    <defs>
-                        <linearGradient id="finalizationGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#344EAD;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#2563EB;stop-opacity:0.8" />
-                        </linearGradient>
-                    </defs>
-                    <circle cx="55" cy="55" r="42" fill="none" stroke="#E2E8F0" stroke-width="10"></circle>
-                    <circle cx="55" cy="55" r="42" fill="none" stroke="url(#finalizationGradient)" stroke-width="10"
-                            stroke-dasharray="@reviewCircumference" stroke-dashoffset="@finalizationOffset"
-                            style="transform: rotate(-90deg); transform-origin: 55px 55px; stroke-linecap: round;"
-                            class="phase-progress-indicator"></circle>
-                    <text x="55" y="60" text-anchor="middle" class="progress-text" style="font-size: 0.9rem;">@((int)finalizationProgress)%</text>
-                </svg>
-                <div class="phase-label">Finalization</div>
-            </div>
-            
-            <div class="overview-circle progress-circle">
-                <svg width="120" height="120" class="circle-chart progress-chart">
-                    <defs>
-                        <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#344EAD;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#2563EB;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                    <circle cx="60" cy="60" r="50" fill="none" stroke="#E2E8F0" stroke-width="10"></circle>
-                    <circle cx="60" cy="60" r="50" fill="none" stroke="url(#progressGradient)" stroke-width="10"
-                            stroke-dasharray="314" stroke-dashoffset="@(314 - (Model.CurrentProject.ProgressPercentage * 314 / 100))"
-                            style="transform: rotate(-90deg); transform-origin: 60px 60px; stroke-linecap: round;"
-                            class="progress-indicator"></circle>
-                    <text x="60" y="65" text-anchor="middle" class="progress-text">@Model.CurrentProject.ProgressPercentage%</text>
-                </svg>
-                <div class="circle-label progress-label">Overall Progress</div>
-            </div>
+    @if (Model.AllProjects != null && Model.AllProjects.Any())
+    {
+        <div id="projectSlider">
+
+            @for (int i = 0; i < Model.AllProjects.Count; i++)
+            {
+                var proj = Model.AllProjects[i];
+
+                <div class="project-slide" data-index="@i" style="display:@(i == 0 ? "block" : "none")">
+
+                    <!-- HEADER (Title + buttons) -->
+                    <div class="project-header"
+                         style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
+
+                        <span class="project-badge">
+                            @(proj.ProjectTitle.Length > 12 ? proj.ProjectTitle.Substring(0, 12) + ".." : proj.ProjectTitle)
+                        </span>
+
+                        <div class="nav-buttons" style="display:flex; gap:0.4rem;">
+                            <button class="nav-btn nav-left"><i class="fas fa-chevron-left"></i></button>
+                            <button class="nav-btn nav-right"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- FULL WIDTH PROGRESS BAR -->
+                    <div class="project-progress" style="margin-bottom:1.5rem;">
+                        <div class="project-progress-bar" style="width:@proj.ProgressPercentage%"></div>
+                    </div>
+
+                    <!-- PROJECT PHASE / STATUS + OVERALL % -->
+                    <div class="phase-row"
+                         style="display:flex; align-items:center; justify-content:space-between;">
+
+                        <div class="phase-left">
+                            @{
+
+                                bool isFinished = proj.ProgressPercentage >= 100;
+
+                                // Architect uses Stage
+                                string label = isFinished ? "PROJECT STATUS" : "PROJECT PHASE";
+                                string value = isFinished ? "Finished" : proj.Status;
+
+                            }
+                            <div class="phase-label">@label</div>
+                            <div class="phase-value">@value</div>
+                        </div>
+
+                        <div class="phase-right" style="text-align:right;">
+                            <div class="progress-label">OVERALL PROGRESS</div>
+                            <div class="progress-value">@proj.ProgressPercentage%</div>
+                        </div>
+                    </div>
+
+                </div>
+            }
+
         </div>
     }
     else
@@ -1067,4 +1107,47 @@
             <a href="/ArchitectInterface/PendingMatches" class="btn btn-primary btn-sm">View Matches</a>
         </div>
     }
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        let current = 0;
+        const slides = document.querySelectorAll(".project-slide");
+        const total = slides.length;
+
+        function showSlide(i) {
+            slides.forEach(s => s.style.display = "none");
+            slides[i].style.display = "block";
+        }
+
+        document.addEventListener("click", (e) => {
+            if (e.target.closest(".nav-left")) {
+                current = (current - 1 + total) % total;
+                showSlide(current);
+            }
+            if (e.target.closest(".nav-right")) {
+                current = (current + 1) % total;
+                showSlide(current);
+            }
+        });
+    });
+</script>
+
+<!-- Uploaded Blueprints Modal -->
+<div class="modal fade" id="uploadedBlueprintsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    My Uploaded Blueprints
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="uploadedBlueprintsList">
+                    <!-- Blueprints will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
