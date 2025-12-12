@@ -491,7 +491,9 @@ namespace BlueprintProWeb.Controllers
                             .Where(m => m.ClientId == clientId && m.ArchitectId == x.Architect.Id)
                             .Select(m => m.MatchStatus)
                             .FirstOrDefault(),
-                    MatchDate = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss")
+                    MatchDate = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    SimilarityScore = x.Score,
+                    SimilarityPercentage = Math.Round(x.Score * 100, 1)
                 }).ToList();
 
                 return Ok(matchDtos);
@@ -1022,6 +1024,10 @@ namespace BlueprintProWeb.Controllers
 
             [JsonPropertyName("MatchDate")]
             public string? MatchDate { get; set; }
+            [JsonPropertyName("SimilarityScore")]
+            public double SimilarityScore { get; set; }
+            [JsonPropertyName("SimilarityPercentage")]
+            public double SimilarityPercentage { get; set; }
         }
     }
 }
