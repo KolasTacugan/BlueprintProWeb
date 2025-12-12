@@ -2166,6 +2166,53 @@
             updateCartDisplay();
         }
 
+                function renderBlueprintList(blueprints) {
+            const container = document.getElementById("blueprintContainer");
+            container.innerHTML = "";
+
+            blueprints.forEach(bp => {
+                const card = document.createElement("div");
+                card.className = "blueprint-item";
+                card.innerHTML = `
+                    <div class="blueprint-card"
+                         data-id="${bp.id}"
+                         data-name="${bp.name}"
+                         data-price="${bp.price}"
+                         data-style="${bp.style}"
+                         data-description="${bp.description}"
+                         data-image="${bp.image}">
+
+                        <img src="/images/${bp.image}" />
+                        <h5>${bp.name}</h5>
+                        <p>₱${formatNumber(bp.price)}</p>
+
+                        <button class="add-to-cart" data-id="${bp.id}">
+                            <i class="fas fa-cart-plus"></i> Add to Cart
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            // Re-attach events after refresh
+            document.querySelectorAll('.add-to-cart').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    e.preventDefault();
+                    const id = parseInt(btn.dataset.id);
+                    addToCart(id, 1);
+                });
+            });
+        }
+
+
+        async function fetchBlueprints() {
+            const res = await fetch("/ClientInterface/GetBlueprints");
+            const blueprints = await res.json();
+
+            renderBlueprintList(blueprints);
+        }
+
+
         async function removeFromCart(index) {
             const item = cart[index];
             if (!item) return;
@@ -2258,6 +2305,8 @@
                     cart = [];
                     updateCartDisplay();
                     showNotification("Purchase completed! Cart cleared.", 'success');
+
+                           await fetchBlueprints();
                 }
             }
         });

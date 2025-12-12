@@ -12,21 +12,11 @@ using BlueprintProWeb.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ======================================================
-// 1. ADD SERVICES
-// ======================================================
-
-// MVC + JSON settings
-builder.Services.AddControllersWithViews()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-    });
-
-// Custom services
+// Add services to the container.
+builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<ImageService>();
 
-// Swagger + JWT
+// Swagger + JWT Auth
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -81,7 +71,7 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
 
-// CORS for Android + Azure
+// CORS — required for Android mobile app + Azure
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAndroidApp", policy =>
@@ -96,13 +86,16 @@ builder.Services.AddCors(options =>
 builder.Services.AddSignalR();
 
 // Stripe
-builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+builder.Services.Configure<StripeSettings>(
+    builder.Configuration.GetSection("Stripe")
+);
 
-// OpenAI services
+// OpenAI clients
 builder.Services.AddSingleton(sp =>
 {
     var cfg = sp.GetRequiredService<IConfiguration>();
     var apiKey = cfg["OpenAI:ApiKey"];
+
     if (string.IsNullOrWhiteSpace(apiKey))
         throw new InvalidOperationException("OpenAI:ApiKey not configured.");
 
@@ -112,7 +105,9 @@ builder.Services.AddSingleton(sp =>
 builder.Services.AddSingleton(sp =>
 {
     var cfg = sp.GetRequiredService<IConfiguration>();
-    return new EmbeddingClient("text-embedding-3-small", cfg["OpenAI:ApiKey"]);
+    var apiKey = cfg["OpenAI:ApiKey"];
+
+    return new EmbeddingClient("text-embedding-3-small", apiKey);
 });
 
 // ======================================================
@@ -125,42 +120,47 @@ var app = builder.Build();
 // 3. MIDDLEWARE PIPELINE
 // ======================================================
 
+// Error handling production mode
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
-// Swagger enabled on Azure + local
-app.UseSwagger();
-app.UseSwaggerUI();
 
+// HTTPS + static files
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
 
-// CORS for Android App
+// CORS for Android app
 app.UseCors("AllowAndroidApp");
 
+// Auth
 app.UseAuthentication();
 app.UseAuthorization();
 
 // ======================================================
-// 4. ROUTES
+// 4. ENDPOINT ROUTES
 // ======================================================
 
+// MVC default route
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}"
 );
 
-// API Controllers
+// API controllers
 app.MapControllers();
 
-// SignalR Hubs
+// SignalR
 app.MapHub<ChatHub>("/chatHub");
-app.MapHub<NotificationHub>("/notificationHub");
 
 // ======================================================
 app.Run();
