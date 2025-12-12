@@ -56,7 +56,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
 
             // Total Matches - count all matches where this user is the architect
             var totalMatches = await context.Matches
-                .CountAsync(m => m.ArchitectId == userId);
+                .CountAsync(m => m.ArchitectId == userId&& m.MatchStatus == "Approved");
 
             // Total Uploads - count blueprints uploaded by this architect
             var totalUploads = await context.Blueprints
@@ -68,7 +68,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
 
             // Recent matches (last 5)
             var recentMatches = await context.Matches
-                .Where(m => m.ArchitectId == userId)
+                .Where(m => m.ArchitectId == userId && m.MatchStatus == "Approved")
                 .Include(m => m.Client)
                 .OrderByDescending(m => m.MatchDate)
                 .Take(5)
