@@ -455,7 +455,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
              })
             .Where(x => x.Score != double.MinValue)
             .OrderByDescending(x => x.Score)
-            .Take(10)
+            .Take(25)
             .Select(x => new MatchViewModel
             {
                 MatchId = null,
@@ -480,7 +480,10 @@ namespace BlueprintProWeb.Controllers.ClientSide
 
                 // 🟦 NEW: Add rating info (no DB structure changed)
                 TotalRatings = x.Architect.user_Rating ?? 0.0,
-                RatingCount = context.Projects.Count(p => p.user_architectId == x.Architect.Id && p.project_clientHasRated == true)
+                RatingCount = context.Projects.Count(p => p.user_architectId == x.Architect.Id && p.project_clientHasRated == true),
+
+                SimilarityScore = x.Score,
+                SimilarityPercentage = Math.Round(x.Score * 100, 1)
             })
             .ToList();
 

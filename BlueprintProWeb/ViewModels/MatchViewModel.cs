@@ -28,5 +28,9 @@
         public double AverageRating { get; set; }
         public string? RealMatchStatus { get; set; }
 
+        public double SimilarityScore { get; set; }
+        public double SimilarityPercentage { get; set; }
+
+
     }
 }
