@@ -986,6 +986,27 @@
                             }
                         </div>
                     }
+                    <div style="margin-top: 15px;">
+                        @if (Model.Role == "Architect")
+                        {
+                            <span>Need help? Download the guide: </span>
+                            <a href="~/uploads/ARCHITECT USER GUIDE.pdf"
+                               download
+                               style="color:#0D3C80; text-decoration: underline;">
+                                Architect User Guide
+                            </a>
+                        }
+                        else
+                        {
+                            <span>Need help? Download the guide: </span>
+                            <a href="~/uploads/CLIENT USER GUIDE.pdf"
+                               download
+                               style="color:#0D3C80; text-decoration: underline;">
+                                Client User Guide
+                            </a>
+                        }
+                    </div>
+
                 </div>
             </div>
             <div class="action-buttons">
