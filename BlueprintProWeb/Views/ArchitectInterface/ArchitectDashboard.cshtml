@@ -331,6 +331,40 @@
                 transform: translateX(2px);
             }
 
+        /* Uploaded Blueprints Modal Styles */
+        .uploaded-blueprint-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .uploaded-blueprint-item:last-child {
+            border-bottom: none;
+        }
+
+        .uploaded-blueprint-item img {
+            width: 80px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-right: 1rem;
+            border: 2px solid rgba(52, 78, 173, 0.1);
+        }
+
+        .blueprint-info h5 {
+            margin: 0;
+            font-size: 1rem;
+            color: #1a202c;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .blueprint-info p {
+            margin: 0.25rem 0;
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
         /* Project Overview section */
         .dashboard-overview {
             background: #FFFFFF;
@@ -832,6 +866,56 @@
             }
         });
     </script>
+
+    <script>
+        // Uploaded Blueprints Modal Function
+        window.openUploadedBlueprintsModal = async function() {
+            try {
+                const res = await fetch('/ArchitectInterface/GetUploadedBlueprints');
+                if (!res.ok) throw new Error('Failed to fetch uploaded blueprints');
+
+                const blueprints = await res.json();
+
+                const container = document.getElementById('uploadedBlueprintsList');
+                container.innerHTML = '';
+
+                if (blueprints.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-folder-open"></i>
+                            </div>
+                            <div class="empty-state-title">No Uploaded Blueprints</div>
+                            <div class="empty-state-subtitle">
+                                You haven't uploaded any blueprints yet. Visit the blueprints page to add new designs.
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    blueprints.forEach(bp => {
+                        const item = document.createElement('div');
+                        item.className = 'uploaded-blueprint-item';
+                        const imageSrc = bp.image ? `/images/${bp.image}` : '/images/placeholder-blueprint.png';
+                        item.innerHTML = `
+                            <img src="${imageSrc}" alt="${bp.name}" />
+                            <div class="blueprint-info">
+                                <h5>${bp.name}</h5>
+                                <p>Style: ${bp.style || 'N/A'}</p>
+                                <p>Price: ₱${bp.price ? bp.price.toLocaleString() : 'N/A'}</p>
+                            </div>
+                        `;
+                        container.appendChild(item);
+                    });
+                }
+
+                const modal = new bootstrap.Modal(document.getElementById('uploadedBlueprintsModal'));
+                modal.show();
+            } catch (err) {
+                console.error(err);
+                alert('Failed to load uploaded blueprints.');
+            }
+        };
+    </script>
 }
 
 <div class="dashboard-greeting mb-4">
@@ -932,9 +1016,10 @@
                 @foreach (var upload in Model.RecentUploads.Take(3))
                 {
                     <div class="blueprint-item">
-                        <a href="/ArchitectInterface/ProjectTracker/@upload.BlueprintId"
+                        <a href="javascript:void(0);" 
                            class="blueprint-name-link"
-                           title="View project details for @upload.BlueprintName">
+                           title="View uploaded blueprints"
+                           onclick="openUploadedBlueprintsModal()">
                             @upload.BlueprintName
                         </a>
                     </div>
@@ -1047,3 +1132,22 @@
         });
     });
 </script>
+
+<!-- Uploaded Blueprints Modal -->
+<div class="modal fade" id="uploadedBlueprintsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    My Uploaded Blueprints
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="uploadedBlueprintsList">
+                    <!-- Blueprints will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

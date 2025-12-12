@@ -920,5 +920,25 @@ namespace BlueprintProWeb.Controllers.ClientSide
 
             return Json(new { success = true, message = "✅ Match request sent successfully." });
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetPurchasedBlueprints()
+        {
+            var user = await userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            var purchased = await context.Blueprints
+                .Where(bp => bp.clentId == user.Id && !bp.blueprintIsForSale)
+                .Select(bp => new {
+                    id = bp.blueprintId,
+                    name = bp.blueprintName,
+                    image = bp.blueprintImage,
+                    price = bp.blueprintPrice,
+                    style = bp.blueprintStyle
+                })
+                .ToListAsync();
+
+            return Json(purchased);
+        }
     }
 }

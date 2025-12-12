@@ -1353,5 +1353,24 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             return RedirectToAction("Projects");
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetUploadedBlueprints()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            var uploaded = await context.Blueprints
+                .Where(bp => bp.architectId == user.Id)
+                .Select(bp => new {
+                    id = bp.blueprintId,
+                    name = bp.blueprintName,
+                    image = bp.blueprintImage,
+                    price = bp.blueprintPrice,
+                    style = bp.blueprintStyle
+                })
+                .ToListAsync();
+
+            return Json(uploaded);
+        }
     }
 }

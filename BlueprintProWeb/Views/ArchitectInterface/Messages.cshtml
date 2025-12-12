@@ -745,6 +745,15 @@
                     // Allow Shift+Enter for line breaks
                 });
             }
+
+            // Scroll matches grid on chevron click
+            const scrollChevron = document.querySelector('.scroll-chevron');
+            const matchesGrid = document.querySelector('.matches-grid');
+            if (scrollChevron && matchesGrid) {
+                scrollChevron.addEventListener('click', () => {
+                    matchesGrid.scrollBy({ left: 200, behavior: 'smooth' });
+                });
+            }
         });
     </script>
 
