@@ -16,6 +16,7 @@ using Stripe;
 using Stripe.Checkout;
 using System.Globalization;
 using System.Text.Json.Serialization;
+using static BlueprintProWeb.Controllers.ClientSide.ClientInterfaceController;
 
 namespace BlueprintProWeb.Controllers
 {
@@ -429,80 +430,168 @@ namespace BlueprintProWeb.Controllers
         }
 
         // -------------------- MATCHING --------------------
-        
+
         [HttpGet("Matches")]
-        [AllowAnonymous] // or require auth if you prefer
-        public async Task<IActionResult> GetMatches([FromQuery] string clientId, [FromQuery] string? query)
+        [AllowAnonymous]
+        public async Task<IActionResult> GetMatches(
+    [FromQuery] string clientId,
+    [FromQuery] string? query)
         {
             try
             {
-                string searchQuery = string.IsNullOrWhiteSpace(query) ? "General search" : query;
+                // 🔹 Step 1: Get client (optional)
+                var client = string.IsNullOrEmpty(clientId)
+                    ? null
+                    : await context.Users.FindAsync(clientId);
 
-                // Expand query with GPT
-                var chatClient = _openAi.GetChatClient("gpt-5-mini");
-                var messages = new List<ChatMessage>
+                // 🔹 Step 2: Default query (same logic as web)
+                string searchQuery = query;
+
+                if (string.IsNullOrWhiteSpace(searchQuery))
                 {
-                    new SystemChatMessage("You are an assistant that rewrites client needs into a natural request for an architect."),
-                    new UserChatMessage($"User request: {searchQuery}. Expand into 2–3 descriptive sentences.")
-                };
-                var gptResponse = await chatClient.CompleteChatAsync(messages);
-                var expansion = gptResponse.Value.Content[0].Text;
+                    searchQuery = client == null
+                        ? "General architectural project"
+                        : $"Style: {client.user_Style}, Location: {client.user_Location}, Budget: {client.user_Budget}";
+                }
+
+                // 🔹 Step 3: Expand query ONCE
+                var chatClient = _openAi.GetChatClient("gpt-5-mini");
+
+                var messages = new List<ChatMessage>
+        {
+            new SystemChatMessage("You rewrite client needs into a clear architectural request."),
+            new UserChatMessage($"User request: {searchQuery}. Expand into 2–3 descriptive sentences.")
+        };
+
+                var response = await chatClient.CompleteChatAsync(messages);
+                var expansion = response.Value.Content[0].Text;
+
                 var finalQuery = $"{searchQuery}. Expanded: {expansion}";
 
-                // Generate embeddings
+                // 🔹 Step 4: Embedding
                 var embeddingResponse = await _embeddingClient.GenerateEmbeddingAsync(finalQuery);
                 var queryVector = embeddingResponse.Value.ToFloats().ToArray();
 
-                // Filter to architects with embeddings
+                // 🔹 Step 5: Architects with embeddings
                 var architects = await context.Users
-                    .Where(u => u.user_role == "Architect" && !string.IsNullOrEmpty(u.PortfolioEmbedding))
+                    .Where(u => u.user_role == "Architect" &&
+                                !string.IsNullOrEmpty(u.PortfolioEmbedding))
                     .ToListAsync();
 
-                // Rank by cosine similarity
-                var ranked = architects
+                // 🔹 Step 6: Rank & map to DTO (JSON-safe)
+                var results = architects
                     .Select(a =>
                     {
                         var vecA = ParseEmbedding(a.PortfolioEmbedding);
                         if (vecA == null || vecA.Length != queryVector.Length)
-                            return (Architect: a, Score: double.MinValue);
+                            return null;
 
                         var score = CosineSimilarity(queryVector, vecA);
                         if (a.IsPro) score += 0.05;
-                        return (Architect: a, Score: score);
+
+                        return new MatchDto
+                        {
+                            MatchId = null,
+                            ClientId = clientId,
+
+                            ArchitectId = a.Id,
+                            ArchitectName = $"{a.user_fname} {a.user_lname}",
+                            ArchitectStyle = a.user_Style,
+                            ArchitectLocation = a.user_Location,
+                            ArchitectBudget = a.user_Budget,
+
+                            MatchStatus = a.IsPro
+                                ? "AI + Portfolio Match (Pro)"
+                                : "AI + Portfolio Match",
+
+                            RealMatchStatus = string.IsNullOrEmpty(clientId)
+                                ? null
+                                : context.Matches
+                                    .Where(m => m.ClientId == clientId && m.ArchitectId == a.Id)
+                                    .Select(m => m.MatchStatus)
+                                    .FirstOrDefault(),
+
+                            MatchDate = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss"),
+
+                            SimilarityScore = score,
+                            SimilarityPercentage = Math.Round(score * 100, 1),
+
+                            // 🔹 Lazy-loaded via ExplainMatch
+                            MatchExplanation = null
+                        };
                     })
-                    .Where(x => x.Score != double.MinValue)
-                    .OrderByDescending(x => x.Score)
-                    .Take(10)
+                    .Where(x => x != null)
+                    .OrderByDescending(x => x!.SimilarityScore)
+                    .Take(25)
                     .ToList();
 
-                // Map to DTO
-                var matchDtos = ranked.Select(x => new MatchDto
-                {
-                    MatchId = Guid.NewGuid().ToString(),
-                    ArchitectId = x.Architect.Id,
-                    ArchitectName = $"{x.Architect.user_fname} {x.Architect.user_lname}",
-                    ArchitectStyle = x.Architect.user_Style,
-                    ArchitectLocation = x.Architect.user_Location,
-                    ArchitectBudget = x.Architect.user_Budget,
-                    MatchStatus = x.Architect.IsPro ? "AI + Portfolio Match (Pro)" : "AI + Portfolio Match",
-                    RealMatchStatus = string.IsNullOrEmpty(clientId)
-                        ? null
-                        : context.Matches
-                            .Where(m => m.ClientId == clientId && m.ArchitectId == x.Architect.Id)
-                            .Select(m => m.MatchStatus)
-                            .FirstOrDefault(),
-                    MatchDate = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss"),
-                    SimilarityScore = x.Score,
-                    SimilarityPercentage = Math.Round(x.Score * 100, 1)
-                }).ToList();
-
-                return Ok(matchDtos);
+                return Ok(results); // ✅ ALWAYS JSON
             }
             catch (Exception ex)
             {
-                return BadRequest(new { success = false, message = ex.Message });
+                return BadRequest(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
             }
         }
+
+        [HttpPost("ExplainMatch")]
+        public async Task<IActionResult> ExplainMatch([FromBody] ExplainMatchRequest request)
+        {
+            var architect = await context.Users.FindAsync(request.ArchitectId);
+            if (architect == null)
+                return NotFound();
+
+            var explanation = await GenerateMatchExplanation(
+                request.Query,
+                architect
+            );
+
+            return Ok(new { explanation });
+        }
+
+        private async Task<string> GenerateMatchExplanation(
+    string clientQuery,
+    User architect)
+        {
+            var chatClient = _openAi.GetChatClient("gpt-5-mini");
+
+            var messages = new List<ChatMessage>
+    {
+        new SystemChatMessage(
+                "You are explaining to a client why a recommended architect fits THEIR request.\n" +
+                "The architect was already selected by an AI similarity system.\n" +
+                "Speak to the client in second person (use \"you\" / \"your\"), as a platform explaining the recommendation.\n" +
+                "Base the reasoning on evidence found in the architect's portfolio text, but NEVER mention the portfolio or the architect explicitly.\n" +
+                "Explain how the client's needs are supported or reflected, not what the architect has.\n" +
+                "Do NOT list credentials.\n" +
+                "Do NOT describe the architect.\n" +
+                "Do NOT say you are analyzing or matching.\n" +
+                "Use simple, client-friendly language.\n" +
+                "Maximum 2 sentences."
+        ),
+
+        new UserChatMessage($@"
+                Client request:
+                {clientQuery}
+
+                Reference material (internal):
+                {architect.PortfolioText}
+
+                Explain why this recommendation fits the client's request.
+                ")
+            };
+
+            var response = await chatClient.CompleteChatAsync(messages);
+
+            // ✅ Safety fallback (important for mobile)
+            return response.Value.Content.Count > 0
+                ? response.Value.Content[0].Text.Trim()
+                : "This recommendation aligns well with your project needs and preferences.";
+        }
+
 
 
         // -------------------- SEND MATCH REQUEST --------------------
@@ -1028,6 +1117,10 @@ namespace BlueprintProWeb.Controllers
             public double SimilarityScore { get; set; }
             [JsonPropertyName("SimilarityPercentage")]
             public double SimilarityPercentage { get; set; }
+
+            [JsonPropertyName("MatchExplanation")]
+            public string? MatchExplanation { get; set; }
+            
         }
     }
 }
