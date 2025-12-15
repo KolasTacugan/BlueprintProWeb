@@ -1,23 +1,321 @@
 ﻿@{
     ViewData["Title"] = "Choose Account Type";
-    Layout = "~/Views/Shared/_AccountLayout.cshtml";
+    Layout = null;
 }
 
-<div class="account-container">
-    <div class="account-box text-center">
-        <h2 class="mb-4">Choose Your Account Type</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - BlueprintPro</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <style>
+        * {
+            font-family: 'Raleway', sans-serif;
+        }
 
-        <div class="d-grid gap-3">
-            <a asp-controller="Account" asp-action="Register" asp-route-role="Client" class="btn btn-outline-success p-3">
-                I'm a Client
-            </a>
-            <a asp-controller="Account" asp-action="Register" asp-route-role="Architect" class="btn btn-outline-primary p-3">
-                I'm an Architect
-            </a>
+        body {
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            box-sizing: border-box;
+        }
+
+        .choose-role-container {
+            display: flex;
+            min-height: calc(100vh - 40px);
+            width: 100%;
+            background: white;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(13, 60, 128, 0.15);
+            position: relative;
+        }
+
+        .choose-role-left {
+            flex: 1;
+            position: relative;
+            background: url("/images/bldg_img_1") center/cover no-repeat;
+            overflow: hidden;
+            clip-path: polygon(0 0, 85% 0, 70% 100%, 0 100%);
+        }
+
+        .choose-role-right {
+            flex: 1;
+            background: #fff;
+            margin-left: -10%;
+            padding-left: 15%;
+            padding: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .choose-role-content {
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            margin: 0 auto;
+        }
+
+        .choose-role-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #091635;
+            margin-bottom: 0.5rem;
+        }
+
+        .choose-role-subtitle {
+            color: #6c757d;
+            font-weight: 500;
+            font-size: 1.1rem;
+            margin-bottom: 3rem;
+        }
+
+        .role-buttons {
+            display: grid;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .role-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            padding: 1.5rem 2rem;
+            border: 2px solid rgba(13, 60, 128, 0.2);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #0D3C80;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .role-btn::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(135deg, #0D3C80 0%, #071744 100%);
+                transition: left 0.3s ease;
+                z-index: 0;
+            }
+
+            .role-btn span, .role-btn i {
+                position: relative;
+                z-index: 1;
+                transition: color 0.3s ease;
+            }
+
+            .role-btn i {
+                font-size: 1.5rem;
+            }
+
+            .role-btn:hover {
+                border-color: #0D3C80;
+                color: white;
+                text-decoration: none;
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(13, 60, 128, 0.3);
+            }
+
+                .role-btn:hover::before {
+                    left: 0;
+                }
+
+                .role-btn:hover span,
+                .role-btn:hover i {
+                    color: white;
+                }
+
+        .client-btn {
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.05) 0%, rgba(34, 139, 58, 0.1) 100%);
+            border-color: rgba(40, 167, 69, 0.3);
+            color: #28a745;
+        }
+
+            .client-btn::before {
+                background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+            }
+
+            .client-btn:hover {
+                border-color: #28a745;
+            }
+
+        .architect-btn {
+            background: linear-gradient(135deg, rgba(13, 60, 128, 0.05) 0%, rgba(7, 23, 68, 0.1) 100%);
+            border-color: rgba(13, 60, 128, 0.3);
+            color: #0D3C80;
+        }
+
+            .architect-btn::before {
+                background: linear-gradient(135deg, #0D3C80 0%, #071744 100%);
+            }
+
+            .architect-btn:hover {
+                border-color: #0D3C80;
+            }
+
+        .back-link {
+            margin-top: 2rem;
+        }
+
+            .back-link a {
+                color: #6c757d;
+                text-decoration: none;
+                font-weight: 500;
+                font-size: 1rem;
+                transition: all 0.3s ease;
+            }
+
+                .back-link a:hover {
+                    color: #0D3C80;
+                    text-decoration: underline;
+                }
+
+        /* Role descriptions */
+        .role-description {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 0.5rem;
+            font-weight: 400;
+        }
+
+        /* Responsive Design */
+        @@media (max-width: 768px) {
+            body
+
+        {
+            padding: 10px;
+        }
+
+        .choose-role-container {
+            flex-direction: column;
+            min-height: calc(100vh - 20px);
+        }
+
+        .choose-role-left {
+            height: 30vh;
+            clip-path: polygon(0 0, 100% 0, 100% 85%, 0 95%);
+        }
+
+        .choose-role-right {
+            margin-left: 0;
+            padding-left: 2rem;
+            margin-top: -5%;
+            padding-top: 8%;
+        }
+
+        .choose-role-content {
+            max-width: 90%;
+        }
+
+        .choose-role-title {
+            font-size: 2rem;
+        }
+
+        .choose-role-subtitle {
+            font-size: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .role-btn {
+            padding: 1.25rem 1.5rem;
+            font-size: 1rem;
+        }
+
+            .role-btn i {
+                font-size: 1.25rem;
+            }
+
+        }
+
+        @@media (max-width: 480px) {
+            body
+
+        {
+            padding: 5px;
+        }
+
+        .choose-role-container {
+            border-radius: 16px;
+            min-height: calc(100vh - 10px);
+        }
+
+        .choose-role-right {
+            padding: 1rem;
+            padding-left: 1.5rem;
+        }
+
+        .choose-role-title {
+            font-size: 1.75rem;
+        }
+
+        .role-btn {
+            padding: 1rem 1.25rem;
+            font-size: 0.95rem;
+        }
+
+        }
+    </style>
+
+    <div class="choose-role-container">
+        <!-- Left Side - Display Image Only -->
+        <div class="choose-role-left">
+            <!-- Pure image display - no content overlay -->
         </div>
 
-        <div class="text-center mt-4">
-            <a asp-controller="Home" asp-action="Index" class="text-decoration-none">Back</a>
+        <!-- Right Side - Role Selection -->
+        <div class="choose-role-right">
+            <div class="choose-role-content">
+                <h2 class="choose-role-title">Choose Your Path</h2>
+                <p class="choose-role-subtitle">Select your account type to get started</p>
+
+                <div class="role-buttons">
+                    <a asp-controller="Account" asp-action="Register" asp-route-role="Client" class="role-btn client-btn">
+                        <i class="fas fa-user"></i>
+                        <div>
+                            <span>I'm a Client</span>
+                            <div class="role-description">Looking for architectural services</div>
+                        </div>
+                    </a>
+
+                    <a asp-controller="Account" asp-action="Register" asp-route-role="Architect" class="role-btn architect-btn">
+                        <i class="fas fa-drafting-compass"></i>
+                        <div>
+                            <span>I'm an Architect</span>
+                            <div class="role-description">Providing architectural services</div>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="back-link">
+                    <a asp-controller="Account" asp-action="Login">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Login
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
-</div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+</body>
+</html>

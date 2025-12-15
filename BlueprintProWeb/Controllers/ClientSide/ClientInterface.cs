@@ -958,41 +958,43 @@ namespace BlueprintProWeb.Controllers.ClientSide
 
 
         private async Task<string> GenerateMatchExplanation(
-            string clientQuery,
-            User architect)
+     string clientQuery,
+     User architect)
         {
             var chatClient = _openAi.GetChatClient("gpt-5-mini");
 
             var messages = new List<ChatMessage>
-        {
+    {
             new SystemChatMessage(
-                "You are explaining why an architect was recommended to a client.\n" +
+                "You are explaining to a client why a recommended architect fits THEIR request.\n" +
                 "The architect was already selected by an AI similarity system.\n" +
-                "Your task is ONLY to explain the reasons clearly.\n" +
-                "Do NOT say you cannot determine a match.\n" +
-                "Do NOT ask for missing information.\n" +
+                "Speak to the client in second person (use \"you\" / \"your\"), as a platform explaining the recommendation.\n" +
+                "Base the reasoning on evidence found in the architect's portfolio text, but NEVER mention the portfolio or the architect explicitly.\n" +
+                "Explain how the client's needs are supported or reflected, not what the architect has.\n" +
+                "Do NOT list credentials.\n" +
+                "Do NOT describe the architect.\n" +
+                "Do NOT say you are analyzing or matching.\n" +
                 "Use simple, client-friendly language.\n" +
-                "Maximum 2 sentences.\n" +
-                "Only reference the provided architect credentials and client request."
-            ),
+                "Maximum 2 sentences."
+        ),
 
-            new UserChatMessage($@"
-                Client request (expanded):
-                {clientQuery}
- 
-                Architect credentials:
-                Style: {architect.user_Style}
-                Location: {architect.user_Location}
-                Budget Range: {architect.user_Budget}
-                Specialization: {architect.user_Specialization}
-                Pro Account: {(architect.IsProActive ? "Yes" : "No")}
- 
-                Explain why this architect fits the client's request.
-            ")
-        };
 
-                var response = await chatClient.CompleteChatAsync(messages);
-                return response.Value.Content[0].Text.Trim();
+                new UserChatMessage($@"
+                    Client request:
+                    {clientQuery}
+
+                    Reference material (internal):
+                    {architect.PortfolioText}
+
+                    Explain why this recommendation fits the client's request.
+                    ")
+
+
+            };
+
+            var response = await chatClient.CompleteChatAsync(messages);
+            return response.Value.Content[0].Text.Trim();
         }
+
     }
 }
