@@ -833,10 +833,12 @@
                                 } else {
                                     // Show and update the link
                                     const credLink = document.getElementById("architectProfileCredentials");
+                                    const credWrapper = credLink.closest("p");
+
                                     if (
                                         data.credentialsFile &&
                                         data.credentialsFile !== "null" &&
-                                        data.credentialsFile !== "#"
+                                        data.credentialsFile.trim() !== ""
                                     ) {
                                         // Ensure absolute URL
                                         if (data.credentialsFile.startsWith("http")) {
@@ -847,10 +849,13 @@
 
                                         credLink.target = "_blank";
                                         credLink.rel = "noopener noreferrer";
-                                        credLink.closest("p").style.display = "block";
+                                        credWrapper.style.display = "block";
                                     } else {
-                                        credLink.closest("p").style.display = "none";
+                                        // 🔥 THIS is the missing part
+                                        credWrapper.style.display = "none";
+                                        credLink.removeAttribute("href");
                                     }
+
                                 }
 
                                 architectModal.show();
