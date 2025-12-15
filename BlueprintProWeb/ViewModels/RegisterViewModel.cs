@@ -6,7 +6,10 @@ namespace BlueprintProWeb.ViewModels
     public class RegisterViewModel
     {
         [Required (ErrorMessage = "A name is required.")] 
+        [Display(Name = "First Name")]
         public string FirstName { get; set; }
+        
+        [Display(Name = "Last Name")]
         public string LastName { get; set; }
         
         [Required(ErrorMessage = "Phone number is required.")]
