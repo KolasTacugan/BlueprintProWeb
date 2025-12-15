@@ -820,36 +820,7 @@
                     const explanationSection = document.getElementById("matchExplanationSection");
 
                     // Show placeholder while AI thinks
-                    explanationBox.textContent = "🤖 Generating explanation...";
-                    explanationSection.style.display = "block";
-
-                    // Use last user prompt (chat-based search)
-                    const clientQuery = document.getElementById("clientPrompt")?.value || "";
-
-                    // Call ExplainMatch controller
-                    fetch("/ClientInterface/ExplainMatch", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                            architectId: id,
-                            query: clientQuery
-                        })
-                    })
-                    .then(res => {
-                        if (!res.ok) throw new Error("ExplainMatch failed");
-                        return res.json();
-                    })
-                    .then(data => {
-                        explanationBox.textContent =
-                            data.explanation || "No explanation returned.";
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        explanationBox.textContent =
-                            "Unable to generate explanation at this time.";
-                    });
+                    
 
                     fetch(`/ClientInterface/GetArchitectProfile?id=${id}`)
                         .then(res => res.json())
@@ -869,10 +840,30 @@
                                     document.querySelector("#architectProfileCredentials").closest("p").style.display = "none";
                                 } else {
                                     // Show and update the link
-                                    const credLink = document.querySelector("#architectProfileCredentials");
-                                    credLink.href = data.credentialsFile;
-                                    credLink.textContent = "Architect's Credentials";
-                                    credLink.closest("p").style.display = "block";
+                                    const credLink = document.getElementById("architectProfileCredentials");
+                                    const credWrapper = credLink.closest("p");
+
+                                    if (
+                                        data.credentialsFile &&
+                                        data.credentialsFile !== "null" &&
+                                        data.credentialsFile.trim() !== ""
+                                    ) {
+                                        // Ensure absolute URL
+                                        if (data.credentialsFile.startsWith("http")) {
+                                            credLink.href = data.credentialsFile;
+                                        } else {
+                                            credLink.href = "/" + data.credentialsFile.replace(/^\/+/, "");
+                                        }
+
+                                        credLink.target = "_blank";
+                                        credLink.rel = "noopener noreferrer";
+                                        credWrapper.style.display = "block";
+                                    } else {
+                                        // 🔥 THIS is the missing part
+                                        credWrapper.style.display = "none";
+                                        credLink.removeAttribute("href");
+                                    }
+
                                 }
 
                                 architectModal.show();
