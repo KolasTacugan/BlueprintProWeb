@@ -397,30 +397,25 @@ namespace BlueprintProWeb.Controllers.ClientSide
         [HttpGet]
         public async Task<IActionResult> Matches(string? query)
         {
-            var count = context.Users.Count(u => u.user_role == "Architect" && !string.IsNullOrEmpty(u.PortfolioEmbedding));
-            Console.WriteLine($"Architects with embeddings: {count}");
-
             var currentUser = await userManager.GetUserAsync(User);
             if (currentUser == null)
-            {
                 return RedirectToAction("Login", "Account");
-            }
 
-            // Step 1: Default query is user's profile if empty
+            // Step 1: Default query
             string searchQuery = query;
             if (string.IsNullOrWhiteSpace(searchQuery))
             {
                 searchQuery = $"Style: {currentUser.user_Style}, Location: {currentUser.user_Location}, Budget: {currentUser.user_Budget}";
             }
 
-            // Step 2: Expand into natural descriptive request
-            // Step 2: Expand query with GPT
+            // Step 2: Expand query (ONCE only)
             var chatClient = _openAi.GetChatClient("gpt-5-mini");
+
             var messages = new List<ChatMessage>
-                {
-                    new SystemChatMessage("You are an assistant that rewrites client needs into a natural request for an architect."),
-                    new UserChatMessage($"User request: {searchQuery}. Expand into 2–3 descriptive sentences.")
-                };
+            {
+                new SystemChatMessage("You rewrite client needs into a clear architectural request."),
+                new UserChatMessage($"User request: {searchQuery}. Expand into 2–3 descriptive sentences.")
+            };
 
             var response = await chatClient.CompleteChatAsync(messages);
             var expansion = response.Value.Content[0].Text;
@@ -430,75 +425,75 @@ namespace BlueprintProWeb.Controllers.ClientSide
             var embeddingResponse = await _embeddingClient.GenerateEmbeddingAsync(finalQuery);
             var queryVector = embeddingResponse.Value.ToFloats().ToArray();
 
-
-            // Step 4: Compare with portfolio embeddings
+            // Step 4: Compare
             var architects = context.Users
                 .Where(u => u.user_role == "Architect" && !string.IsNullOrEmpty(u.PortfolioEmbedding))
                 .ToList();
 
             var ranked = architects
-             .Select(a =>
-             {
-                 var vecA = ParseEmbedding(a.PortfolioEmbedding);
+                .Select(a =>
+                {
+                    var vecA = ParseEmbedding(a.PortfolioEmbedding);
 
-                 if (vecA == null || vecA.Length == 0 || vecA.Length != queryVector.Length)
-                     return (Architect: a, Score: double.MinValue);
+                    if (vecA == null || vecA.Length != queryVector.Length)
+                        return null;
 
-                 var score = CosineSimilarity(queryVector, vecA);
+                    var score = CosineSimilarity(queryVector, vecA);
 
-                 // ✅ Pro user boost (e.g., +5% boost to score)
-                 if (a.IsPro)
-                     score += 0.05;  // you can tune this from 0.03–0.1 depending on how strong you want the bias
+                    if (a.IsPro)
+                        score += 0.05;
 
-                 return (Architect: a, Score: score);
-             })
-            .Where(x => x.Score != double.MinValue)
-            .OrderByDescending(x => x.Score)
-            .Take(25)
-            .Select(x => new MatchViewModel
+                    return new MatchViewModel
+                    {
+                        MatchId = null,
+                        ClientId = currentUser.Id,
+                        ClientName = $"{currentUser.user_fname} {currentUser.user_lname}",
+
+                        ArchitectId = a.Id,
+                        ArchitectName = $"{a.user_fname} {a.user_lname}",
+                        ArchitectStyle = a.user_Style,
+                        ArchitectLocation = a.user_Location,
+                        ArchitectBudget = a.user_Budget,
+
+                        ProfilePhoto = string.IsNullOrEmpty(a.user_profilePhoto)
+                            ? Url.Content("~/images/profile.jpg")
+                            : Url.Content(a.user_profilePhoto),
+
+                        MatchStatus = a.IsPro ? "AI + Portfolio Match (Pro)" : "AI + Portfolio Match",
+                        MatchDate = DateTime.UtcNow,
+
+                        SimilarityScore = score,
+                        SimilarityPercentage = Math.Round(score * 100, 1),
+
+                        TotalRatings = a.user_Rating ?? 0.0,
+                        RatingCount = context.Projects.Count(p =>
+                            p.user_architectId == a.Id &&
+                            p.project_clientHasRated),
+
+                        RealMatchStatus = context.Matches
+                            .Where(m => m.ClientId == currentUser.Id && m.ArchitectId == a.Id)
+                            .Select(m => m.MatchStatus)
+                            .FirstOrDefault(),
+
+                        // 🔹 IMPORTANT: explanation is empty initially
+                        MatchExplanation = null
+                    };
+                })
+                .Where(x => x != null)
+                .OrderByDescending(x => x!.SimilarityScore)
+                .Take(25)
+                .ToList();
+
+            foreach (var vm in ranked)
             {
-                MatchId = null,
-                ClientId = currentUser.Id,
-                ClientName = $"{currentUser.user_fname} {currentUser.user_lname}",
-                ArchitectId = x.Architect.Id,
-                ArchitectName = $"{x.Architect.user_fname} {x.Architect.user_lname}",
-                ArchitectStyle = x.Architect.user_Style,
-                ArchitectLocation = x.Architect.user_Location,
-                ArchitectBudget = x.Architect.user_Budget,
-                ProfilePhoto = string.IsNullOrEmpty(x.Architect.user_profilePhoto)
-                   ? Url.Content("~/images/profile.jpg")
-                   : Url.Content(x.Architect.user_profilePhoto),
-                MatchStatus = x.Architect.IsPro ? "AI + Portfolio Match (Pro)" : "AI + Portfolio Match",
-                MatchDate = DateTime.UtcNow,
-
-                // ⭐ Real DB match status (null / Pending / Approved)
-                RealMatchStatus = context.Matches
-                    .Where(m => m.ClientId == currentUser.Id && m.ArchitectId == x.Architect.Id)
-                    .Select(m => m.MatchStatus)
-                    .FirstOrDefault(),
-
-                // 🟦 NEW: Add rating info (no DB structure changed)
-                TotalRatings = x.Architect.user_Rating ?? 0.0,
-                RatingCount = context.Projects.Count(p => p.user_architectId == x.Architect.Id && p.project_clientHasRated == true),
-
-                SimilarityScore = x.Score,
-                SimilarityPercentage = Math.Round(x.Score * 100, 1)
-            })
-            .ToList();
-
-
-            foreach (var archi in ranked)
-            {
-                archi.AverageRating = archi.RatingCount > 0
-                    ? Math.Round(archi.TotalRatings / archi.RatingCount, 1)
-                    : 0.0;
+                vm.AverageRating =
+                    vm.RatingCount > 0
+                        ? Math.Round(vm.TotalRatings / vm.RatingCount, 1)
+                        : 0.0;
             }
 
-            // Step 5: Return JSON if AJAX, else View
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-                        {
-                            return Json(ranked);
-                        }
+                return Json(ranked);
 
             return View(ranked);
 
@@ -942,6 +937,62 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 .ToListAsync();
 
             return Json(purchased);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ExplainMatch([FromBody] ExplainMatchRequest request)
+        {
+            var architect = await context.Users.FindAsync(request.ArchitectId);
+            if (architect == null) return NotFound();
+
+            var explanation = await GenerateMatchExplanation(request.Query, architect);
+            return Json(new { explanation });
+        }
+
+        public class ExplainMatchRequest
+        {
+            public string ArchitectId { get; set; }
+            public string Query { get; set; }
+        }
+
+
+
+        private async Task<string> GenerateMatchExplanation(
+            string clientQuery,
+            User architect)
+        {
+            var chatClient = _openAi.GetChatClient("gpt-5-mini");
+
+            var messages = new List<ChatMessage>
+        {
+            new SystemChatMessage(
+                "You are explaining why an architect was recommended to a client.\n" +
+                "The architect was already selected by an AI similarity system.\n" +
+                "Your task is ONLY to explain the reasons clearly.\n" +
+                "Do NOT say you cannot determine a match.\n" +
+                "Do NOT ask for missing information.\n" +
+                "Use simple, client-friendly language.\n" +
+                "Maximum 2 sentences.\n" +
+                "Only reference the provided architect credentials and client request."
+            ),
+
+            new UserChatMessage($@"
+                Client request (expanded):
+                {clientQuery}
+ 
+                Architect credentials:
+                Style: {architect.user_Style}
+                Location: {architect.user_Location}
+                Budget Range: {architect.user_Budget}
+                Specialization: {architect.user_Specialization}
+                Pro Account: {(architect.IsProActive ? "Yes" : "No")}
+ 
+                Explain why this architect fits the client's request.
+            ")
+        };
+
+                var response = await chatClient.CompleteChatAsync(messages);
+                return response.Value.Content[0].Text.Trim();
         }
     }
 }

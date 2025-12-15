@@ -34,6 +34,13 @@
         margin-top: 3px;
     }
 
+        .project-title {
+            max-width: 160px; /* adjust as needed */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
     .progress-value {
         font-size: 1.6rem;
         font-weight: 700;
@@ -400,6 +407,91 @@
             font-size: 0.9rem;
             color: #64748b;
         }
+        /* =========================
+           THIRD ROW – PROJECT OVERVIEW
+        ========================= */
+
+        .dashboard-overview {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .overview-header {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-weight: 600;
+            font-size: 1rem;
+            color: #1a202c;
+            margin-bottom: 1.25rem;
+        }
+
+        .overview-icon {
+            width: 28px;
+            height: 28px;
+            background: #F1F7F9;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #344EAD;
+        }
+
+        /* Project slide card */
+        .project-slide {
+            background: #F8FAFC;
+            border-radius: 10px;
+            padding: 1.25rem;
+        }
+
+        /* Project title badge */
+        .project-badge {
+            background: rgba(52, 78, 173, 0.1);
+            color: #344EAD;
+            font-weight: 600;
+            font-size: 0.8rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 999px;
+        }
+
+        /* Progress bar */
+        .project-progress {
+            background: #E5E7EB;
+            height: 8px;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .project-progress-bar {
+            height: 100%;
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            border-radius: 999px;
+            transition: width 0.3s ease;
+        }
+
+        /* Slider buttons */
+        .nav-btn {
+            border: none;
+            background: #F1F7F9;
+            color: #344EAD;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+            .nav-btn:hover {
+                background: #E0E7FF;
+                color: #2563EB;
+            }
+
     </style>
 }
 
@@ -490,7 +582,7 @@
         Welcome, <span class="text-primary">@ViewData["UserFirstName"]</span>!
     </div>
     <div class="greeting-subtitle">
-        Your overview stay on top of things.
+        Your overview - stay on top of things.
     </div>
 </div>
 
@@ -619,26 +711,31 @@
 
                 <div class="project-slide" data-index="@i" style="display:@(i == 0 ? "block" : "none")">
 
-                    <div class="project-header">
-                        <span class="project-badge">
-                            @(proj.ProjectTitle.Length > 12 ? proj.ProjectTitle.Substring(0, 12) + ".." : proj.ProjectTitle)
+                    <!-- HEADER (Title + buttons) -->
+                    <div class="project-header"
+                         style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
+
+                        <span class="project-badge project-title">
+                            @proj.ProjectTitle
                         </span>
 
-                        <div class="nav-buttons">
+                        <div class="nav-buttons" style="display:flex; gap:0.4rem;">
                             <button class="nav-btn nav-left"><i class="fas fa-chevron-left"></i></button>
                             <button class="nav-btn nav-right"><i class="fas fa-chevron-right"></i></button>
                         </div>
                     </div>
 
-                    <!-- PROGRESS BAR -->
-                    <div class="project-progress">
+                    <!-- FULL WIDTH PROGRESS BAR -->
+                    <div class="project-progress" style="margin-bottom:1.5rem;">
                         <div class="project-progress-bar" style="width:@proj.ProgressPercentage%"></div>
                     </div>
 
-                    <!-- PROJECT DETAILS (PHASE + PROGRESS NUMBER) -->
-                    <div class="phase-row">
+                    <!-- PROJECT PHASE / STATUS + OVERALL % -->
+                    <div class="phase-row"
+                         style="display:flex; align-items:center; justify-content:space-between;">
+
                         <div class="phase-left">
-                            @{
+                    @{
                                 bool isFinished = proj.ProgressPercentage >= 100;
                                 string label = isFinished ? "PROJECT STATUS" : "PROJECT PHASE";
                                 string value = isFinished ? "Finished" : proj.Status;
@@ -648,7 +745,7 @@
                             <div class="phase-value">@value</div>
                         </div>
 
-                        <div class="phase-right">
+                        <div class="phase-right" style="text-align:right;">
                             <div class="progress-label">OVERALL PROGRESS</div>
                             <div class="progress-value">@proj.ProgressPercentage%</div>
                         </div>
@@ -667,6 +764,7 @@
         </div>
     }
 </div>
+
 
 <script>
     document.addEventListener("DOMContentLoaded", () => {

@@ -595,7 +595,8 @@
                                                 <h6 class="fw-bold mb-0">
                                                     <a href="#"
                                                        class="architect-link"
-                                                       data-architect-id="@match.ArchitectId">
+                                                       data-architect-id="@match.ArchitectId"
+                                                       data-explanation="@match.MatchExplanation">
                                                         @match.ArchitectName
                                                     </a>
                                                 </h6>
@@ -708,6 +709,17 @@
                                 <a id="architectProfileCredentials" href="#" target="_blank" class="text-decoration-underline archi-cred">Architect's Credentials</a>
                             </p>
                         </div>
+                        <hr />
+                        <div id="matchExplanationSection" class="mt-3">
+                            <h6 class="fw-bold">
+                                🤖 Why this architect matches your request
+                            </h6>
+
+                            <div id="matchExplanationText"
+                                 class="alert alert-info small mb-0">
+                                No explanation available yet.
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -804,6 +816,41 @@
                     e.preventDefault();
                     const id = this.dataset.architectId;
 
+                    const explanationBox = document.getElementById("matchExplanationText");
+                    const explanationSection = document.getElementById("matchExplanationSection");
+
+                    // Show placeholder while AI thinks
+                    explanationBox.textContent = "🤖 Generating explanation...";
+                    explanationSection.style.display = "block";
+
+                    // Use last user prompt (chat-based search)
+                    const clientQuery = document.getElementById("clientPrompt")?.value || "";
+
+                    // Call ExplainMatch controller
+                    fetch("/ClientInterface/ExplainMatch", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            architectId: id,
+                            query: clientQuery
+                        })
+                    })
+                    .then(res => {
+                        if (!res.ok) throw new Error("ExplainMatch failed");
+                        return res.json();
+                    })
+                    .then(data => {
+                        explanationBox.textContent =
+                            data.explanation || "No explanation returned.";
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        explanationBox.textContent =
+                            "Unable to generate explanation at this time.";
+                    });
+
                     fetch(`/ClientInterface/GetArchitectProfile?id=${id}`)
                         .then(res => res.json())
                         .then(data => {
@@ -893,10 +940,12 @@
                                     <h6 class="fw-bold mb-0">
                                         <a href="#"
                                            class="architect-link"
-                                           data-architect-id="${m.architectId}">
+                                           data-architect-id="${m.architectId}"
+                                           data-explanation="${m.matchExplanation || ''}">
                                             ${m.architectName || "Unnamed Architect"}
                                         </a>
                                     </h6>
+
                                     <!-- Enhanced Rating Display -->
                                             <div class="rating-wrapper mt-2 d-flex align-items-center gap-2">
                                                 <div class="rating-bar">
@@ -935,6 +984,42 @@
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
                     const id = this.dataset.architectId;
+
+                    const explanationBox = document.getElementById("matchExplanationText");
+                    const explanationSection = document.getElementById("matchExplanationSection");
+
+                    // Show placeholder while AI thinks
+                    explanationBox.textContent = "🤖 Generating explanation...";
+                    explanationSection.style.display = "block";
+
+                    // Use last user prompt (chat-based search)
+                    const clientQuery = document.getElementById("clientPrompt")?.value || "";
+
+                    // Call ExplainMatch controller
+                    fetch("/ClientInterface/ExplainMatch", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            architectId: id,
+                            query: clientQuery
+                        })
+                    })
+                    .then(res => {
+                        if (!res.ok) throw new Error("ExplainMatch failed");
+                        return res.json();
+                    })
+                    .then(data => {
+                        explanationBox.textContent =
+                            data.explanation || "No explanation returned.";
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        explanationBox.textContent =
+                            "Unable to generate explanation at this time.";
+                    });
+
 
                     fetch(`/ClientInterface/GetArchitectProfile?id=${id}`)
                         .then(res => res.json())

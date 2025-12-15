@@ -30,7 +30,7 @@
 
         public double SimilarityScore { get; set; }
         public double SimilarityPercentage { get; set; }
-
+        public string MatchExplanation { get; set; }
 
     }
 }
