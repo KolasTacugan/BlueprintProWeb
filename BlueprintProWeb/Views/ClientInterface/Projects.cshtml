@@ -48,6 +48,11 @@
             border-bottom: 1px solid rgba(52, 78, 173, 0.1);
         }
 
+        .projects-title-section {
+            display: flex;
+            flex-direction: column;
+        }
+
         .projects-title {
             font-size: 1.75rem;
             font-weight: 600;
@@ -67,6 +72,40 @@
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+
+        .projects-subtitle {
+            font-size: 1rem;
+            font-weight: 400;
+            color: #718096;
+            margin-top: 0.5rem;
+            margin-left: 2.2rem; /* Aligns with title text after icon */
+        }
+
+        .projects-actions {
+            display: flex;
+            align-items: center;
+        }
+
+        .project-btn {
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            border: none;
+            border-radius: 12px;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.1rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(52, 78, 173, 0.3);
+        }
+
+        .project-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(52, 78, 173, 0.4);
         }
 
         /* Projects Container */
@@ -234,11 +273,6 @@
             gap: 0.5rem;
         }
 
-        .modal-title::before {
-            content: "👨‍💼";
-            font-size: 1.2rem;
-        }
-
         .btn-close {
             filter: invert(1);
         }
@@ -277,6 +311,40 @@
         .avatar img:hover {
             border-color: rgba(52, 78, 173, 0.3);
             transform: scale(1.05);
+        }
+
+        /* Purchased Blueprints Modal Styles */
+        .purchased-blueprint-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .purchased-blueprint-item:last-child {
+            border-bottom: none;
+        }
+
+        .purchased-blueprint-item img {
+            width: 80px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-right: 1rem;
+            border: 2px solid rgba(52, 78, 173, 0.1);
+        }
+
+        .blueprint-info h5 {
+            margin: 0;
+            font-size: 1rem;
+            color: #1a202c;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .blueprint-info p {
+            margin: 0.25rem 0;
+            font-size: 0.9rem;
+            color: #64748b;
         }
 
         /* Empty State Styling */
@@ -381,10 +449,20 @@
 
 <div>
     <div class="projects-header">
-        <h2 class="projects-title">
-            <i class="fas fa-project-diagram"></i>
-            My Projects
-        </h2>
+        <div class="projects-title-section">
+            <h2 class="projects-title">
+                <i class="fas fa-project-diagram"></i>
+                My Projects
+            </h2>
+            <div class="projects-subtitle">
+                Track your active construction projects
+            </div>
+        </div>
+        <div class="projects-actions">
+            <button class="project-btn" title="Projects">
+                <span class="material-symbols-rounded">folder</span>
+            </button>
+        </div>
     </div>
 
     <div class="projects-container">
@@ -493,6 +571,25 @@
     </div>
 </div>
 
+<!-- Purchased Blueprints Modal -->
+<div class="modal fade" id="purchasedBlueprintsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    My Purchased Blueprints
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="purchasedBlueprintsList">
+                    <!-- Blueprints will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -562,6 +659,59 @@
                     }
                 });
             });
+
+            // Purchased Blueprints Modal Trigger
+            const projectBtn = document.querySelector('.project-btn');
+            if (projectBtn) {
+                projectBtn.addEventListener('click', async function (e) {
+                    e.preventDefault();
+
+                    try {
+                        const res = await fetch('/ClientInterface/GetPurchasedBlueprints');
+                        if (!res.ok) throw new Error('Failed to fetch purchased blueprints');
+
+                        const blueprints = await res.json();
+
+                        const container = document.getElementById('purchasedBlueprintsList');
+                        container.innerHTML = '';
+
+                        if (blueprints.length === 0) {
+                            container.innerHTML = `
+                                <div class="empty-state">
+                                    <div class="empty-state-icon">
+                                        <i class="fas fa-folder-open"></i>
+                                    </div>
+                                    <div class="empty-state-title">No Purchased Blueprints</div>
+                                    <div class="empty-state-subtitle">
+                                        You haven't purchased any blueprints yet. Visit the marketplace to browse available options.
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            blueprints.forEach(bp => {
+                                const item = document.createElement('div');
+                                item.className = 'purchased-blueprint-item';
+                                const imageSrc = bp.image ? `/images/${bp.image}` : '/images/placeholder-blueprint.png';
+                                item.innerHTML = `
+                                    <img src="${imageSrc}" alt="${bp.name}" />
+                                    <div class="blueprint-info">
+                                        <h5>${bp.name}</h5>
+                                        <p>Style: ${bp.style || 'N/A'}</p>
+                                        <p>Price: ₱${bp.price ? bp.price.toLocaleString() : 'N/A'}</p>
+                                    </div>
+                                `;
+                                container.appendChild(item);
+                            });
+                        }
+
+                        const modal = new bootstrap.Modal(document.getElementById('purchasedBlueprintsModal'));
+                        modal.show();
+                    } catch (err) {
+                        console.error(err);
+                        alert('Failed to load purchased blueprints.');
+                    }
+                });
+            }
         });
     </script>
 }

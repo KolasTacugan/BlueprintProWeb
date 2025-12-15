@@ -545,7 +545,6 @@
         .results-content::-webkit-scrollbar-thumb:hover {
             background: #94A3B8;
         }
-
         .match-btn[data-status="Pending"] {
             background: #fbbf24 !important;
             color: #000 !important;
@@ -601,6 +600,7 @@
                                                         @match.ArchitectName
                                                     </a>
                                                 </h6>
+                                               
                                                 <!-- Enhanced Rating Display -->
                                                 <div class="rating-wrapper mt-2" style="max-width: 120px;">
                                                     <div class="rating-bar">
@@ -746,6 +746,14 @@
 
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // Explicitly show global page loader for this heavy page
+        document.addEventListener('DOMContentLoaded', function(){
+            if (window.BlueprintLoader && typeof window.BlueprintLoader.show === 'function') {
+                window.BlueprintLoader.show();
+            }
+        });
+    </script>
     <script>
         // Listen for sidebar toggle and adjust main content accordingly
         document.addEventListener('DOMContentLoaded', function() {
@@ -915,6 +923,9 @@
             }
 
             matches.forEach(m => {
+
+                console.log(`Architect: ${m.architectName}, Similarity Score: ${m.similarityScore}`);
+
                 let card = document.createElement('div');
                 card.className = "col-lg-6 col-md-12 mb-3";
                 card.innerHTML = `
@@ -936,16 +947,18 @@
                                     </h6>
 
                                     <!-- Enhanced Rating Display -->
-                                    <div class="rating-wrapper mt-2" style="max-width: 120px;">
-                                        <div class="rating-bar">
-                                            <div class="rating-fill" style="width: ${m.averageRating * 20}%;"></div>
-                                        </div>
-                                        <span class="rating-text">${m.averageRating.toFixed(1)}</span>
-                                    </div>
+                                            <div class="rating-wrapper mt-2 d-flex align-items-center gap-2">
+                                                <div class="rating-bar">
+                                                    <div class="rating-fill" style="width: ${m.averageRating * 20}%;"></div>
+                                                </div>
+                                                <span class="rating-text">${m.averageRating.toFixed(1)}</span>
 
-                                    <small class="text-muted">
-                                        (${m.ratingCount} ${m.ratingCount === 1 ? "rating" : "ratings"})
-                                    </small>
+                                                <span class="badge bg-primary">${m.similarityPercentage}%</span>
+                                            </div>
+
+                                            <small class="text-muted">
+                                                (${m.ratingCount} ${m.ratingCount === 1 ? "rating" : "ratings"})
+                                            </small>
                                 </div>
                             </div>
                                     <button class="btn w-100 mt-auto match-btn"
@@ -1099,5 +1112,71 @@
             const modal = new bootstrap.Modal(document.getElementById('notificationModal'));
             modal.show();
         }
+
+               document.addEventListener("DOMContentLoaded", function () {
+
+            // ⭐ Show loader
+            if (window.BlueprintLoader && typeof window.BlueprintLoader.show === 'function') {
+                window.BlueprintLoader.show();
+            }
+
+            // ⭐ Sidebar adjustment
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarToggler = document.querySelector('.sidebar-toggler');
+            const mainContent = document.querySelector('main.container');
+
+            function adjustMainContent() {
+                if (sidebar && mainContent) {
+                    if (sidebar.classList.contains('collapsed')) {
+                        mainContent.style.marginLeft = '110px';
+                        mainContent.style.maxWidth = 'calc(100% - 130px)';
+                    } else {
+                        mainContent.style.marginLeft = '300px';
+                        mainContent.style.maxWidth = 'calc(100% - 320px)';
+                    }
+                }
+            }
+
+            adjustMainContent();
+
+            if (sidebarToggler) {
+                sidebarToggler.addEventListener('click', function () {
+                    setTimeout(adjustMainContent, 50);
+                });
+            }
+
+            // ⭐ Textarea auto-expand + Enter send
+            const messageInput = document.getElementById('clientPrompt');
+            if (messageInput) {
+                messageInput.addEventListener('input', function () {
+                    this.style.height = 'auto';
+                    this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+                });
+
+                messageInput.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        if (this.value.trim()) {
+                            document.getElementById('searchArchitects').click();
+                        }
+                    }
+                });
+            }
+
+            // ⭐ Log similarity scores
+            const matches = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
+
+            console.log("%c🔎 MATCH DEBUG — Raw Similarity Scores (0–1 float)",
+                "color:#4F46E5; font-size:14px; font-weight:bold;");
+
+            matches.forEach(m => {
+                console.log(
+                    `%cArchitect: ${m.architectName} | Score: ${m.similarityScore}`,
+                    "color:#2563EB; font-weight:bold;"
+                );
+            });
+
+        });
+
     </script>
 }

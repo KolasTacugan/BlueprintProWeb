@@ -6,20 +6,21 @@
     <title>@ViewBag.Title</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/account.css" asp-append-version="true" />
-   
 </head>
 <body>
-   
-    <div>
-        
-            @RenderBody()
-        
+    <div id="page-loader" aria-live="polite" aria-busy="true">
+        <lottie-player id="bpp-loader" src="/animations/Loading.json" background="transparent" speed="1" loop autoplay style="width:128px;height:128px"></lottie-player>
+        <div class="spinner" role="status" aria-label="Loading"></div>
     </div>
-
-   
+    <div>
+        @RenderBody()
+    </div>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <!-- Lottie Player (for .json/.lottie animations) -->
+    <script src="https://unpkg.com/@@lottiefiles/lottie-player@2/dist/lottie-player.js" crossorigin="anonymous"></script>
+    <script src="~/js/modal.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
