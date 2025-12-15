@@ -1023,7 +1023,30 @@
                                 document.getElementById("architectProfileStyle").innerText = data.style || "N/A";
                                 document.getElementById("architectProfileSpecialization").innerText = data.specialization || "N/A";
                                 document.getElementById("architectProfileLocation").innerText = data.location || "N/A";
-                                document.getElementById("architectProfileCredentials").href = data.credentialsFile || "#";
+                                const credLink = document.getElementById("architectProfileCredentials");
+                                const credWrapper = credLink.closest("p");
+
+                                if (
+                                    data.credentialsFile &&
+                                    data.credentialsFile !== "null" &&
+                                    data.credentialsFile.trim() !== ""
+                                ) {
+                                    // normalize path
+                                    if (data.credentialsFile.startsWith("http")) {
+                                        credLink.href = data.credentialsFile;
+                                    } else {
+                                        credLink.href = "/" + data.credentialsFile.replace(/^\/+/, "");
+                                    }
+
+                                    credLink.target = "_blank";
+                                    credLink.rel = "noopener noreferrer";
+                                    credWrapper.style.display = "block";
+                                } else {
+                                    // hide ONLY when no file
+                                    credWrapper.style.display = "none";
+                                    credLink.removeAttribute("href");
+                                }
+
                                 document.getElementById("architectProfilePhoto").src = data.photo || "/images/profile.jpg";
                                 const modal = new bootstrap.Modal(document.getElementById('architectProfileModal'));
                                 modal.show();
