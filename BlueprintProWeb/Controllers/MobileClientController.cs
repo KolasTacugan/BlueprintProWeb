@@ -388,7 +388,33 @@ namespace BlueprintProWeb.Controllers
             }
         }
 
+        [AllowAnonymous]
+        [HttpGet("purchased-blueprints/{userId}")]
+        public async Task<IActionResult> GetPurchasedBlueprints(string userId)
+        {
+            if (string.IsNullOrEmpty(userId))
+                return BadRequest("UserId is required.");
 
+            var purchased = await context.Blueprints
+                .Where(bp =>
+                    bp.clentId == userId &&
+                    bp.blueprintIsForSale == false
+                )
+                .Join(
+                    context.Users,
+                    bp => bp.architectId,
+                    u => u.Id,
+                    (bp, architect) => new
+                    {
+                        blueprintId = bp.blueprintId,
+                        blueprintName = bp.blueprintName,
+                        architectName = architect.user_fname + " " + architect.user_lname
+                    }
+                )
+                .ToListAsync();
+
+            return Ok(purchased);
+        }
 
         public class CompletePurchaseRequest
     {
@@ -434,7 +460,7 @@ namespace BlueprintProWeb.Controllers
         [HttpGet("Matches")]
         [AllowAnonymous]
         public async Task<IActionResult> GetMatches(
-    [FromQuery] string? clientId,
+    [FromQuery] string clientId,
     [FromQuery] string? query)
         {
             try
@@ -444,71 +470,42 @@ namespace BlueprintProWeb.Controllers
                     ? null
                     : await context.Users.FindAsync(clientId);
 
+                // 🔹 Step 2: Default query (same logic as web)
+                string searchQuery = query;
+
+                if (string.IsNullOrWhiteSpace(searchQuery))
+                {
+                    searchQuery = client == null
+                        ? "General architectural project"
+                        : $"Style: {client.user_Style}, Location: {client.user_Location}, Budget: {client.user_Budget}";
+                }
+
+                // 🔹 Step 3: Expand query ONCE
                 var chatClient = _openAi.GetChatClient("gpt-5-mini");
 
-                // 🔹 Step 2: Scope check (same as WEB)
-                var scopeMessages = new List<ChatMessage>
-        {
-            new SystemChatMessage(
-@"You are classifying client messages for an architecture matching system.
-
-Classify the message into ONE of the following categories:
-- ARCHITECTURE_RELATED
-- NOT_ARCHITECTURE_RELATED
-
-Rules:
-- Vague architectural requests are still ARCHITECTURE_RELATED
-- Missing details does NOT make it out of scope
-Respond ONLY with the category."
-            ),
-            new UserChatMessage(query ?? "")
-        };
-
-                var scopeResult = await chatClient.CompleteChatAsync(scopeMessages);
-
-                bool isArchitectureRelated =
-                    scopeResult.Value.Content[0].Text.Trim()
-                        .Equals("ARCHITECTURE_RELATED", StringComparison.OrdinalIgnoreCase);
-
-                bool outOfScope = !isArchitectureRelated;
-
-                // 🔹 Step 3: Default query (same as WEB)
-                string searchQuery = string.IsNullOrWhiteSpace(query)
-                    ? client == null
-                        ? "General architectural project"
-                        : $"Style: {client.user_Style}, Location: {client.user_Location}, Budget: {client.user_Budget}"
-                    : query;
-
-                // 🔍 Check missing details
-                bool lacksDetails =
-                    !searchQuery.Contains("budget", StringComparison.OrdinalIgnoreCase) ||
-                    !searchQuery.Contains("location", StringComparison.OrdinalIgnoreCase) ||
-                    !searchQuery.Contains("style", StringComparison.OrdinalIgnoreCase);
-
-                // 🔹 Step 4: Expand query (same as WEB)
-                var expandMessages = new List<ChatMessage>
+                var messages = new List<ChatMessage>
         {
             new SystemChatMessage("You rewrite client needs into a clear architectural request."),
             new UserChatMessage($"User request: {searchQuery}. Expand into 2–3 descriptive sentences.")
         };
 
-                var expandResponse = await chatClient.CompleteChatAsync(expandMessages);
-                var expansion = expandResponse.Value.Content[0].Text;
+                var response = await chatClient.CompleteChatAsync(messages);
+                var expansion = response.Value.Content[0].Text;
 
                 var finalQuery = $"{searchQuery}. Expanded: {expansion}";
 
-                // 🔹 Step 5: Embedding
+                // 🔹 Step 4: Embedding
                 var embeddingResponse = await _embeddingClient.GenerateEmbeddingAsync(finalQuery);
                 var queryVector = embeddingResponse.Value.ToFloats().ToArray();
 
-                // 🔹 Step 6: Architects
+                // 🔹 Step 5: Architects with embeddings
                 var architects = await context.Users
                     .Where(u => u.user_role == "Architect" &&
                                 !string.IsNullOrEmpty(u.PortfolioEmbedding))
                     .ToListAsync();
 
-                // 🔹 Step 7: Rank (same logic)
-                var ranked = architects
+                // 🔹 Step 6: Rank & map to DTO (JSON-safe)
+                var results = architects
                     .Select(a =>
                     {
                         var vecA = ParseEmbedding(a.PortfolioEmbedding);
@@ -545,6 +542,7 @@ Respond ONLY with the category."
                             SimilarityScore = score,
                             SimilarityPercentage = Math.Round(score * 100, 1),
 
+                            // 🔹 Lazy-loaded via ExplainMatch
                             MatchExplanation = null
                         };
                     })
@@ -553,18 +551,7 @@ Respond ONLY with the category."
                     .Take(25)
                     .ToList();
 
-                // 🔹 Step 8: Strong match logic (same as WEB)
-                bool hasStrongMatch = ranked.Count > 0 && ranked[0].SimilarityPercentage >= 35;
-                bool showFeedback = !hasStrongMatch;
-
-                // ✅ ALWAYS JSON (mobile-friendly)
-                return Ok(new
-                {
-                    matches = ranked,
-                    outOfScope,
-                    lacksDetails,
-                    showFeedback
-                });
+                return Ok(results); // ✅ ALWAYS JSON
             }
             catch (Exception ex)
             {
@@ -575,7 +562,6 @@ Respond ONLY with the category."
                 });
             }
         }
-
 
         [HttpPost("ExplainMatch")]
         public async Task<IActionResult> ExplainMatch([FromBody] ExplainMatchRequest request)
@@ -651,6 +637,62 @@ Guidelines:
                 ? response.Value.Content[0].Text.Trim()
                 : "This recommendation aligns well with your project needs and preferences.";
         }
+
+        [HttpPost("ExplainMatch")]
+        public async Task<IActionResult> ExplainMatch([FromBody] ExplainMatchRequest request)
+        {
+            var architect = await context.Users.FindAsync(request.ArchitectId);
+            if (architect == null)
+                return NotFound();
+
+            var explanation = await GenerateMatchExplanation(
+                request.Query,
+                architect
+            );
+
+            return Ok(new { explanation });
+        }
+
+        private async Task<string> GenerateMatchExplanation(
+    string clientQuery,
+    User architect)
+        {
+            var chatClient = _openAi.GetChatClient("gpt-5-mini");
+
+            var messages = new List<ChatMessage>
+    {
+        new SystemChatMessage(
+                "You are explaining to a client why a recommended architect fits THEIR request.\n" +
+                "The architect was already selected by an AI similarity system.\n" +
+                "Speak to the client in second person (use \"you\" / \"your\"), as a platform explaining the recommendation.\n" +
+                "Base the reasoning on evidence found in the architect's portfolio text, but NEVER mention the portfolio or the architect explicitly.\n" +
+                "Explain how the client's needs are supported or reflected, not what the architect has.\n" +
+                "Do NOT list credentials.\n" +
+                "Do NOT describe the architect.\n" +
+                "Do NOT say you are analyzing or matching.\n" +
+                "Use simple, client-friendly language.\n" +
+                "Maximum 2 sentences."
+        ),
+
+        new UserChatMessage($@"
+                Client request:
+                {clientQuery}
+
+                Reference material (internal):
+                {architect.PortfolioText}
+
+                Explain why this recommendation fits the client's request.
+                ")
+            };
+
+            var response = await chatClient.CompleteChatAsync(messages);
+
+            // ✅ Safety fallback (important for mobile)
+            return response.Value.Content.Count > 0
+                ? response.Value.Content[0].Text.Trim()
+                : "This recommendation aligns well with your project needs and preferences.";
+        }
+
 
 
 

@@ -340,46 +340,49 @@
             </div>
         </div>
 
-        <div class="credentials-section form-section">
-            <h3>Architect Credentials (PDF)</h3>
-            <div class="form-group">
-                @if (Model.Role == "Architect")
-                {
-                    @if (!string.IsNullOrEmpty(Model.CredentialsFilePath))
+        @if (Model.Role == "Architect")
+        {
+            <div class="credentials-section form-section">
+                <h3>Architect Credentials (PDF)</h3>
+                <div class="form-group">
+                    @if (Model.Role == "Architect")
                     {
-                        <div style="margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #0D3C80;">
-                            <strong>Current file:</strong>
-                            <a href="@Url.Content($"~/credentials/{Model.CredentialsFilePath}")" 
-                               target="_blank" 
-                               style="color: #0D3C80; text-decoration: none; margin-left: 8px;">
-                                <i class="fas fa-file-pdf"></i> @Model.CredentialsFilePath
-                            </a>
+                        @if (!string.IsNullOrEmpty(Model.CredentialsFilePath))
+                        {
+                            <div style="margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #0D3C80;">
+                                <strong>Current file:</strong>
+                                <a href="@Url.Content($"~/credentials/{Model.CredentialsFilePath}")"
+                                   target="_blank"
+                                   style="color: #0D3C80; text-decoration: none; margin-left: 8px;">
+                                    <i class="fas fa-file-pdf"></i> @Model.CredentialsFilePath
+                                </a>
+                            </div>
+                        }
+                        <label for="credentialsFile">Upload New Credentials File (PDF)</label>
+                        <input type="file" id="credentialsFile" name="CredentialsFile" accept="application/pdf" class="form-control" />
+                        <div class="upload-info">
+                            <small>
+                                Upload your architectural credentials, portfolio, or resume in PDF format.
+                                <br />
+                                Feel free to use or modify
+                                <a href="~/credentials/Sample%20Architect%20Credentials.docx"
+                                   download
+                                   style="color: #0D3C80; font-weight: bold;">
+                                    SAMPLE
+                                </a>
+                                file to add more of your credentials.
+                            </small>
                         </div>
                     }
-                    <label for="credentialsFile">Upload New Credentials File (PDF)</label>
-                    <input type="file" id="credentialsFile" name="CredentialsFile" accept="application/pdf" class="form-control" />
-                    <div class="upload-info">
-                        <small>
-                            Upload your architectural credentials, portfolio, or resume in PDF format.
-                            <br />
-                            Feel free to use or modify
-                            <a href="~/credentials/Sample%20Architect%20Credentials.docx"
-                               download
-                               style="color: #0D3C80; font-weight: bold;">
-                                SAMPLE
-                            </a>
-                            file to add more of your credentials.
-                        </small>
-                    </div>
-                }
-                else
-                {
-                    <input type="file" id="credentialsFile" name="CredentialsFile" class="form-control" disabled />
-                    <small class="text-muted">Only architects can upload credentials.</small>
-                }
+                    else
+                    {
+                        <input type="file" id="credentialsFile" name="CredentialsFile" class="form-control" disabled />
+                        <small class="text-muted">Only architects can upload credentials.</small>
+                    }
+                </div>
             </div>
-        </div>
-
+        }
+        
         <div class="form-actions">
             <button type="submit" class="btn-primary">Save Changes</button>
         </div>
