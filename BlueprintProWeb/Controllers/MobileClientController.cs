@@ -572,6 +572,81 @@ namespace BlueprintProWeb.Controllers
 
             var explanation = await GenerateMatchExplanation(
                 request.Query,
+                architect,
+                request.LacksDetails
+            );
+
+            return Ok(new { explanation });
+        }
+
+
+        private async Task<string> GenerateMatchExplanation(
+    string clientQuery,
+    User architect,
+    bool lacksDetails)
+        {
+            var chatClient = _openAi.GetChatClient("gpt-5-mini");
+
+            // ✅ Build USER prompt first
+            var userPrompt = $@"
+Client request:
+{clientQuery}
+
+Reference material (internal):
+{architect.PortfolioText}
+
+Explain why this recommendation fits the client's request.
+";
+
+            // ✅ Conditionally add clarification guidance
+            if (lacksDetails)
+            {
+                userPrompt += @"
+
+Also, if the client's request is missing important details,
+gently suggest what information would help clarify the project
+(such as budget range, project scale, style preference, or location).";
+            }
+
+            var messages = new List<ChatMessage>
+    {
+        new SystemChatMessage(
+@"You are a professional architectural matching assistant.
+
+Your task is to explain WHY the suggested architect could be suitable for the client's needs,
+even if the architect’s primary style or specialty does not exactly match the request.
+
+Guidelines:
+- Speak directly to the client using ""you"" and ""your"".
+- Focus on transferable skills, adaptable design principles, comparable project experience, or flexible approaches.
+- If styles differ, explain how the architect’s experience can still support the client’s goals.
+- Base reasoning only on the provided reference material.
+- Never mention portfolios, internal systems, matching, scores, or AI.
+- Do not list credentials.
+- Do not describe the architect personally.
+- Keep the tone reassuring and professional.
+- Maximum of 2 short sentences."
+        ),
+        new UserChatMessage(userPrompt)
+    };
+
+            var response = await chatClient.CompleteChatAsync(messages);
+
+            // ✅ Mobile-safe fallback
+            return response.Value.Content.Count > 0
+                ? response.Value.Content[0].Text.Trim()
+                : "This recommendation aligns well with your project needs and preferences.";
+        }
+
+        [HttpPost("ExplainMatch")]
+        public async Task<IActionResult> ExplainMatch([FromBody] ExplainMatchRequest request)
+        {
+            var architect = await context.Users.FindAsync(request.ArchitectId);
+            if (architect == null)
+                return NotFound();
+
+            var explanation = await GenerateMatchExplanation(
+                request.Query,
                 architect
             );
 
@@ -620,11 +695,14 @@ namespace BlueprintProWeb.Controllers
 
 
 
+
+
         // -------------------- SEND MATCH REQUEST --------------------
         public class MatchRequest
         {
             public string ArchitectId { get; set; }
             public string ClientId { get; set; }
+
         }
 
         [AllowAnonymous]

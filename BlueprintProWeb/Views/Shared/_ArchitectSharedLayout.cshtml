@@ -65,15 +65,17 @@
             display: flex;
             padding: 25px 20px;
             align-items: center;
-            justify-content: space-between;
+            justify-content: flex-start;
+            gap: 12px;
         }
 
         .sidebar-header .header-logo {
-            display: flex; /* so it hugs the img */
+            display: flex;
             align-items: center;
             justify-content: center;
-            padding: 0; /* remove extra padding */
-            margin: 0; /* remove extra margin */
+            padding: 0;
+            margin: 0;
+            flex-shrink: 0;
         }
 
         .sidebar-header .header-logo img {
@@ -85,18 +87,15 @@
         }
 
         .sidebar-header .system-name {
-            font-size: 1.2rem; /* bigger than nav-labels */
-            font-weight: 700; /* bold */
+            font-size: 1.2rem;
+            font-weight: 700;
             color: #fff;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             transition: opacity 0.4s ease, width 0.4s ease;
-        }
-
-        .system-name {
-            margin-right: 24px;
-            margin-top: 10px;
+            margin: 0;
+            flex: 1;
         }
 
         .sidebar-nav .nav-list {
@@ -163,7 +162,7 @@
             align-items: center;
             color: #fff;
             text-decoration: none;
-            gap: 50px;
+            gap: 12px;
             padding: 12px 15px;
             border-radius: 8px;
             transition: 0.4s ease;
@@ -280,11 +279,28 @@
             gap: 8px;
             cursor: pointer;
             transition: 0.3s ease;
+            overflow: hidden;
+            white-space: nowrap;
         }
 
         .logout-btn:hover {
             background: #fff;
-            border-color: #d62828;
+            color: #e63946;
+        }
+
+        .logout-btn .nav-label {
+            transition: opacity 0.4s ease, width 0.4s ease;
+            white-space: nowrap;
+        }
+
+        .sidebar.collapsed .logout-btn .nav-label {
+            opacity: 0;
+            width: 0;
+            pointer-events: none;
+        }
+
+        .sidebar.collapsed .logout-btn {
+            padding: 12px 8px;
         }
 
         #notificationPanel {
@@ -335,11 +351,9 @@
     @{ var user = await UserManager.GetUserAsync(User); var isPro = user?.IsProActive ?? false; }
     <aside class="sidebar collapsed">
         <header class="sidebar-header">
-            <a href="#" class="header-logo"><img src="~/images/BBP Logo.png" alt="BPP" /></a>
+            <a asp-controller="ArchitectInterface" asp-action="ArchitectDashboard" class="header-logo"><img src="~/images/BBP Logo.png" alt="BPP" /></a>
             <h1 class="system-name">BlueprintPro</h1>
-            <button class="toggler sidebar-toggler">
-                <span class="material-symbols-rounded">chevron_left</span>
-            </button>
+            <button class="toggler sidebar-toggler"><span class="material-symbols-rounded">chevron_left</span></button>
         </header>
         <nav class="sidebar-nav">
             <ul class="nav-list primary-nav">
@@ -363,13 +377,13 @@
                 </li>
                 <li class="nav-item">
                     <a asp-controller="ArchitectInterface" asp-action="Projects" class="nav-link">
-                        <span class="material-symbols-rounded">note_stack</span>
+                        <span class="nav-icon material-symbols-rounded">note_stack</span>
                         <span class="nav-label">Projects</span>
                     </a>
                 </li>
             </ul>
         </nav>
-        <form asp-controller="Account" asp-action="Logout" method="post" class="logout-form"><button type="submit" class="logout-btn nav-link"><span class="material-symbols-rounded">logout</span></button></form>
+        <form asp-controller="Account" asp-action="Logout" method="post" class="logout-form"><button type="submit" class="logout-btn nav-link"><span class="material-symbols-rounded">logout</span><span class="nav-label">Log out</span></button></form>
     </aside>
     <nav class="navbar">
         <div>@if (isPro){ <span class="header-pro-indicator">PRO</span> }</div>
@@ -530,4 +544,4 @@
         });
     </script>
 </body>
-</html>
+</html></html>

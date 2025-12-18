@@ -401,31 +401,67 @@ namespace BlueprintProWeb.Controllers.ClientSide
             if (currentUser == null)
                 return RedirectToAction("Login", "Account");
 
-            // Step 1: Default query
-            string searchQuery = query;
-            if (string.IsNullOrWhiteSpace(searchQuery))
-            {
-                searchQuery = $"Style: {currentUser.user_Style}, Location: {currentUser.user_Location}, Budget: {currentUser.user_Budget}";
-            }
-
-            // Step 2: Expand query (ONCE only)
             var chatClient = _openAi.GetChatClient("gpt-5-mini");
 
+            // 🔹 Step 0: Check if request is architecture-related
+            var scopeCheckMessages = new List<ChatMessage>
+{
+                new SystemChatMessage(
+                    @"You are classifying client messages for an architecture matching system.
+
+                    Classify the message into ONE of the following categories:
+                    - ARCHITECTURE_RELATED: Any message related to architectural design, building design, interiors, construction, renovation, styles, or architectural capabilities — even if vague or incomplete.
+                    - NOT_ARCHITECTURE_RELATED: Clearly unrelated topics (games, programming, food, weather, etc.)
+
+                    Important rules:
+                    - Vague or short messages are STILL architecture-related if they mention styles, design, architects, buildings, or services.
+                    - Missing budget, location, or project details does NOT make it out of scope.
+                    - Capability statements like ""can do modern designs"" ARE architecture-related.
+
+                    Respond ONLY with:
+                    ARCHITECTURE_RELATED or NOT_ARCHITECTURE_RELATED"
+                    ),
+                    new UserChatMessage(query ?? "")
+                };
+
+
+            var scopeResult = await chatClient.CompleteChatAsync(scopeCheckMessages);
+
+            bool isArchitectureRelated =
+                scopeResult.Value.Content[0].Text.Trim()
+                    .Equals("ARCHITECTURE_RELATED", StringComparison.OrdinalIgnoreCase);
+
+            bool outOfScope = !isArchitectureRelated;
+
+            // Step 1: Default query
+            string searchQuery = string.IsNullOrWhiteSpace(query)
+                ? $"Style: {currentUser.user_Style}, Location: {currentUser.user_Location}, Budget: {currentUser.user_Budget}"
+                : query;
+
+            // 🔍 Check if client request lacks key details
+            bool lacksDetails =
+                !searchQuery.Contains("budget", StringComparison.OrdinalIgnoreCase) ||
+                !searchQuery.Contains("location", StringComparison.OrdinalIgnoreCase) ||
+                !searchQuery.Contains("style", StringComparison.OrdinalIgnoreCase);
+
+            
+
+            // Step 2: Expand query
             var messages = new List<ChatMessage>
-            {
-                new SystemChatMessage("You rewrite client needs into a clear architectural request."),
-                new UserChatMessage($"User request: {searchQuery}. Expand into 2–3 descriptive sentences.")
-            };
+    {
+        new SystemChatMessage("You rewrite client needs into a clear architectural request."),
+        new UserChatMessage($"User request: {searchQuery}. Expand into 2–3 descriptive sentences.")
+    };
 
             var response = await chatClient.CompleteChatAsync(messages);
             var expansion = response.Value.Content[0].Text;
             var finalQuery = $"{searchQuery}. Expanded: {expansion}";
 
-            // Step 3: Embedding
+            // Step 3: Generate embedding
             var embeddingResponse = await _embeddingClient.GenerateEmbeddingAsync(finalQuery);
             var queryVector = embeddingResponse.Value.ToFloats().ToArray();
 
-            // Step 4: Compare
+            // Step 4: Compare with architects
             var architects = context.Users
                 .Where(u => u.user_role == "Architect" && !string.IsNullOrEmpty(u.PortfolioEmbedding))
                 .ToList();
@@ -434,14 +470,10 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 .Select(a =>
                 {
                     var vecA = ParseEmbedding(a.PortfolioEmbedding);
-
-                    if (vecA == null || vecA.Length != queryVector.Length)
-                        return null;
+                    if (vecA == null || vecA.Length != queryVector.Length) return null;
 
                     var score = CosineSimilarity(queryVector, vecA);
-
-                    if (a.IsPro)
-                        score += 0.05;
+                    if (a.IsPro) score += 0.05;
 
                     return new MatchViewModel
                     {
@@ -475,7 +507,6 @@ namespace BlueprintProWeb.Controllers.ClientSide
                             .Select(m => m.MatchStatus)
                             .FirstOrDefault(),
 
-                        // 🔹 IMPORTANT: explanation is empty initially
                         MatchExplanation = null
                     };
                 })
@@ -484,47 +515,66 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 .Take(25)
                 .ToList();
 
+            // Compute average ratings
             foreach (var vm in ranked)
             {
-                vm.AverageRating =
-                    vm.RatingCount > 0
-                        ? Math.Round(vm.TotalRatings / vm.RatingCount, 1)
-                        : 0.0;
+                vm.AverageRating = vm.RatingCount > 0
+                    ? Math.Round(vm.TotalRatings / vm.RatingCount, 1)
+                    : 0.0;
             }
 
+            // Strong match & feedback
+            bool hasStrongMatch = ranked.Count > 0 && ranked[0].SimilarityPercentage >= 35;
+            bool showFeedback = !hasStrongMatch;
+
+            // Return JSON for AJAX
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-                return Json(ranked);
+            {
+                return Json(new
+                {
+                    matches = ranked,
+                    showFeedback,
+                    lacksDetails,
+                    outOfScope
+                });
+            }
+
+            // For normal page load
+            ViewBag.HasStrongMatch = hasStrongMatch;
+            ViewBag.OutOfScope = outOfScope;
+            ViewBag.LacksDetails = lacksDetails;
 
             return View(ranked);
-
         }
+
+
 
         private double CosineSimilarity(float[] v1, float[] v2)
-        {
-            if (v1.Length != v2.Length) return 0;
-
-            double dot = 0, mag1 = 0, mag2 = 0;
-            for (int i = 0; i < v1.Length; i++)
             {
-                dot += v1[i] * v2[i];
-                mag1 += v1[i] * v1[i];
-                mag2 += v2[i] * v2[i];
-            }
-            return dot / (Math.Sqrt(mag1) * Math.Sqrt(mag2));
-        }
+                if (v1.Length != v2.Length) return 0;
 
-        private float[] ParseEmbedding(string embeddingString)
-        {
-            return embeddingString
-                .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(s =>
+                double dot = 0, mag1 = 0, mag2 = 0;
+                for (int i = 0; i < v1.Length; i++)
                 {
-                    if (float.TryParse(s.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
-                        return value;
-                    return 0f; // fallback if parsing fails
-                })
-                .ToArray();
-        }
+                    dot += v1[i] * v2[i];
+                    mag1 += v1[i] * v1[i];
+                    mag2 += v2[i] * v2[i];
+                }
+                return dot / (Math.Sqrt(mag1) * Math.Sqrt(mag2));
+            }
+
+            private float[] ParseEmbedding(string embeddingString)
+            {
+                return embeddingString
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(s =>
+                    {
+                        if (float.TryParse(s.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
+                            return value;
+                        return 0f; // fallback if parsing fails
+                    })
+                    .ToArray();
+            }
 
         [HttpGet]
         public async Task<IActionResult> Messages(string architectId)
@@ -945,7 +995,12 @@ namespace BlueprintProWeb.Controllers.ClientSide
             var architect = await context.Users.FindAsync(request.ArchitectId);
             if (architect == null) return NotFound();
 
-            var explanation = await GenerateMatchExplanation(request.Query, architect);
+            var explanation = await GenerateMatchExplanation(
+                request.Query,
+                architect,
+                request.LacksDetails
+               );
+
             return Json(new { explanation });
         }
 
@@ -953,46 +1008,90 @@ namespace BlueprintProWeb.Controllers.ClientSide
         {
             public string ArchitectId { get; set; }
             public string Query { get; set; }
+            public bool LacksDetails { get; set; }
         }
 
 
 
         private async Task<string> GenerateMatchExplanation(
-            string clientQuery,
-            User architect)
+    string clientQuery,
+    User architect,
+    bool lacksDetails)
         {
             var chatClient = _openAi.GetChatClient("gpt-5-mini");
 
-            var messages = new List<ChatMessage>
-        {
-            new SystemChatMessage(
-                "You are explaining why an architect was recommended to a client.\n" +
-                "The architect was already selected by an AI similarity system.\n" +
-                "Your task is ONLY to explain the reasons clearly.\n" +
-                "Do NOT say you cannot determine a match.\n" +
-                "Do NOT ask for missing information.\n" +
-                "Use simple, client-friendly language.\n" +
-                "Maximum 2 sentences.\n" +
-                "Only reference the provided architect credentials and client request."
-            ),
-
-            new UserChatMessage($@"
-                Client request (expanded):
+            // ✅ Build the user prompt FIRST
+            var userPrompt = $@"
+                Client request:
                 {clientQuery}
- 
-                Architect credentials:
-                Style: {architect.user_Style}
-                Location: {architect.user_Location}
-                Budget Range: {architect.user_Budget}
-                Specialization: {architect.user_Specialization}
-                Pro Account: {(architect.IsProActive ? "Yes" : "No")}
- 
-                Explain why this architect fits the client's request.
-            ")
-        };
 
-                var response = await chatClient.CompleteChatAsync(messages);
-                return response.Value.Content[0].Text.Trim();
+                Reference material (internal):
+                {architect.PortfolioText}
+
+                Explain why this recommendation fits the client's request.
+                ";
+
+            // ✅ Conditionally ask for clarification guidance
+            if (lacksDetails)
+            {
+                userPrompt += @"
+
+                    Also, if the client's request is missing important details,
+                    gently suggest what information would help clarify the project
+                    (such as budget range, project scale, style preference, or location).";
+            }
+
+            var messages = new List<ChatMessage>
+    {
+        new SystemChatMessage(
+                @"You are a professional architectural matching assistant.
+
+                Your task is to explain WHY the suggested architect could be suitable for the client's needs,
+                even if the architect’s primary style or specialty does not exactly match the request.
+
+                Guidelines:
+                - Speak directly to the client using ""you"" and ""your"".
+                - Focus on transferable skills, adaptable design principles, comparable project experience, or flexible approaches.
+                - If styles differ, explain how the architect’s experience can still support the client’s goals.
+                - Base reasoning only on the provided reference material.
+                - Never mention portfolios, internal systems, matching, scores, or AI.
+                - Do not list credentials.
+                - Do not describe the architect personally.
+                - Keep the tone reassuring and professional.
+                - Maximum of 2 short sentences."
+             ),
+
+                new UserChatMessage(userPrompt)
+    };
+
+            var response = await chatClient.CompleteChatAsync(messages);
+            return response.Value.Content[0].Text.Trim();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetBlueprintDetails(int id)
+        {
+            var blueprint = await context.Blueprints
+                .Where(bp => bp.blueprintId == id)
+                .Select(bp => new {
+                    id = bp.blueprintId,
+                    name = bp.blueprintName,
+                    image = bp.blueprintImage,
+                    price = bp.blueprintPrice,
+                    style = bp.blueprintStyle,
+                    description = bp.blueprintDescription,
+                    architectId = bp.architectId,
+                    architectName = context.Users
+                        .Where(u => u.Id == bp.architectId)
+                        .Select(u => u.user_fname + " " + u.user_lname)
+                        .FirstOrDefault()
+                })
+                .FirstOrDefaultAsync();
+
+            if (blueprint == null)
+                return NotFound();
+
+            return Json(blueprint);
         }
     }
 }
