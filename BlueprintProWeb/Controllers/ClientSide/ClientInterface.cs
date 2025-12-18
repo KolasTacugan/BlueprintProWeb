@@ -996,5 +996,30 @@ namespace BlueprintProWeb.Controllers.ClientSide
             return response.Value.Content[0].Text.Trim();
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetBlueprintDetails(int id)
+        {
+            var blueprint = await context.Blueprints
+                .Where(bp => bp.blueprintId == id)
+                .Select(bp => new {
+                    id = bp.blueprintId,
+                    name = bp.blueprintName,
+                    image = bp.blueprintImage,
+                    price = bp.blueprintPrice,
+                    style = bp.blueprintStyle,
+                    description = bp.blueprintDescription,
+                    architectId = bp.architectId,
+                    architectName = context.Users
+                        .Where(u => u.Id == bp.architectId)
+                        .Select(u => u.user_fname + " " + u.user_lname)
+                        .FirstOrDefault()
+                })
+                .FirstOrDefaultAsync();
+
+            if (blueprint == null)
+                return NotFound();
+
+            return Json(blueprint);
+        }
     }
 }

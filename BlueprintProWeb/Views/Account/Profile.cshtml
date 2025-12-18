@@ -296,8 +296,8 @@
             transition: all 0.3s ease;
             text-align: center;
             min-width: 140px;
+            width: 180px;
             box-shadow: 0 4px 15px rgba(13, 60, 128, 0.3);
-            text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
@@ -407,6 +407,21 @@
             position: relative;
         }
 
+        .modal-content-medium {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 0;
+            margin: 20px;
+            box-shadow: 0 20px 60px rgba(13, 60, 128, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
         .modal-header-custom {
             background: linear-gradient(135deg, #0D3C80, #1a5bb8);
             color: white;
@@ -440,10 +455,8 @@
         }
 
         .modal-title-custom {
-            font-size: 2rem;
+            font-size: 1.25rem !important;
             font-weight: 700;
-            margin: 0;
-            color: white;
         }
 
         .modal-subtitle {
@@ -886,6 +899,119 @@
                 flex-direction: column;
             }
         }
+
+        .purchased-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 15px;
+        }
+
+        .purchased-item {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 2px 10px rgba(13, 60, 128, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: transform 0.2s ease;
+        }
+
+        .purchased-item:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(13, 60, 128, 0.15);
+        }
+
+        .purchased-image {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 6px;
+            margin-right: 12px;
+            border: 1px solid rgba(13, 60, 128, 0.1);
+        }
+
+        .purchased-details h5 {
+            margin: 0 0 3px 0;
+            color: #0D3C80;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .purchased-details p {
+            margin: 0;
+            color: #666;
+            font-size: 0.8rem;
+        }
+
+        .purchased-price {
+            color: #0D3C80 !important;
+            font-weight: 600 !important;
+        }
+
+        .blueprint-details-modal {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 15px;
+            padding: 0;
+            margin: 20px;
+            box-shadow: 0 15px 40px rgba(13, 60, 128, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            max-width: 450px;
+            width: 90%;
+            max-height: 70vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .blueprint-details-header {
+            background: linear-gradient(135deg, #0D3C80, #1a5bb8);
+            color: white;
+            padding: 15px;
+            border-radius: 15px 15px 0 0;
+            text-align: center;
+            position: relative;
+        }
+
+        .blueprint-details-body {
+            padding: 15px;
+        }
+
+        .blueprint-details-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 12px;
+        }
+
+        .blueprint-details-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #0D3C80;
+            margin-bottom: 8px;
+        }
+
+        .blueprint-details-price {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #0D3C80;
+            margin-bottom: 12px;
+        }
+
+        .blueprint-details-description {
+            color: #555;
+            line-height: 1.5;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+        }
+
+        .blueprint-details-architect {
+            font-weight: 600;
+            color: #0D3C80;
+            font-size: 0.9rem;
+        }
     </style>
 }
 
@@ -1023,12 +1149,21 @@
                 <a asp-controller="Account" asp-action="EditProfile" class="edit-btn">
                     <i class="fas fa-edit"></i> Edit Profile
                 </a>
-                <button class="subscription-btn @(Model.IsPro ? "subscription-card-pro" : "")"
-                    title="@(Model.Role == "Client" ? "Subscription is only available for architects" : "")"
-                    onclick="@(Model.Role == "Client" ? "return false;" : "openSubscriptionModal()")"
-                    @(Model.Role == "Client" ? "disabled" : "")>
-                    <i class="fas fa-crown"></i> Subscription
-                </button>
+                @if (Model.Role != "Client")
+                {
+                    <button class="subscription-btn @(Model.IsPro ? "subscription-card-pro" : "")"
+                        title="@(Model.Role == "Client" ? "Subscription is only available for architects" : "")"
+                        onclick="@(Model.Role == "Client" ? "return false;" : "openSubscriptionModal()")"
+                        @(Model.Role == "Client" ? "disabled" : "")>
+                        <i class="fas fa-crown"></i> Subscription
+                    </button>
+                }
+                @if (Model.Role == "Client")
+                {
+                    <button class="edit-btn" onclick="openPurchasedBlueprintsModal()">
+                        <i class="fas fa-shopping-bag"></i> Purchased
+                    </button>
+                }
             </div>
         </div>
     </div>
@@ -1075,7 +1210,7 @@
                     }
                     else
                     {
-                        <button class="plan-button" style="background: #dc3545; color: white; cursor: pointer;" onclick="confirmDowngrade()">Downgrade</button>
+                        <button class="plan-button" style="background: #dc3545; color: white, cursor: pointer;" onclick="confirmDowngrade()">Downgrade</button>
                     }
                 </div>
 
@@ -1118,6 +1253,39 @@
     </div>
 </div>
 
+<!-- PURCHASED BLUEPRINTS MODAL -->
+<div id="purchasedBlueprintsModal" class="subscription-modal">
+    <div class="modal-content-medium">
+        <div class="modal-header-custom">
+            <button class="modal-close" onclick="closePurchasedBlueprintsModal()">&times;</button>
+            <h2 class="modal-title-custom">Your Purchased Blueprints</h2>
+            <p class="modal-subtitle">View the blueprints you have purchased from the marketplace</p>
+        </div>
+
+        <div class="modal-body-custom">
+            <div id="purchasedBlueprintsContainer">
+                <!-- Blueprints will be loaded here -->
+                <div class="text-center">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p>Loading your purchased blueprints...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- BLUEPRINT DETAILS MODAL -->
+<div id="blueprintDetailsModal" class="subscription-modal">
+    <div class="blueprint-details-modal">
+        <div class="blueprint-details-header">
+            <button class="modal-close" onclick="closeBlueprintDetailsModal()">&times;</button>
+            <h2 class="modal-title-custom">Blueprint Details</h2>
+        </div>
+        <div class="blueprint-details-body" id="blueprintDetailsContent">
+            <!-- Details will be loaded here -->
+        </div>
+    </div>
+</div>
 
 @section Scripts {
     <script>
@@ -1197,101 +1365,97 @@
             document.getElementById('modalSubtitle').textContent = 'Select the subscription that fits your needs';
         }
 
-        // UPGRADE TO PRO USING STRIPE CHECKOUT
-        async function upgradeToPro() {
+        // PURCHASED BLUEPRINTS MODAL
+        function openPurchasedBlueprintsModal() {
+            const modal = document.getElementById('purchasedBlueprintsModal');
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+            loadPurchasedBlueprints();
+        }
+
+        function closePurchasedBlueprintsModal() {
+            const modal = document.getElementById('purchasedBlueprintsModal');
+            modal.classList.remove('show');
+            document.body.style.overflow = 'auto';
+        }
+
+        async function loadPurchasedBlueprints() {
             try {
-                // Show loading indicator
-                const upgradeBtn = event.target;
-                const originalText = upgradeBtn.textContent;
-                upgradeBtn.textContent = 'Redirecting to Checkout...';
-                upgradeBtn.disabled = true;
+                const response = await fetch('/ClientInterface/GetPurchasedBlueprints');
+                const blueprints = await response.json();
 
-                // Get anti-forgery token
-                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                const container = document.getElementById('purchasedBlueprintsContainer');
 
-                // Call backend endpoint to create Stripe Checkout session
-                const response = await fetch('/ArchitectInterface/CreateCheckoutSession', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'RequestVerificationToken': token || ''
-                    },
-                    body: `__RequestVerificationToken=${encodeURIComponent(token || '')}`
-                });
-
-                const data = await response.json();
-
-                if (data && data.url) {
-                    window.location.href = data.url; // Redirect to Stripe Checkout
-                } else {
-                    alert('Failed to start checkout: ' + (data.message || 'Unknown error.'));
+                if (blueprints.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center">
+                            <i class="fas fa-shopping-bag fa-3x text-muted"></i>
+                            <h4 class="mt-3">No Purchased Blueprints</h4>
+                            <p>You haven't purchased any blueprints yet.</p>
+                            <a href="/ClientInterface/BlueprintMarketplace" class="edit-btn">Browse Marketplace</a>
+                        </div>
+                    `;
+                    return;
                 }
+
+                let html = '<div class="purchased-list">';
+                blueprints.forEach(bp => {
+                    const imageUrl = bp.image ? `/images/${bp.image}` : '/images/default-blueprint.png';
+                    html += `
+                        <div class="purchased-item" onclick="openBlueprintDetailsModal(${bp.id})" style="cursor: pointer;">
+                            <img src="${imageUrl}" alt="${bp.name}" class="purchased-image">
+                            <div class="purchased-details">
+                                <h5>${bp.name}</h5>
+                                <p>Style: ${bp.style || 'N/A'}</p>
+                                <p class="purchased-price">₱${bp.price}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                container.innerHTML = html;
             } catch (error) {
-                console.error('Error starting checkout:', error);
-                alert('An error occurred while redirecting to Stripe Checkout.');
-            } finally {
-                const upgradeBtn = event.target;
-                upgradeBtn.textContent = 'Upgrade to Pro';
-                upgradeBtn.disabled = false;
+                console.error('Error loading purchased blueprints:', error);
+                document.getElementById('purchasedBlueprintsContainer').innerHTML = `
+                    <div class="text-center">
+                        <i class="fas fa-exclamation-triangle fa-3x text-danger"></i>
+                        <h4 class="mt-3">Error Loading Blueprints</h4>
+                        <p>Please try again later.</p>
+                    </div>
+                `;
             }
         }
 
-        // DOWNGRADE FUNCTION
-        async function confirmDowngrade() {
-           if (!confirm("Are you sure you want to downgrade to the Free plan?")) return;
+        // BLUEPRINT DETAILS MODAL
+        async function openBlueprintDetailsModal(blueprintId) {
+            try {
+                const response = await fetch(`/ClientInterface/GetBlueprintDetails?id=${blueprintId}`);
+                const blueprint = await response.json();
 
-           const downgradeButton = document.querySelector('.plan-button[onclick="confirmDowngrade()"]');
-           const originalText = downgradeButton.textContent;
-           downgradeButton.textContent = "Processing...";
-           downgradeButton.disabled = true;
+                const content = document.getElementById('blueprintDetailsContent');
+                const imageUrl = blueprint.image ? `/images/${blueprint.image}` : '/images/default-blueprint.png';
 
-           try {
-               const response = await fetch('/Account/DowngradeToFreePlan', {
-                   method: 'POST',
-                   headers: {
-                       'Content-Type': 'application/json',
-                       'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-                   },
-               });
+                content.innerHTML = `
+                    <img src="${imageUrl}" alt="${blueprint.name}" class="blueprint-details-image">
+                    <h3 class="blueprint-details-title">${blueprint.name}</h3>
+                    <p class="blueprint-details-price">₱${blueprint.price}</p>
+                    <p class="blueprint-details-description">${blueprint.description || 'No description available.'}</p>
+                    <p class="blueprint-details-architect">Architect: ${blueprint.architectName || 'Unknown'}</p>
+                `;
 
-               const text = await response.text();
-               let data;
-               try {
-                   data = JSON.parse(text);
-               } catch {
-                   throw new Error('Non-JSON response received.');
-               }
+                const modal = document.getElementById('blueprintDetailsModal');
+                modal.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            } catch (error) {
+                console.error('Error loading blueprint details:', error);
+                alert('Failed to load blueprint details.');
+            }
+        }
 
-               if (data.success) {
-                   alert('✅ Successfully downgraded to Free Plan!');
-
-                   // 🔥 Update UI instantly (no need to reload)
-                   document.querySelectorAll('.pro-indicator').forEach(el => el.remove());
-                   document.querySelectorAll('.pro-user').forEach(el => el.classList.remove('pro-user'));
-                   document.querySelectorAll('.subscription-card-pro').forEach(el => el.classList.remove('subscription-card-pro'));
-
-                   // Update plan badges visually
-                   const freeCard = document.querySelector('.plan-card:nth-child(1)');
-                   const proCard = document.querySelector('.plan-card:nth-child(2)');
-                   freeCard.classList.add('current-plan');
-                   proCard.classList.remove('current-plan');
-                   proCard.classList.add('pro-plan');
-
-                   // Replace buttons
-                   downgradeButton.outerHTML = `<button class="plan-button current-btn">Current Plan</button>`;
-                   proCard.querySelector('.plan-button').outerHTML = `<button class="plan-button primary" onclick="upgradeToPro()">Get Started</button>`;
-
-                   closeSubscriptionModal();
-               } else {
-                   alert('❌ Downgrade failed: ' + (data.message || 'Unknown error.'));
-               }
-           } catch (error) {
-               console.error('Error during downgrade:', error);
-               
-           } finally {
-               downgradeButton.textContent = originalText;
-               downgradeButton.disabled = false;
-           }
+        function closeBlueprintDetailsModal() {
+            const modal = document.getElementById('blueprintDetailsModal');
+            modal.classList.remove('show');
+            document.body.style.overflow = 'auto';
         }
 
         // CLOSE MODAL EVENTS
@@ -1304,6 +1468,115 @@
 
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
+                closeSubscriptionModal();
+            }
+        });
+
+        // PURCHASED BLUEPRINTS MODAL
+        function openPurchasedBlueprintsModal() {
+            const modal = document.getElementById('purchasedBlueprintsModal');
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+            loadPurchasedBlueprints();
+        }
+
+        function closePurchasedBlueprintsModal() {
+            const modal = document.getElementById('purchasedBlueprintsModal');
+            modal.classList.remove('show');
+            document.body.style.overflow = 'auto';
+        }
+
+        async function loadPurchasedBlueprints() {
+            try {
+                const response = await fetch('/ClientInterface/GetPurchasedBlueprints');
+                const blueprints = await response.json();
+
+                const container = document.getElementById('purchasedBlueprintsContainer');
+
+                if (blueprints.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center">
+                            <i class="fas fa-shopping-bag fa-3x text-muted"></i>
+                            <h4 class="mt-3">No Purchased Blueprints</h4>
+                            <p>You haven't purchased any blueprints yet.</p>
+                            <a href="/ClientInterface/BlueprintMarketplace" class="edit-btn">Browse Marketplace</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '<div class="purchased-list">';
+                blueprints.forEach(bp => {
+                    const imageUrl = bp.image ? `/images/${bp.image}` : '/images/default-blueprint.png';
+                    html += `
+                        <div class="purchased-item" onclick="openBlueprintDetailsModal(${bp.id})" style="cursor: pointer;">
+                            <img src="${imageUrl}" alt="${bp.name}" class="purchased-image">
+                            <div class="purchased-details">
+                                <h5>${bp.name}</h5>
+                                <p>Style: ${bp.style || 'N/A'}</p>
+                                <p class="purchased-price">₱${bp.price}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading purchased blueprints:', error);
+                document.getElementById('purchasedBlueprintsContainer').innerHTML = `
+                    <div class="text-center">
+                        <i class="fas fa-exclamation-triangle fa-3x text-danger"></i>
+                        <h4 class="mt-3">Error Loading Blueprints</h4>
+                        <p>Please try again later.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // BLUEPRINT DETAILS MODAL
+        async function openBlueprintDetailsModal(blueprintId) {
+            try {
+                const response = await fetch(`/ClientInterface/GetBlueprintDetails?id=${blueprintId}`);
+                const blueprint = await response.json();
+
+                const content = document.getElementById('blueprintDetailsContent');
+                const imageUrl = blueprint.image ? `/images/${blueprint.image}` : '/images/default-blueprint.png';
+
+                content.innerHTML = `
+                    <img src="${imageUrl}" alt="${blueprint.name}" class="blueprint-details-image">
+                    <h3 class="blueprint-details-title">${blueprint.name}</h3>
+                    <p class="blueprint-details-price">₱${blueprint.price}</p>
+                    <p class="blueprint-details-description">${blueprint.description || 'No description available.'}</p>
+                    <p class="blueprint-details-architect">Architect: ${blueprint.architectName || 'Unknown'}</p>
+                `;
+
+                const modal = document.getElementById('blueprintDetailsModal');
+                modal.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            } catch (error) {
+                console.error('Error loading blueprint details:', error);
+                alert('Failed to load blueprint details.');
+            }
+        }
+
+        function closeBlueprintDetailsModal() {
+            const modal = document.getElementById('blueprintDetailsModal');
+            modal.classList.remove('show');
+            document.body.style.overflow = 'auto';
+        }
+
+        // CLOSE PURCHASED BLUEPRINTS MODAL EVENTS
+        document.addEventListener('click', function (e) {
+            const modal = document.getElementById('purchasedBlueprintsModal');
+            if (e.target === modal) {
+                closePurchasedBlueprintsModal();
+            }
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                closePurchasedBlueprintsModal();
+                closeBlueprintDetailsModal();
                 closeSubscriptionModal();
             }
         });
