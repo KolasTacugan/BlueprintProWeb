@@ -1027,10 +1027,12 @@
                         headers: {
                             "Content-Type": "application/json"
                         },
-                        body: JSON.stringify({
-                            architectId: id,
-                            query: clientQuery
-                        })
+                                body: JSON.stringify({
+                                    architectId: id,
+                                    query: clientQuery,
+                                    lacksDetails: clientQuery.length < 30
+                                })
+
                     })
                     .then(res => {
                         if (!res.ok) throw new Error("ExplainMatch failed");
@@ -1145,8 +1147,33 @@
             })
             .then(res => res.json())
             .then(data => {
-                appendSystemMessage(`✅ Found ${data.length} potential matches.`);
-                renderArchitects(data);
+
+                // 🔹 Handle out-of-scope request
+                if (data.outOfScope) {
+                    appendSystemMessage("⚠️ " + data.message);
+                    renderArchitects([]); // optional: clear previous results
+                    return; // stop further processing
+                }
+
+                // 🔹 Handle low similarity feedback
+                if (data.showFeedback) {
+                    appendSystemMessage(
+                        "⚠️ No architect closely matches your current description yet. " +
+                        "The architects shown below may still be suitable with adjustments."
+                    );
+
+                    
+                }
+                if (data.lacksDetails) {
+                        appendSystemMessage(
+                            "💡 Tip: Adding more details like budget, location, and style will improve match quality."
+                        );
+                    }
+
+                // ✅ Add confirmation that results are available
+                
+
+                renderArchitects(data.matches);
             })
             .catch(err => {
                 console.error("Search failed:", err);
@@ -1154,6 +1181,7 @@
                 renderArchitects([]);
             });
         });
+
 
         function showNotification(title, message) {
             document.getElementById('notificationTitle').textContent = title;
