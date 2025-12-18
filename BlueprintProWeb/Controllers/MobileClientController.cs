@@ -653,6 +653,7 @@ Guidelines:
             return Ok(new { explanation });
         }
 
+
         private async Task<string> GenerateMatchExplanation(
     string clientQuery,
     User architect)
