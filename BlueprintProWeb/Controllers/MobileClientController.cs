@@ -434,7 +434,7 @@ namespace BlueprintProWeb.Controllers
         [HttpGet("Matches")]
         [AllowAnonymous]
         public async Task<IActionResult> GetMatches(
-    [FromQuery] string clientId,
+    [FromQuery] string? clientId,
     [FromQuery] string? query)
         {
             try
@@ -444,42 +444,71 @@ namespace BlueprintProWeb.Controllers
                     ? null
                     : await context.Users.FindAsync(clientId);
 
-                // 🔹 Step 2: Default query (same logic as web)
-                string searchQuery = query;
-
-                if (string.IsNullOrWhiteSpace(searchQuery))
-                {
-                    searchQuery = client == null
-                        ? "General architectural project"
-                        : $"Style: {client.user_Style}, Location: {client.user_Location}, Budget: {client.user_Budget}";
-                }
-
-                // 🔹 Step 3: Expand query ONCE
                 var chatClient = _openAi.GetChatClient("gpt-5-mini");
 
-                var messages = new List<ChatMessage>
+                // 🔹 Step 2: Scope check (same as WEB)
+                var scopeMessages = new List<ChatMessage>
+        {
+            new SystemChatMessage(
+@"You are classifying client messages for an architecture matching system.
+
+Classify the message into ONE of the following categories:
+- ARCHITECTURE_RELATED
+- NOT_ARCHITECTURE_RELATED
+
+Rules:
+- Vague architectural requests are still ARCHITECTURE_RELATED
+- Missing details does NOT make it out of scope
+Respond ONLY with the category."
+            ),
+            new UserChatMessage(query ?? "")
+        };
+
+                var scopeResult = await chatClient.CompleteChatAsync(scopeMessages);
+
+                bool isArchitectureRelated =
+                    scopeResult.Value.Content[0].Text.Trim()
+                        .Equals("ARCHITECTURE_RELATED", StringComparison.OrdinalIgnoreCase);
+
+                bool outOfScope = !isArchitectureRelated;
+
+                // 🔹 Step 3: Default query (same as WEB)
+                string searchQuery = string.IsNullOrWhiteSpace(query)
+                    ? client == null
+                        ? "General architectural project"
+                        : $"Style: {client.user_Style}, Location: {client.user_Location}, Budget: {client.user_Budget}"
+                    : query;
+
+                // 🔍 Check missing details
+                bool lacksDetails =
+                    !searchQuery.Contains("budget", StringComparison.OrdinalIgnoreCase) ||
+                    !searchQuery.Contains("location", StringComparison.OrdinalIgnoreCase) ||
+                    !searchQuery.Contains("style", StringComparison.OrdinalIgnoreCase);
+
+                // 🔹 Step 4: Expand query (same as WEB)
+                var expandMessages = new List<ChatMessage>
         {
             new SystemChatMessage("You rewrite client needs into a clear architectural request."),
             new UserChatMessage($"User request: {searchQuery}. Expand into 2–3 descriptive sentences.")
         };
 
-                var response = await chatClient.CompleteChatAsync(messages);
-                var expansion = response.Value.Content[0].Text;
+                var expandResponse = await chatClient.CompleteChatAsync(expandMessages);
+                var expansion = expandResponse.Value.Content[0].Text;
 
                 var finalQuery = $"{searchQuery}. Expanded: {expansion}";
 
-                // 🔹 Step 4: Embedding
+                // 🔹 Step 5: Embedding
                 var embeddingResponse = await _embeddingClient.GenerateEmbeddingAsync(finalQuery);
                 var queryVector = embeddingResponse.Value.ToFloats().ToArray();
 
-                // 🔹 Step 5: Architects with embeddings
+                // 🔹 Step 6: Architects
                 var architects = await context.Users
                     .Where(u => u.user_role == "Architect" &&
                                 !string.IsNullOrEmpty(u.PortfolioEmbedding))
                     .ToListAsync();
 
-                // 🔹 Step 6: Rank & map to DTO (JSON-safe)
-                var results = architects
+                // 🔹 Step 7: Rank (same logic)
+                var ranked = architects
                     .Select(a =>
                     {
                         var vecA = ParseEmbedding(a.PortfolioEmbedding);
@@ -516,7 +545,6 @@ namespace BlueprintProWeb.Controllers
                             SimilarityScore = score,
                             SimilarityPercentage = Math.Round(score * 100, 1),
 
-                            // 🔹 Lazy-loaded via ExplainMatch
                             MatchExplanation = null
                         };
                     })
@@ -525,7 +553,18 @@ namespace BlueprintProWeb.Controllers
                     .Take(25)
                     .ToList();
 
-                return Ok(results); // ✅ ALWAYS JSON
+                // 🔹 Step 8: Strong match logic (same as WEB)
+                bool hasStrongMatch = ranked.Count > 0 && ranked[0].SimilarityPercentage >= 35;
+                bool showFeedback = !hasStrongMatch;
+
+                // ✅ ALWAYS JSON (mobile-friendly)
+                return Ok(new
+                {
+                    matches = ranked,
+                    outOfScope,
+                    lacksDetails,
+                    showFeedback
+                });
             }
             catch (Exception ex)
             {
@@ -537,6 +576,7 @@ namespace BlueprintProWeb.Controllers
             }
         }
 
+
         [HttpPost("ExplainMatch")]
         public async Task<IActionResult> ExplainMatch([FromBody] ExplainMatchRequest request)
         {
@@ -546,51 +586,72 @@ namespace BlueprintProWeb.Controllers
 
             var explanation = await GenerateMatchExplanation(
                 request.Query,
-                architect
+                architect,
+                request.LacksDetails
             );
 
             return Ok(new { explanation });
         }
 
+
         private async Task<string> GenerateMatchExplanation(
     string clientQuery,
-    User architect)
+    User architect,
+    bool lacksDetails)
         {
             var chatClient = _openAi.GetChatClient("gpt-5-mini");
+
+            // ✅ Build USER prompt first
+            var userPrompt = $@"
+Client request:
+{clientQuery}
+
+Reference material (internal):
+{architect.PortfolioText}
+
+Explain why this recommendation fits the client's request.
+";
+
+            // ✅ Conditionally add clarification guidance
+            if (lacksDetails)
+            {
+                userPrompt += @"
+
+Also, if the client's request is missing important details,
+gently suggest what information would help clarify the project
+(such as budget range, project scale, style preference, or location).";
+            }
 
             var messages = new List<ChatMessage>
     {
         new SystemChatMessage(
-                "You are explaining to a client why a recommended architect fits THEIR request.\n" +
-                "The architect was already selected by an AI similarity system.\n" +
-                "Speak to the client in second person (use \"you\" / \"your\"), as a platform explaining the recommendation.\n" +
-                "Base the reasoning on evidence found in the architect's portfolio text, but NEVER mention the portfolio or the architect explicitly.\n" +
-                "Explain how the client's needs are supported or reflected, not what the architect has.\n" +
-                "Do NOT list credentials.\n" +
-                "Do NOT describe the architect.\n" +
-                "Do NOT say you are analyzing or matching.\n" +
-                "Use simple, client-friendly language.\n" +
-                "Maximum 2 sentences."
+@"You are a professional architectural matching assistant.
+
+Your task is to explain WHY the suggested architect could be suitable for the client's needs,
+even if the architect’s primary style or specialty does not exactly match the request.
+
+Guidelines:
+- Speak directly to the client using ""you"" and ""your"".
+- Focus on transferable skills, adaptable design principles, comparable project experience, or flexible approaches.
+- If styles differ, explain how the architect’s experience can still support the client’s goals.
+- Base reasoning only on the provided reference material.
+- Never mention portfolios, internal systems, matching, scores, or AI.
+- Do not list credentials.
+- Do not describe the architect personally.
+- Keep the tone reassuring and professional.
+- Maximum of 2 short sentences."
         ),
-
-        new UserChatMessage($@"
-                Client request:
-                {clientQuery}
-
-                Reference material (internal):
-                {architect.PortfolioText}
-
-                Explain why this recommendation fits the client's request.
-                ")
-            };
+        new UserChatMessage(userPrompt)
+    };
 
             var response = await chatClient.CompleteChatAsync(messages);
 
-            // ✅ Safety fallback (important for mobile)
+            // ✅ Mobile-safe fallback
             return response.Value.Content.Count > 0
                 ? response.Value.Content[0].Text.Trim()
                 : "This recommendation aligns well with your project needs and preferences.";
         }
+
 
 
 
@@ -599,6 +660,7 @@ namespace BlueprintProWeb.Controllers
         {
             public string ArchitectId { get; set; }
             public string ClientId { get; set; }
+
         }
 
         [AllowAnonymous]
