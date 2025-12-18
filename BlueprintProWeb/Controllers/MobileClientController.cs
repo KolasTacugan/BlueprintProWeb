@@ -434,8 +434,8 @@ namespace BlueprintProWeb.Controllers
         [HttpGet("Matches")]
         [AllowAnonymous]
         public async Task<IActionResult> GetMatches(
-    [FromQuery] string? clientId,
-    [FromQuery] string? query)
+             [FromQuery] string? clientId,
+             [FromQuery] string? query)
         {
             try
             {
@@ -446,20 +446,20 @@ namespace BlueprintProWeb.Controllers
 
                 var chatClient = _openAi.GetChatClient("gpt-5-mini");
 
-                // 🔹 Step 2: Scope check (same as WEB)
+                // 🔹 Step 2: Scope check (SAME AS WEB)
                 var scopeMessages = new List<ChatMessage>
         {
             new SystemChatMessage(
-@"You are classifying client messages for an architecture matching system.
+                @"You are classifying client messages for an architecture matching system.
 
-Classify the message into ONE of the following categories:
-- ARCHITECTURE_RELATED
-- NOT_ARCHITECTURE_RELATED
+                Classify the message into ONE of the following categories:
+                - ARCHITECTURE_RELATED
+                - NOT_ARCHITECTURE_RELATED
 
-Rules:
-- Vague architectural requests are still ARCHITECTURE_RELATED
-- Missing details does NOT make it out of scope
-Respond ONLY with the category."
+                Rules:
+                - Vague architectural requests are still ARCHITECTURE_RELATED
+                - Missing details does NOT make it out of scope
+                Respond ONLY with the category."
             ),
             new UserChatMessage(query ?? "")
         };
@@ -472,7 +472,7 @@ Respond ONLY with the category."
 
                 bool outOfScope = !isArchitectureRelated;
 
-                // 🔹 Step 3: Default query (same as WEB)
+                // 🔹 Step 3: Default query (SAME AS WEB)
                 string searchQuery = string.IsNullOrWhiteSpace(query)
                     ? client == null
                         ? "General architectural project"
@@ -485,7 +485,7 @@ Respond ONLY with the category."
                     !searchQuery.Contains("location", StringComparison.OrdinalIgnoreCase) ||
                     !searchQuery.Contains("style", StringComparison.OrdinalIgnoreCase);
 
-                // 🔹 Step 4: Expand query (same as WEB)
+                // 🔹 Step 4: Expand query (SAME AS WEB)
                 var expandMessages = new List<ChatMessage>
         {
             new SystemChatMessage("You rewrite client needs into a clear architectural request."),
@@ -501,13 +501,15 @@ Respond ONLY with the category."
                 var embeddingResponse = await _embeddingClient.GenerateEmbeddingAsync(finalQuery);
                 var queryVector = embeddingResponse.Value.ToFloats().ToArray();
 
-                // 🔹 Step 6: Architects
+                // 🔹 Step 6: Get ALL architects with embeddings
                 var architects = await context.Users
                     .Where(u => u.user_role == "Architect" &&
                                 !string.IsNullOrEmpty(u.PortfolioEmbedding))
                     .ToListAsync();
 
-                // 🔹 Step 7: Rank (same logic)
+                int totalArchitects = architects.Count;
+
+                // 🔹 Step 7: Rank + FILTER (≥ 35% ONLY)
                 var ranked = architects
                     .Select(a =>
                     {
@@ -517,6 +519,10 @@ Respond ONLY with the category."
 
                         var score = CosineSimilarity(queryVector, vecA);
                         if (a.IsPro) score += 0.05;
+
+                        var similarityPercentage = Math.Round(score * 100, 1);
+                        if (similarityPercentage < 35)
+                            return null;
 
                         return new MatchDto
                         {
@@ -543,24 +549,24 @@ Respond ONLY with the category."
                             MatchDate = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss"),
 
                             SimilarityScore = score,
-                            SimilarityPercentage = Math.Round(score * 100, 1),
+                            SimilarityPercentage = similarityPercentage,
 
                             MatchExplanation = null
                         };
                     })
                     .Where(x => x != null)
                     .OrderByDescending(x => x!.SimilarityScore)
-                    .Take(25)
                     .ToList();
 
-                // 🔹 Step 8: Strong match logic (same as WEB)
+                // 🔹 Step 8: Feedback logic (SAME AS WEB)
                 bool hasStrongMatch = ranked.Count > 0 && ranked[0].SimilarityPercentage >= 35;
                 bool showFeedback = !hasStrongMatch;
 
-                // ✅ ALWAYS JSON (mobile-friendly)
+                // ✅ ALWAYS JSON (MOBILE-FRIENDLY)
                 return Ok(new
                 {
-                    matches = ranked,
+                    matches = ranked,              // ≥ 35% only
+                    totalArchitects = totalArchitects, // 👈 FULL COUNT
                     outOfScope,
                     lacksDetails,
                     showFeedback
@@ -575,6 +581,7 @@ Respond ONLY with the category."
                 });
             }
         }
+
 
 
         [HttpPost("ExplainMatch")]

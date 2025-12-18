@@ -1096,6 +1096,26 @@
             });
         }
 
+                function renderRankingFooter(shownCount, totalCount) {
+            if (!totalCount) return;
+
+
+            const footer = document.createElement("div");
+            footer.className = "col-12 mt-3";
+
+            footer.innerHTML = `
+                <div class="alert alert-info text-center small">
+                    <strong>${shownCount}</strong> out of <strong>${totalCount}</strong> architects are shown based on your prompt.<br>
+                    <span class="text-muted">
+                        Lower-ranked architects were omitted due to low relevance.
+                    </span>
+                </div>
+            `;
+
+            resultsContainer.appendChild(footer);
+        }
+
+
         // Global Match button click (works for static + dynamic)
         $(document).on("click", ".match-btn", function () {
             let status = $(this).data("status");
@@ -1174,7 +1194,11 @@
                 
 
                 renderArchitects(data.matches);
-            })
+                           renderRankingFooter(
+                        data.matches.length,
+                        data.totalArchitects
+                    );
+                })
             .catch(err => {
                 console.error("Search failed:", err);
                 appendSystemMessage("❌ Search failed. Please try again.");

@@ -465,55 +465,56 @@ namespace BlueprintProWeb.Controllers.ClientSide
             var architects = context.Users
                 .Where(u => u.user_role == "Architect" && !string.IsNullOrEmpty(u.PortfolioEmbedding))
                 .ToList();
-
+            int totalArchitects = architects.Count;
+    
             var ranked = architects
-                .Select(a =>
+            .Select(a =>
+            {
+                var vecA = ParseEmbedding(a.PortfolioEmbedding);
+                if (vecA == null || vecA.Length != queryVector.Length) return null;
+
+                var score = CosineSimilarity(queryVector, vecA);
+                if (a.IsPro) score += 0.05;
+
+                return new MatchViewModel
                 {
-                    var vecA = ParseEmbedding(a.PortfolioEmbedding);
-                    if (vecA == null || vecA.Length != queryVector.Length) return null;
+                    MatchId = null,
+                    ClientId = currentUser.Id,
+                    ClientName = $"{currentUser.user_fname} {currentUser.user_lname}",
 
-                    var score = CosineSimilarity(queryVector, vecA);
-                    if (a.IsPro) score += 0.05;
+                    ArchitectId = a.Id,
+                    ArchitectName = $"{a.user_fname} {a.user_lname}",
+                    ArchitectStyle = a.user_Style,
+                    ArchitectLocation = a.user_Location,
+                    ArchitectBudget = a.user_Budget,
 
-                    return new MatchViewModel
-                    {
-                        MatchId = null,
-                        ClientId = currentUser.Id,
-                        ClientName = $"{currentUser.user_fname} {currentUser.user_lname}",
+                    ProfilePhoto = string.IsNullOrEmpty(a.user_profilePhoto)
+                        ? Url.Content("~/images/profile.jpg")
+                        : Url.Content(a.user_profilePhoto),
 
-                        ArchitectId = a.Id,
-                        ArchitectName = $"{a.user_fname} {a.user_lname}",
-                        ArchitectStyle = a.user_Style,
-                        ArchitectLocation = a.user_Location,
-                        ArchitectBudget = a.user_Budget,
+                    MatchStatus = a.IsPro ? "AI + Portfolio Match (Pro)" : "AI + Portfolio Match",
+                    MatchDate = DateTime.UtcNow,
 
-                        ProfilePhoto = string.IsNullOrEmpty(a.user_profilePhoto)
-                            ? Url.Content("~/images/profile.jpg")
-                            : Url.Content(a.user_profilePhoto),
+                    SimilarityScore = score,
+                    SimilarityPercentage = Math.Round(score * 100, 1),
 
-                        MatchStatus = a.IsPro ? "AI + Portfolio Match (Pro)" : "AI + Portfolio Match",
-                        MatchDate = DateTime.UtcNow,
+                    TotalRatings = a.user_Rating ?? 0.0,
+                    RatingCount = context.Projects.Count(p =>
+                        p.user_architectId == a.Id &&
+                        p.project_clientHasRated),
 
-                        SimilarityScore = score,
-                        SimilarityPercentage = Math.Round(score * 100, 1),
+                    RealMatchStatus = context.Matches
+                        .Where(m => m.ClientId == currentUser.Id && m.ArchitectId == a.Id)
+                        .Select(m => m.MatchStatus)
+                        .FirstOrDefault(),
 
-                        TotalRatings = a.user_Rating ?? 0.0,
-                        RatingCount = context.Projects.Count(p =>
-                            p.user_architectId == a.Id &&
-                            p.project_clientHasRated),
+                    MatchExplanation = null
+                };
+            })
+            .Where(x => x != null && x.SimilarityPercentage >= 35) // 🔹 Only include architects >= 35%
+            .OrderByDescending(x => x!.SimilarityScore)
+            .ToList();
 
-                        RealMatchStatus = context.Matches
-                            .Where(m => m.ClientId == currentUser.Id && m.ArchitectId == a.Id)
-                            .Select(m => m.MatchStatus)
-                            .FirstOrDefault(),
-
-                        MatchExplanation = null
-                    };
-                })
-                .Where(x => x != null)
-                .OrderByDescending(x => x!.SimilarityScore)
-                .Take(25)
-                .ToList();
 
             // Compute average ratings
             foreach (var vm in ranked)
@@ -530,9 +531,11 @@ namespace BlueprintProWeb.Controllers.ClientSide
             // Return JSON for AJAX
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
+                
                 return Json(new
                 {
                     matches = ranked,
+                    totalArchitects = totalArchitects,
                     showFeedback,
                     lacksDetails,
                     outOfScope
