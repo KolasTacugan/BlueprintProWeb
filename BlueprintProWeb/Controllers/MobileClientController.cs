@@ -388,7 +388,33 @@ namespace BlueprintProWeb.Controllers
             }
         }
 
+        [AllowAnonymous]
+        [HttpGet("purchased-blueprints/{userId}")]
+        public async Task<IActionResult> GetPurchasedBlueprints(string userId)
+        {
+            if (string.IsNullOrEmpty(userId))
+                return BadRequest("UserId is required.");
 
+            var purchased = await context.Blueprints
+                .Where(bp =>
+                    bp.clentId == userId &&
+                    bp.blueprintIsForSale == false
+                )
+                .Join(
+                    context.Users,
+                    bp => bp.architectId,
+                    u => u.Id,
+                    (bp, architect) => new
+                    {
+                        blueprintId = bp.blueprintId,
+                        blueprintName = bp.blueprintName,
+                        architectName = architect.user_fname + " " + architect.user_lname
+                    }
+                )
+                .ToListAsync();
+
+            return Ok(purchased);
+        }
 
         public class CompletePurchaseRequest
     {
@@ -444,7 +470,8 @@ namespace BlueprintProWeb.Controllers
                     ? null
                     : await context.Users.FindAsync(clientId);
 
-                var chatClient = _openAi.GetChatClient("gpt-5-mini");
+                // 🔹 Step 2: Default query (same logic as web)
+                string searchQuery = query;
 
                 // 🔹 Step 2: Scope check (SAME AS WEB)
                 var scopeMessages = new List<ChatMessage>
@@ -476,14 +503,11 @@ namespace BlueprintProWeb.Controllers
                 string searchQuery = string.IsNullOrWhiteSpace(query)
                     ? client == null
                         ? "General architectural project"
-                        : $"Style: {client.user_Style}, Location: {client.user_Location}, Budget: {client.user_Budget}"
-                    : query;
+                        : $"Style: {client.user_Style}, Location: {client.user_Location}, Budget: {client.user_Budget}";
+                }
 
-                // 🔍 Check missing details
-                bool lacksDetails =
-                    !searchQuery.Contains("budget", StringComparison.OrdinalIgnoreCase) ||
-                    !searchQuery.Contains("location", StringComparison.OrdinalIgnoreCase) ||
-                    !searchQuery.Contains("style", StringComparison.OrdinalIgnoreCase);
+                // 🔹 Step 3: Expand query ONCE
+                var chatClient = _openAi.GetChatClient("gpt-5-mini");
 
                 // 🔹 Step 4: Expand query (SAME AS WEB)
                 var expandMessages = new List<ChatMessage>
@@ -492,12 +516,12 @@ namespace BlueprintProWeb.Controllers
             new UserChatMessage($"User request: {searchQuery}. Expand into 2–3 descriptive sentences.")
         };
 
-                var expandResponse = await chatClient.CompleteChatAsync(expandMessages);
-                var expansion = expandResponse.Value.Content[0].Text;
+                var response = await chatClient.CompleteChatAsync(messages);
+                var expansion = response.Value.Content[0].Text;
 
                 var finalQuery = $"{searchQuery}. Expanded: {expansion}";
 
-                // 🔹 Step 5: Embedding
+                // 🔹 Step 4: Embedding
                 var embeddingResponse = await _embeddingClient.GenerateEmbeddingAsync(finalQuery);
                 var queryVector = embeddingResponse.Value.ToFloats().ToArray();
 
@@ -551,6 +575,7 @@ namespace BlueprintProWeb.Controllers
                             SimilarityScore = score,
                             SimilarityPercentage = similarityPercentage,
 
+                            // 🔹 Lazy-loaded via ExplainMatch
                             MatchExplanation = null
                         };
                     })
@@ -593,8 +618,7 @@ namespace BlueprintProWeb.Controllers
 
             var explanation = await GenerateMatchExplanation(
                 request.Query,
-                architect,
-                request.LacksDetails
+                architect
             );
 
             return Ok(new { explanation });
@@ -603,61 +627,44 @@ namespace BlueprintProWeb.Controllers
 
         private async Task<string> GenerateMatchExplanation(
     string clientQuery,
-    User architect,
-    bool lacksDetails)
+    User architect)
         {
             var chatClient = _openAi.GetChatClient("gpt-5-mini");
-
-            // ✅ Build USER prompt first
-            var userPrompt = $@"
-Client request:
-{clientQuery}
-
-Reference material (internal):
-{architect.PortfolioText}
-
-Explain why this recommendation fits the client's request.
-";
-
-            // ✅ Conditionally add clarification guidance
-            if (lacksDetails)
-            {
-                userPrompt += @"
-
-Also, if the client's request is missing important details,
-gently suggest what information would help clarify the project
-(such as budget range, project scale, style preference, or location).";
-            }
 
             var messages = new List<ChatMessage>
     {
         new SystemChatMessage(
-@"You are a professional architectural matching assistant.
-
-Your task is to explain WHY the suggested architect could be suitable for the client's needs,
-even if the architect’s primary style or specialty does not exactly match the request.
-
-Guidelines:
-- Speak directly to the client using ""you"" and ""your"".
-- Focus on transferable skills, adaptable design principles, comparable project experience, or flexible approaches.
-- If styles differ, explain how the architect’s experience can still support the client’s goals.
-- Base reasoning only on the provided reference material.
-- Never mention portfolios, internal systems, matching, scores, or AI.
-- Do not list credentials.
-- Do not describe the architect personally.
-- Keep the tone reassuring and professional.
-- Maximum of 2 short sentences."
+                "You are explaining to a client why a recommended architect fits THEIR request.\n" +
+                "The architect was already selected by an AI similarity system.\n" +
+                "Speak to the client in second person (use \"you\" / \"your\"), as a platform explaining the recommendation.\n" +
+                "Base the reasoning on evidence found in the architect's portfolio text, but NEVER mention the portfolio or the architect explicitly.\n" +
+                "Explain how the client's needs are supported or reflected, not what the architect has.\n" +
+                "Do NOT list credentials.\n" +
+                "Do NOT describe the architect.\n" +
+                "Do NOT say you are analyzing or matching.\n" +
+                "Use simple, client-friendly language.\n" +
+                "Maximum 2 sentences."
         ),
-        new UserChatMessage(userPrompt)
-    };
+
+        new UserChatMessage($@"
+                Client request:
+                {clientQuery}
+
+                Reference material (internal):
+                {architect.PortfolioText}
+
+                Explain why this recommendation fits the client's request.
+                ")
+            };
 
             var response = await chatClient.CompleteChatAsync(messages);
 
-            // ✅ Mobile-safe fallback
+            // ✅ Safety fallback (important for mobile)
             return response.Value.Content.Count > 0
                 ? response.Value.Content[0].Text.Trim()
                 : "This recommendation aligns well with your project needs and preferences.";
         }
+
 
 
 
