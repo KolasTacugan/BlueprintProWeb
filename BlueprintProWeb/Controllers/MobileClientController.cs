@@ -460,8 +460,8 @@ namespace BlueprintProWeb.Controllers
         [HttpGet("Matches")]
         [AllowAnonymous]
         public async Task<IActionResult> GetMatches(
-             [FromQuery] string? clientId,
-             [FromQuery] string? query)
+            [FromQuery] string? clientId,
+            [FromQuery] string? query)
         {
             try
             {
@@ -470,112 +470,99 @@ namespace BlueprintProWeb.Controllers
                     ? null
                     : await context.Users.FindAsync(clientId);
 
-                // 🔹 Step 2: Default query (same logic as web)
-                string searchQuery = query;
+                var chatClient = _openAi.GetChatClient("gpt-5-mini");
 
-                // 🔹 Step 2: Scope check (SAME AS WEB)
+                // 🔹 Step 2: Scope check
                 var scopeMessages = new List<ChatMessage>
         {
-            new SystemChatMessage(
-                @"You are classifying client messages for an architecture matching system.
-
+            new SystemChatMessage(@"
+                You are classifying client messages for an architecture matching system. 
                 Classify the message into ONE of the following categories:
                 - ARCHITECTURE_RELATED
                 - NOT_ARCHITECTURE_RELATED
-
                 Rules:
                 - Vague architectural requests are still ARCHITECTURE_RELATED
                 - Missing details does NOT make it out of scope
-                Respond ONLY with the category."
-            ),
+                Respond ONLY with the category."),
             new UserChatMessage(query ?? "")
         };
 
                 var scopeResult = await chatClient.CompleteChatAsync(scopeMessages);
 
-                bool isArchitectureRelated =
-                    scopeResult.Value.Content[0].Text.Trim()
-                        .Equals("ARCHITECTURE_RELATED", StringComparison.OrdinalIgnoreCase);
+                bool isArchitectureRelated = scopeResult.Value.Content[0].Text.Trim()
+                    .Equals("ARCHITECTURE_RELATED", StringComparison.OrdinalIgnoreCase);
 
                 bool outOfScope = !isArchitectureRelated;
 
-                // 🔹 Step 3: Default query (SAME AS WEB)
+                // 🔹 Step 3: Default query
                 string searchQuery = string.IsNullOrWhiteSpace(query)
                     ? client == null
                         ? "General architectural project"
-                        : $"Style: {client.user_Style}, Location: {client.user_Location}, Budget: {client.user_Budget}";
-                }
+                        : $"Style: {client.user_Style}, Location: {client.user_Location}, Budget: {client.user_Budget}"
+                    : query;
 
-                // 🔹 Step 3: Expand query ONCE
-                var chatClient = _openAi.GetChatClient("gpt-5-mini");
+                // 🔍 Check missing details
+                bool lacksDetails = !searchQuery.Contains("budget", StringComparison.OrdinalIgnoreCase) ||
+                                    !searchQuery.Contains("location", StringComparison.OrdinalIgnoreCase) ||
+                                    !searchQuery.Contains("style", StringComparison.OrdinalIgnoreCase);
 
-                // 🔹 Step 4: Expand query (SAME AS WEB)
+                // 🔹 Step 4: Expand query
                 var expandMessages = new List<ChatMessage>
         {
             new SystemChatMessage("You rewrite client needs into a clear architectural request."),
             new UserChatMessage($"User request: {searchQuery}. Expand into 2–3 descriptive sentences.")
         };
 
-                var response = await chatClient.CompleteChatAsync(messages);
-                var expansion = response.Value.Content[0].Text;
+                var expandResponse = await chatClient.CompleteChatAsync(expandMessages);
+                var expansion = expandResponse.Value.Content[0].Text;
 
                 var finalQuery = $"{searchQuery}. Expanded: {expansion}";
 
-                // 🔹 Step 4: Embedding
+                // 🔹 Step 5: Generate embedding
                 var embeddingResponse = await _embeddingClient.GenerateEmbeddingAsync(finalQuery);
                 var queryVector = embeddingResponse.Value.ToFloats().ToArray();
 
                 // 🔹 Step 6: Get ALL architects with embeddings
                 var architects = await context.Users
-                    .Where(u => u.user_role == "Architect" &&
-                                !string.IsNullOrEmpty(u.PortfolioEmbedding))
+                    .Where(u => u.user_role == "Architect" && !string.IsNullOrEmpty(u.PortfolioEmbedding))
                     .ToListAsync();
 
                 int totalArchitects = architects.Count;
 
-                // 🔹 Step 7: Rank + FILTER (≥ 35% ONLY)
+                // 🔹 Step 7: Rank + Filter (≥ 35% only)
                 var ranked = architects
                     .Select(a =>
                     {
                         var vecA = ParseEmbedding(a.PortfolioEmbedding);
-                        if (vecA == null || vecA.Length != queryVector.Length)
-                            return null;
+                        if (vecA == null || vecA.Length != queryVector.Length) return null;
 
                         var score = CosineSimilarity(queryVector, vecA);
+
                         if (a.IsPro) score += 0.05;
 
                         var similarityPercentage = Math.Round(score * 100, 1);
-                        if (similarityPercentage < 35)
-                            return null;
+
+                        if (similarityPercentage < 35) return null;
 
                         return new MatchDto
                         {
                             MatchId = null,
                             ClientId = clientId,
-
                             ArchitectId = a.Id,
                             ArchitectName = $"{a.user_fname} {a.user_lname}",
                             ArchitectStyle = a.user_Style,
                             ArchitectLocation = a.user_Location,
                             ArchitectBudget = a.user_Budget,
-
-                            MatchStatus = a.IsPro
-                                ? "AI + Portfolio Match (Pro)"
-                                : "AI + Portfolio Match",
-
+                            MatchStatus = a.IsPro ? "AI + Portfolio Match (Pro)" : "AI + Portfolio Match",
                             RealMatchStatus = string.IsNullOrEmpty(clientId)
                                 ? null
                                 : context.Matches
                                     .Where(m => m.ClientId == clientId && m.ArchitectId == a.Id)
                                     .Select(m => m.MatchStatus)
                                     .FirstOrDefault(),
-
                             MatchDate = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss"),
-
                             SimilarityScore = score,
                             SimilarityPercentage = similarityPercentage,
-
-                            // 🔹 Lazy-loaded via ExplainMatch
                             MatchExplanation = null
                         };
                     })
@@ -583,15 +570,15 @@ namespace BlueprintProWeb.Controllers
                     .OrderByDescending(x => x!.SimilarityScore)
                     .ToList();
 
-                // 🔹 Step 8: Feedback logic (SAME AS WEB)
+                // 🔹 Step 8: Feedback logic
                 bool hasStrongMatch = ranked.Count > 0 && ranked[0].SimilarityPercentage >= 35;
                 bool showFeedback = !hasStrongMatch;
 
-                // ✅ ALWAYS JSON (MOBILE-FRIENDLY)
+                // ✅ Return JSON
                 return Ok(new
                 {
-                    matches = ranked,              // ≥ 35% only
-                    totalArchitects = totalArchitects, // 👈 FULL COUNT
+                    matches = ranked,         // ≥ 35% only
+                    totalArchitects = totalArchitects, // Full count
                     outOfScope,
                     lacksDetails,
                     showFeedback
@@ -599,11 +586,7 @@ namespace BlueprintProWeb.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new
-                {
-                    success = false,
-                    message = ex.Message
-                });
+                return BadRequest(new { success = false, message = ex.Message });
             }
         }
 
