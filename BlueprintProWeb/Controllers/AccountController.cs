@@ -106,28 +106,6 @@ namespace BlueprintProWeb.Controllers
                 user.user_Specialization = model.Specialization;
                 user.user_Location = model.Location;
                 user.user_Budget = model.LaborCost;
-
-                try
-                {
-                    // ✅ Create a descriptive text from architect data (acts as temp portfolio)
-                    user.PortfolioText =
-                        $"Architect specializing in {user.user_Specialization ?? "various fields"}, " +
-                        $"style: {user.user_Style ?? "adaptive"}, " +
-                        $"based in {user.user_Location ?? "unspecified location"}, " +
-                        $"budget preference: {user.user_Budget ?? "flexible"}, " +
-                        $"rating: {user.user_Rating?.ToString() ?? "unrated"}.";
-
-                    // ✅ Use your helper method to generate the embedding
-                    var embeddingVector = await GenerateEmbedding(user.PortfolioText);
-
-                    // ✅ Convert embedding vector to comma-separated string for database storage
-                    user.PortfolioEmbedding = string.Join(",",
-                        embeddingVector.Select(v => v.ToString(CultureInfo.InvariantCulture)));
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("⚠️ Embedding generation failed during registration: " + ex.Message);
-                }
             }
 
             var result = await _userManager.CreateAsync(user, model.Password);
