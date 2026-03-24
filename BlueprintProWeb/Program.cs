@@ -114,10 +114,12 @@ builder.Services.AddSingleton(sp =>
 // 2. BUILD APP
 // ======================================================
 
-var port = Environment.GetEnvironmentVariable("PORT") ?? "3000";
-builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseUrls($"http://*:{port}");
 
 var app = builder.Build();
+
+app.MapGet("/health", () => Results.Ok("Healthy"));
 
 // ======================================================
 // 3. MIDDLEWARE PIPELINE
