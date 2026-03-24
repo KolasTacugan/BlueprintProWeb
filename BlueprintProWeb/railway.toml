@@ -1,0 +1,7 @@
+﻿[build]
+builder = "dockerfile"
+dockerfilePath = "BlueprintProWeb/Dockerfile"
+
+[deploy]
+restartPolicyType = "always"
+healthcheckPath = "/"
