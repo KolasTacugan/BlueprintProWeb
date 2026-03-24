@@ -9,6 +9,7 @@ using OpenAI.Embeddings;
 using System.Text.Json;
 using Microsoft.OpenApi.Models;
 using BlueprintProWeb.Services;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,8 +51,9 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // Database
+// Database
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
 
 // Identity
