@@ -9,7 +9,7 @@ using OpenAI.Embeddings;
 using System.Text.Json;
 using Microsoft.OpenApi.Models;
 using BlueprintProWeb.Services;
-using Microsoft.EntityFrameworkCore;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -170,4 +170,10 @@ app.MapControllers();
 app.MapHub<ChatHub>("/chatHub");
 
 // ======================================================
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
 app.Run();
