@@ -9,15 +9,13 @@
     @Html.AntiForgeryToken()
 </form>
 
-@section Styles{
+@section Styles {
     <style>
-        /* Override shared layout background for matches page */
         body::before {
             background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
             opacity: 0.1 !important;
         }
 
-        /* Ensure scrollable page with consistent background */
         body {
             background: #F1F7F9 !important;
             overflow-y: auto !important;
@@ -25,7 +23,6 @@
             font-family: 'Raleway', sans-serif !important;
         }
 
-        /* Main content positioning that responds to sidebar state */
         main.container {
             margin-left: 300px;
             margin-top: 90px;
@@ -35,15 +32,13 @@
             transition: margin-left 0.4s ease, max-width 0.4s ease;
         }
 
-        /* When sidebar is collapsed, adjust main content */
-        .sidebar.collapsed ~ * main.container,
         body:has(.sidebar.collapsed) main.container {
             margin-left: 110px;
             max-width: calc(100% - 130px);
         }
 
-        /* Enhanced Match Button */
-        .match-btn{
+        /* ── Match Button ───────────────────────────────── */
+        .match-btn {
             background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
             color: white;
             border: none;
@@ -61,169 +56,42 @@
             width: 100%;
         }
 
-        .match-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(52, 78, 173, 0.3);
-            background: linear-gradient(135deg, #2563EB 0%, #344EAD 100%);
-            color: white;
-        }
+            .match-btn:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(52, 78, 173, 0.3);
+                background: linear-gradient(135deg, #2563EB 0%, #344EAD 100%);
+                color: white;
+            }
 
-        .match-btn:active {
-            transform: translateY(0);
-        }
+            .match-btn:active {
+                transform: translateY(0);
+            }
 
-        .match-btn::before {
-            content: "🤝";
-            font-size: 1rem;
-        }
+            .match-btn::before {
+                content: "🤝";
+                font-size: 1rem;
+            }
 
-        /* Chat Panel Styling - Enhanced */
-        .chat-panel {
-            background: #FFFFFF;
-            border-radius: 16px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(52, 78, 173, 0.05);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            height: 100%;
-            max-height: 100%;
-        }
+            .match-btn[data-status="Pending"] {
+                background: #fbbf24 !important;
+                color: #000 !important;
+                border: none !important;
+                pointer-events: none;
+            }
 
-        .chat-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid rgba(52, 78, 173, 0.1);
-            background: linear-gradient(135deg, rgba(52, 78, 173, 0.05) 0%, rgba(37, 99, 235, 0.02) 100%);
-            border-radius: 16px 16px 0 0;
-        }
+            .match-btn[data-status="Approved"] {
+                background: #22c55e !important;
+                color: #fff !important;
+                border: none !important;
+                pointer-events: none;
+            }
 
-        .chat-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #1a202c;
-            margin: 0;
-            font-family: 'Raleway', sans-serif;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .chat-title::before {
-            content: "💬";
-            font-size: 1.2rem;
-        }
-
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 1.5rem;
-            min-height: 0;
-            background: #FAFAFA;
-        }
-
-        .message-container {
-            display: flex;
-            margin-bottom: 1rem;
-            align-items: flex-start;
-            gap: 0.75rem;
-        }
-
-        .message-container.own {
-            flex-direction: row-reverse;
-        }
-
-        .message-bubble {
-            max-width: 70%;
-            padding: 0.875rem 1.125rem;
-            border-radius: 18px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            font-size: 0.9rem;
-            line-height: 1.4;
-            word-wrap: break-word;
-            font-family: 'Raleway', sans-serif;
-        }
-
-        .message-bubble.own {
-            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
-            color: white;
-            border-bottom-right-radius: 6px;
-        }
-
-        .message-bubble.other {
-            background: #FFFFFF;
-            color: #374151;
-            border: 1px solid rgba(52, 78, 173, 0.1);
-            border-bottom-left-radius: 6px;
-        }
-
-        .chat-input-area {
-            padding: 1.5rem;
-            background: #FFFFFF;
-            border-top: 1px solid rgba(52, 78, 173, 0.1);
-            border-radius: 0 0 16px 16px;
-        }
-
-        .chat-input-container {
-            display: flex;
-            gap: 0.75rem;
-            align-items: flex-end;
-            background: #F8FAFC;
-            border-radius: 16px;
-            border: 2px solid #E2E8F0;
-            padding: 1rem;
-            transition: all 0.2s ease;
-        }
-
-        .chat-input-container:focus-within {
-            border-color: #344EAD;
-            background: #FFFFFF;
-            box-shadow: 0 0 0 3px rgba(52, 78, 173, 0.1);
-        }
-
-        .message-input {
-            flex: 1;
-            border: none;
-            background: transparent;
-            font-size: 0.9rem;
-            font-family: 'Raleway', sans-serif;
-            resize: none;
-            min-height: 20px;
-            max-height: 100px;
-            line-height: 1.4;
-            outline: none;
-        }
-
-        .message-input::placeholder {
-            color: #94A3B8;
-        }
-
-        .send-button {
-            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
-            border: none;
-            border-radius: 12px;
-            width: 45px;
-            height: 45px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.1rem;
-            transition: all 0.2s ease;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(52, 78, 173, 0.2);
-        }
-
-        .send-button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(52, 78, 173, 0.3);
-        }
-
-        /* Architect Results Panel - Enhanced */
+        /* ── Architect Results Panel ────────────────────── */
         .architect-results-panel {
             background: #FFFFFF;
             border-radius: 16px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(52, 78, 173, 0.05);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid rgba(52,78,173,0.05);
             overflow: hidden;
             height: 100%;
             display: flex;
@@ -232,8 +100,8 @@
 
         .results-header {
             padding: 1.5rem;
-            border-bottom: 1px solid rgba(52, 78, 173, 0.1);
-            background: linear-gradient(135deg, rgba(52, 78, 173, 0.05) 0%, rgba(37, 99, 235, 0.02) 100%);
+            border-bottom: 1px solid rgba(52,78,173,0.1);
+            background: linear-gradient(135deg, rgba(52,78,173,0.05) 0%, rgba(37,99,235,0.02) 100%);
             border-radius: 16px 16px 0 0;
         }
 
@@ -253,7 +121,7 @@
             font-size: 1.5rem;
             width: 28px;
             height: 28px;
-            background: rgba(52, 78, 173, 0.1);
+            background: rgba(52,78,173,0.1);
             border-radius: 8px;
             display: flex;
             align-items: center;
@@ -265,21 +133,22 @@
             font-weight: 400;
             color: #718096;
             margin-top: 0.5rem;
-            margin-left: 2.2rem; /* Aligns with title text after icon */
+            margin-left: 2.2rem;
         }
 
         .results-content {
             flex: 1;
             overflow-y: auto;
             padding: 1.5rem;
+            padding-right: 6px;
         }
 
-        /* Enhanced Architect Card Styling */
+        /* ── Architect Cards ────────────────────────────── */
         .card {
             background: #FFFFFF;
             border-radius: 16px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(52, 78, 173, 0.05);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid rgba(52,78,173,0.05);
             overflow: hidden;
             transition: all 0.3s ease;
             height: 100%;
@@ -289,27 +158,27 @@
             position: relative;
         }
 
-        .card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 25px rgba(52, 78, 173, 0.15);
-            border-color: rgba(52, 78, 173, 0.1);
-        }
+            .card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 8px 25px rgba(52,78,173,0.15);
+                border-color: rgba(52,78,173,0.1);
+            }
 
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
+            .card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 3px;
+                background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
 
-        .card:hover::before {
-            opacity: 1;
-        }
+            .card:hover::before {
+                opacity: 1;
+            }
 
         .card-body {
             padding: 1.5rem;
@@ -319,19 +188,17 @@
             background: #FFFFFF;
         }
 
-        /* Architect Profile Image Enhancement */
-        .card-body img {
-            transition: all 0.3s ease;
-            border-radius: 50%;
-            border: 3px solid rgba(52, 78, 173, 0.1);
-        }
+            .card-body img {
+                transition: all 0.3s ease;
+                border-radius: 50%;
+                border: 3px solid rgba(52,78,173,0.1);
+            }
 
         .card:hover .card-body img {
             transform: scale(1.05);
-            border-color: rgba(52, 78, 173, 0.2);
+            border-color: rgba(52,78,173,0.2);
         }
 
-        /* Architect Name Styling */
         .architect-link {
             color: #344EAD;
             cursor: pointer;
@@ -344,81 +211,11 @@
             border-bottom: 1px solid transparent;
         }
 
-        .architect-link:hover {
-            color: #2563EB;
-            text-decoration: none;
-            border-bottom-color: #2563EB;
-        }
+            .architect-link:hover {
+                color: #2563EB;
+                border-bottom-color: #2563EB;
+            }
 
-        /* Enhanced Modal Styling */
-        .modal-content {
-            border-radius: 16px;
-            border: none;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-
-        .modal-header {
-            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
-            color: white;
-            border-radius: 16px 16px 0 0;
-            border-bottom: none;
-            padding: 1.5rem;
-        }
-
-        .modal-title {
-            font-weight: 600;
-            font-family: 'Raleway', sans-serif;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .modal-title::before {
-            content: "👨‍💼";
-            font-size: 1.2rem;
-        }
-
-        .btn-close {
-            filter: invert(1);
-        }
-
-        .modal-body {
-            padding: 2rem;
-            font-family: 'Raleway', sans-serif;
-        }
-
-        /* Profile Card in Modal */
-        .profile-main-card {
-            background: #F8FAFC;
-            border-radius: 12px;
-            border: 1px solid rgba(52, 78, 173, 0.1);
-        }
-
-        .profile-info {
-            margin-bottom: 1.5rem;
-        }
-
-        .architect-name {
-            color: #1a202c;
-            font-family: 'Raleway', sans-serif;
-        }
-
-        .profile-info .text-muted {
-            color: #64748B !important;
-            font-size: 0.9rem;
-        }
-
-        .avatar img {
-            border: 3px solid rgba(52, 78, 173, 0.1);
-            transition: all 0.2s ease;
-        }
-
-        .avatar img:hover {
-            border-color: rgba(52, 78, 173, 0.3);
-            transform: scale(1.05);
-        }
-
-        /* Enhanced Rating Bar */
         .rating-wrapper {
             display: flex;
             align-items: center;
@@ -431,7 +228,6 @@
             background: #E2E8F0;
             border-radius: 4px;
             overflow: hidden;
-            position: relative;
         }
 
         .rating-fill {
@@ -448,17 +244,488 @@
             min-width: 2rem;
         }
 
-        /* Alert Enhancement */
         .alert-warning {
-            background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
-            border: 1px solid rgba(251, 191, 36, 0.2);
+            background: linear-gradient(135deg, rgba(251,191,36,0.1) 0%, rgba(245,158,11,0.05) 100%);
+            border: 1px solid rgba(251,191,36,0.2);
             border-radius: 12px;
             color: #92400e;
             font-family: 'Raleway', sans-serif;
             font-weight: 500;
         }
 
-        /* Notification Modal Enhancement */
+        /* ── Chat Panel — IMPROVED ──────────────────────── */
+        .chat-panel {
+            background: #FFFFFF;
+            border-radius: 20px;
+            box-shadow: 0 4px 24px rgba(52,78,173,0.1);
+            border: 1px solid rgba(52,78,173,0.08);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        .chat-header {
+            padding: 1.25rem 1.5rem;
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .chat-header-avatar {
+            width: 38px;
+            height: 38px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .chat-header-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .chat-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0;
+            font-family: 'Raleway', sans-serif;
+            letter-spacing: 0.01em;
+        }
+
+        .chat-subtitle {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.7);
+            margin: 0;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .chat-status-dot {
+            width: 8px;
+            height: 8px;
+            background: #4ade80;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.5);
+            animation: pulse-dot 2s ease-in-out infinite;
+            flex-shrink: 0;
+        }
+
+        @@keyframes pulse-dot {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(74,222,128,0.5);
+            }
+
+            50% {
+                box-shadow: 0 0 0 4px rgba(74,222,128,0);
+            }
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.25rem 1rem;
+            min-height: 0;
+            background: #F8FAFD;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+            /* Custom scrollbar for chat */
+            .chat-messages::-webkit-scrollbar {
+                width: 4px;
+            }
+
+            .chat-messages::-webkit-scrollbar-track {
+                background: transparent;
+            }
+
+            .chat-messages::-webkit-scrollbar-thumb {
+                background: #CBD5E1;
+                border-radius: 2px;
+            }
+
+        .message-container {
+            display: flex;
+            align-items: flex-end;
+            gap: 0.5rem;
+            animation: msg-in 0.25s ease both;
+        }
+
+        @@keyframes msg-in {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-container.own {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #344EAD, #2563EB);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: white;
+            flex-shrink: 0;
+            font-weight: 700;
+        }
+
+            .message-avatar.user-avatar {
+                background: linear-gradient(135deg, #64748B, #475569);
+            }
+
+        .message-bubble {
+            max-width: 78%;
+            padding: 0.7rem 1rem;
+            border-radius: 18px;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            word-wrap: break-word;
+            font-family: 'Raleway', sans-serif;
+            position: relative;
+        }
+
+            .message-bubble.own {
+                background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+                color: white;
+                border-bottom-right-radius: 4px;
+                box-shadow: 0 2px 8px rgba(52,78,173,0.25);
+            }
+
+            .message-bubble.other {
+                background: #FFFFFF;
+                color: #374151;
+                border: 1px solid #E8EDF5;
+                border-bottom-left-radius: 4px;
+                box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            }
+
+        /* typing indicator */
+        .typing-bubble {
+            background: #FFFFFF;
+            border: 1px solid #E8EDF5;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            padding: 0.75rem 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: #94A3B8;
+            border-radius: 50%;
+            animation: bounce 1.2s ease-in-out infinite;
+        }
+
+            .typing-dot:nth-child(2) {
+                animation-delay: 0.2s;
+            }
+
+            .typing-dot:nth-child(3) {
+                animation-delay: 0.4s;
+            }
+
+        @@keyframes bounce {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+
+            30% {
+                transform: translateY(-5px);
+            }
+        }
+
+        /* Chat input area */
+        .chat-input-area {
+            padding: 1rem 1.25rem;
+            background: #FFFFFF;
+            border-top: 1px solid #EEF2F7;
+            flex-shrink: 0;
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 0.625rem;
+            align-items: flex-end;
+            background: #F4F7FC;
+            border-radius: 14px;
+            border: 1.5px solid #E2E8F0;
+            padding: 0.625rem 0.75rem;
+            transition: all 0.2s ease;
+        }
+
+            .chat-input-container:focus-within {
+                border-color: #344EAD;
+                background: #FFFFFF;
+                box-shadow: 0 0 0 3px rgba(52,78,173,0.08);
+            }
+
+        .message-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 0.875rem;
+            font-family: 'Raleway', sans-serif;
+            resize: none;
+            min-height: 20px;
+            max-height: 100px;
+            line-height: 1.5;
+            outline: none;
+            color: #1a202c;
+        }
+
+            .message-input::placeholder {
+                color: #A0AEC0;
+            }
+
+        .send-button {
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            border: none;
+            border-radius: 10px;
+            width: 38px;
+            height: 38px;
+            min-width: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(52,78,173,0.25);
+        }
+
+            .send-button:hover {
+                transform: translateY(-1px) scale(1.05);
+                box-shadow: 0 4px 12px rgba(52,78,173,0.35);
+            }
+
+            .send-button:active {
+                transform: scale(0.97);
+            }
+
+        /* ── Modal — IMPROVED ───────────────────────────── */
+        .modal-content {
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #2563EB 100%);
+            color: white;
+            border: none;
+            padding: 1.5rem 1.75rem;
+            position: relative;
+        }
+
+            .modal-header::after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: 1px;
+                background: rgba(255,255,255,0.1);
+            }
+
+        .modal-title {
+            font-weight: 700;
+            font-family: 'Raleway', sans-serif;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            letter-spacing: 0.01em;
+        }
+
+        .btn-close {
+            filter: invert(1) opacity(0.8);
+        }
+
+        .modal-body {
+            padding: 0;
+            font-family: 'Raleway', sans-serif;
+            background: #F8FAFD;
+        }
+
+        /* Profile hero strip */
+        .profile-hero {
+            background: linear-gradient(160deg, #EEF2FF 0%, #F0F7FF 100%);
+            padding: 1.75rem;
+            border-bottom: 1px solid #E8EDF5;
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .profile-photo-wrap {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+            .profile-photo-wrap img {
+                width: 76px;
+                height: 76px;
+                border-radius: 50%;
+                border: 3px solid #FFFFFF;
+                box-shadow: 0 4px 14px rgba(52,78,173,0.18);
+                object-fit: cover;
+            }
+
+        .profile-photo-badge {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 18px;
+            height: 18px;
+            background: #22c55e;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .profile-hero-info h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin: 0 0 0.25rem;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .profile-hero-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .profile-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: white;
+            border: 1px solid #E2E8F0;
+            border-radius: 20px;
+            padding: 0.2rem 0.65rem;
+            font-size: 0.75rem;
+            color: #475569;
+            font-weight: 500;
+        }
+
+            .profile-tag i {
+                color: #344EAD;
+                font-size: 0.7rem;
+            }
+
+        /* Profile details grid */
+        .profile-details {
+            padding: 1.5rem 1.75rem;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem 1.5rem;
+        }
+
+        .detail-item label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #94A3B8;
+            margin-bottom: 0.2rem;
+        }
+
+        .detail-item span, .detail-item a {
+            font-size: 0.875rem;
+            color: #1e293b;
+            font-weight: 500;
+        }
+
+        .detail-item a {
+            color: #2563EB;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+            .detail-item a:hover {
+                text-decoration: underline;
+            }
+
+        .detail-item.full-width {
+            grid-column: 1 / -1;
+        }
+
+        /* AI explanation box */
+        .explanation-section {
+            margin: 0 1.75rem 1.5rem;
+            background: linear-gradient(135deg, #EEF2FF 0%, #EFF6FF 100%);
+            border: 1px solid rgba(52,78,173,0.12);
+            border-radius: 14px;
+            padding: 1.1rem 1.25rem;
+        }
+
+        .explanation-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #344EAD;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+            .explanation-label::before {
+                content: "✦";
+                font-size: 0.65rem;
+            }
+
+        .explanation-text {
+            font-size: 0.875rem;
+            color: #374151;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .explanation-loading {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #64748B;
+            font-size: 0.85rem;
+        }
+
+        /* Notification modal */
         #notificationModal .modal-content {
             border-radius: 16px;
         }
@@ -475,10 +742,26 @@
             border-radius: 10px;
             font-weight: 600;
             font-family: 'Raleway', sans-serif;
-            box-shadow: 0 2px 8px rgba(52, 78, 173, 0.2);
         }
 
-        /* Responsive adjustments */
+        /* Scrollbars */
+        .results-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .results-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .results-content::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 3px;
+        }
+
+            .results-content::-webkit-scrollbar-thumb:hover {
+                background: #94A3B8;
+            }
+
         @@media (max-width: 768px) {
             main.container {
                 margin-left: 0 !important;
@@ -507,16 +790,8 @@
                 max-width: 85%;
             }
 
-            .chat-messages {
-                padding: 1rem;
-            }
-
-            .architect-results-panel {
-                margin-bottom: 1rem;
-            }
-
-            .results-title {
-                font-size: 1.4rem;
+            .detail-grid {
+                grid-template-columns: 1fr;
             }
         }
 
@@ -525,69 +800,14 @@
                 margin-bottom: 1rem;
             }
         }
-
-        /* Custom scrollbars */
-        .chat-messages::-webkit-scrollbar,
-        .results-content::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .chat-messages::-webkit-scrollbar-track,
-        .results-content::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .chat-messages::-webkit-scrollbar-thumb,
-        .results-content::-webkit-scrollbar-thumb {
-            background: #CBD5E1;
-            border-radius: 3px;
-        }
-
-        .chat-messages::-webkit-scrollbar-thumb:hover,
-        .results-content::-webkit-scrollbar-thumb:hover {
-            background: #94A3B8;
-        }
-        .match-btn[data-status="Pending"] {
-            background: #fbbf24 !important;
-            color: #000 !important;
-            border: none !important;
-            pointer-events: none;
-        }
-
-        .match-btn[data-status="Approved"] {
-            background: #22c55e !important;
-            color: #fff !important;
-            border: none !important;
-            pointer-events: none;
-        }
-        /* Ensure both columns fill the row height */
-        .architect-results-panel {
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-        /* Scroll ONLY the architect list */
-        .results-content {
-            flex: 1;
-            overflow-y: auto;
-            padding-right: 6px;
-        }
-
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-        }
-
     </style>
 }
 
 <div class="row" style="height: 85vh;">
 
-    <!-- LEFT SIDE: Architect Matches -->
+    <!-- LEFT: Architect Matches -->
     <div class="col-md-8" style="height:100%;">
-        <div class="architect-results-panel"
-             style="height:100%; max-height:100%; display:flex; flex-direction:column; overflow:hidden;">
-
+        <div class="architect-results-panel">
             <div class="results-header">
                 <h4 class="results-title">
                     <div class="results-title-icon">
@@ -595,14 +815,10 @@
                     </div>
                     Available Architects
                 </h4>
-                <div class="results-subtitle">
-                    Find architects that match your requirements
-                </div>
+                <div class="results-subtitle">Find architects that match your requirements</div>
             </div>
 
-            <!-- ONLY this scrolls -->
-            <div class="results-content" id="architectResults"
-                 style="flex:1; min-height:0; overflow-y:auto;">
+            <div class="results-content" id="architectResults">
                 <div id="resultsContainer" class="row g-3">
                     @if (Model != null && Model.Any())
                     {
@@ -625,40 +841,23 @@
                                                         @match.ArchitectName
                                                     </a>
                                                 </h6>
-
-                                                <div class="rating-wrapper mt-2" style="max-width:120px;">
+                                                <div class="rating-wrapper mt-2" style="max-width:140px;">
                                                     <div class="rating-bar">
-                                                        <div class="rating-fill"
-                                                             style="width:@(match.AverageRating * 20)%;"></div>
+                                                        <div class="rating-fill" style="width:@(match.AverageRating * 20)%;"></div>
                                                     </div>
-                                                    <span class="rating-text">
-                                                        @match.AverageRating.ToString("0.0")
-                                                    </span>
+                                                    <span class="rating-text">@match.AverageRating.ToString("0.0")</span>
                                                 </div>
-
-                                                <small class="text-muted">
-                                                    (@match.RatingCount @(match.RatingCount == 1 ? "rating" : "ratings"))
-                                                </small>
+                                                <small class="text-muted">(@match.RatingCount @(match.RatingCount == 1 ? "rating" : "ratings"))</small>
                                             </div>
                                         </div>
-
                                         @{
                                             string real = match.RealMatchStatus;
                                         }
-
                                         <button class="btn w-100 mt-auto match-btn"
                                                 data-architect-id="@match.ArchitectId"
                                                 data-status="@real"
-                                                style="
-                                                    @((real == null) ? "" :
-                                                        (real == "Pending")
-                                                            ? "background:#fbbf24;color:#000;border:none;pointer-events:none;"
-                                                            : "background:#22c55e;color:#fff;border:none;pointer-events:none;"
-                                                    )
-                                                ">
-                                            @(real == null
-                                                ? "Match"
-                                                : (real == "Pending" ? "Pending…" : "Matched ✓"))
+                                                style="@((real == "Pending") ? "background:#fbbf24;color:#000;border:none;pointer-events:none;" : (real == "Approved") ? "background:#22c55e;color:#fff;border:none;pointer-events:none;" : "")">
+                                            @(real == null ? "Match" : (real == "Pending" ? "Pending…" : "Matched ✓"))
                                         </button>
                                     </div>
                                 </div>
@@ -668,7 +867,7 @@
                     else
                     {
                         <div class="col-12">
-                            <div class="alert alert-warning">No matches found yet.</div>
+                            <div class="alert alert-warning">No matches found yet. Use the chat to search.</div>
                         </div>
                     }
                 </div>
@@ -676,34 +875,38 @@
         </div>
     </div>
 
-    <!-- RIGHT SIDE: Chat -->
+    <!-- RIGHT: Chat -->
     <div class="col-md-4" style="height:100%;">
-        <div class="chat-panel" style="height:100%; max-height:100%; overflow:hidden; display:flex; flex-direction:column;">
+        <div class="chat-panel">
 
+            <!-- Header -->
             <div class="chat-header">
-                <h4 class="chat-title">Search Architect</h4>
+                <div class="chat-header-avatar">🤖</div>
+                <div class="chat-header-info">
+                    <p class="chat-title">Blueprint AI</p>
+                    <p class="chat-subtitle">Architect matching assistant</p>
+                </div>
+                <div class="chat-status-dot" title="Online"></div>
             </div>
 
-            <!-- Chat Messages (ONLY this scrolls) -->
-            <div class="chat-messages" id="chatWindow"
-                 style="flex:1; min-height:0; overflow-y:auto;">
+            <!-- Messages -->
+            <div class="chat-messages" id="chatWindow">
                 <div class="message-container">
+                    <div class="message-avatar">AI</div>
                     <div class="message-bubble other">
-                        👋 Hi! Tell me what kind of architect you are looking for.
+                        👋 Hi! Tell me what kind of architect you're looking for and I'll find the best matches for you.
                     </div>
                 </div>
             </div>
 
-            <!-- Chat Input (fixed height) -->
-            <div class="chat-input-area" style="flex-shrink:0;">
+            <!-- Input -->
+            <div class="chat-input-area">
                 <div class="chat-input-container">
                     <textarea id="clientPrompt"
                               class="message-input"
                               rows="1"
-                              placeholder="Describe what you're looking for..."
-                              style="max-height:80px; overflow-y:auto; resize:none;"></textarea>
-
-                    <button class="send-button" id="searchArchitects" title="Send Message">
+                              placeholder="Describe what you're looking for..."></textarea>
+                    <button class="send-button" id="searchArchitects" title="Search">
                         <span class="material-symbols-rounded">send</span>
                     </button>
                 </div>
@@ -713,56 +916,88 @@
     </div>
 </div>
 
-<!-- Architect Profile Modal -->
+<!-- Architect Profile Modal — IMPROVED -->
 <div class="modal fade" id="architectProfileModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
+
             <div class="modal-header">
                 <h5 class="modal-title">Architect Profile</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <div class="profile-container">
-                    <div class="profile-main-card p-3">
-                        <div class="profile-info d-flex align-items-center gap-3 mb-3">
-                            <div class="avatar">
-                                <img id="architectProfilePhoto" src="~/images/profile.jpg" alt="Avatar" style="width:64px;height:64px;border-radius:50%;">
-                            </div>
-                            <div class="user-details">
-                                <h3 id="architectProfileName" class="architect-name mb-1 fw-bold"></h3>
-                                <div id="architectProfileEmail" class="text-muted"></div>
-                                <div id="architectProfilePhone" class="text-muted"></div>
-                            </div>
-                        </div>
-                        <div class="mt-3">
-                            <p><strong>License No:</strong> <span id="architectProfileLicense"></span></p>
-                            <p><strong>Style:</strong> <span id="architectProfileStyle"></span></p>
-                            <p><strong>Specialization:</strong> <span id="architectProfileSpecialization"></span></p>
-                            <p><strong>Location:</strong> <span id="architectProfileLocation"></span></p>
-                            <p>
-                                <strong>Credentials File:</strong>
-                                <a id="architectProfileCredentials" href="#" target="_blank" class="text-decoration-underline archi-cred">Architect's Credentials</a>
-                            </p>
-                        </div>
-                        <hr />
-                        <div id="matchExplanationSection" class="mt-3">
-                            <h6 class="fw-bold">
-                                🤖 Why this architect matches your request
-                            </h6>
 
-                            <div id="matchExplanationText"
-                                 class="alert alert-info small mb-0">
-                                No explanation available yet.
-                            </div>
+            <div class="modal-body">
+
+                <!-- Hero strip -->
+                <div class="profile-hero">
+                    <div class="profile-photo-wrap">
+                        <img id="architectProfilePhoto" src="/images/profile.jpg" alt="Profile photo">
+                        <div class="profile-photo-badge" title="Active"></div>
+                    </div>
+                    <div class="profile-hero-info">
+                        <h3 id="architectProfileName"></h3>
+                        <div class="profile-hero-meta">
+                            <span class="profile-tag" id="profileTagStyle">
+                                <i class="fas fa-drafting-compass"></i>
+                                <span id="architectProfileStyle">—</span>
+                            </span>
+                            <span class="profile-tag" id="profileTagLocation">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span id="architectProfileLocation">—</span>
+                            </span>
                         </div>
                     </div>
                 </div>
+
+                <!-- Detail grid -->
+                <div class="profile-details">
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <label>Email</label>
+                            <span id="architectProfileEmail">—</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Phone</label>
+                            <span id="architectProfilePhone">—</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>License No.</label>
+                            <span id="architectProfileLicense">—</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Specialization</label>
+                            <span id="architectProfileSpecialization">—</span>
+                        </div>
+                        <div class="detail-item full-width" id="credentialsRow">
+                            <label>Credentials</label>
+                            <a id="architectProfileCredentials" href="#" target="_blank">
+                                <i class="fas fa-file-pdf"></i> View credentials file
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI explanation -->
+                <div class="explanation-section">
+                    <div class="explanation-label">Why this architect matches your request</div>
+                    <div id="matchExplanationText">
+                        <div class="explanation-loading">
+                            <div class="typing-bubble">
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                            </div>
+                            <span style="font-size:0.8rem;color:#94A3B8;">Generating explanation…</span>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
 </div>
 
-<!-- NOTIFICATION MODAL -->
+<!-- Notification Modal -->
 <div class="modal fade" id="notificationModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -770,8 +1005,7 @@
                 <h5 id="notificationTitle" class="modal-title"></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body" id="notificationMessage">
-            </div>
+            <div class="modal-body" id="notificationMessage"></div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
             </div>
@@ -782,177 +1016,127 @@
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        // Explicitly show global page loader for this heavy page
-        document.addEventListener('DOMContentLoaded', function(){
-            if (window.BlueprintLoader && typeof window.BlueprintLoader.show === 'function') {
-                window.BlueprintLoader.show();
-            }
-        });
-    </script>
-    <script>
-        // Listen for sidebar toggle and adjust main content accordingly
-        document.addEventListener('DOMContentLoaded', function() {
-            const sidebar = document.querySelector('.sidebar');
-            const sidebarToggler = document.querySelector('.sidebar-toggler');
-            const mainContent = document.querySelector('main.container');
-            
-            function adjustMainContent() {
-                if (sidebar && mainContent) {
-                    if (sidebar.classList.contains('collapsed')) {
-                        mainContent.style.marginLeft = '110px';
-                        mainContent.style.maxWidth = 'calc(100% - 130px)';
-                    } else {
-                        mainContent.style.marginLeft = '300px';
-                        mainContent.style.maxWidth = 'calc(100% - 320px)';
-                    }
-                }
-            }
-            
-            // Adjust on page load
-            adjustMainContent();
-            
-            // Listen for sidebar toggle
-            if (sidebarToggler) {
-                sidebarToggler.addEventListener('click', function() {
-                    // Wait for the sidebar transition to start
-                    setTimeout(adjustMainContent, 50);
-                });
-            }
+        // ── State ────────────────────────────────────────────────────────
+        let lastQuery = ""; // persists the last search prompt for ExplainMatch
 
-            // Auto-resize textarea and handle Enter key for sending
-            const messageInput = document.getElementById('clientPrompt');
-            if (messageInput) {
-                // Auto-resize functionality
-                messageInput.addEventListener('input', function() {
-                    this.style.height = 'auto';
-                    this.style.height = Math.min(this.scrollHeight, 100) + 'px';
-                });
-
-                // Handle Enter key to send message
-                messageInput.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault(); // Prevent default line break behavior
-                        
-                        // Check if there's text to send
-                        const messageText = this.value.trim();
-                        if (messageText) {
-                            // Trigger the search functionality
-                            document.getElementById('searchArchitects').click();
-                        }
-                    }
-                    // Allow Shift+Enter for line breaks
-                });
-            }
-
-            // Architect info modal
-            const architectModal = new bootstrap.Modal(document.getElementById('architectProfileModal'));
-            document.querySelectorAll('.architect-link').forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const id = this.dataset.architectId;
-
-                    const explanationBox = document.getElementById("matchExplanationText");
-                    const explanationSection = document.getElementById("matchExplanationSection");
-
-                    // Show placeholder while AI thinks
-                    
-
-                    fetch(`/ClientInterface/GetArchitectProfile?id=${id}`)
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data) {
-                                document.getElementById("architectProfileName").innerText = data.fullName;
-                                document.getElementById("architectProfileEmail").innerText = data.email || "No email provided";
-                                document.getElementById("architectProfilePhone").innerText = data.phone || "No phone provided";
-                                document.getElementById("architectProfileLicense").innerText = data.license || "N/A";
-                                document.getElementById("architectProfileStyle").innerText = data.style || "N/A";
-                                document.getElementById("architectProfileSpecialization").innerText = data.specialization || "N/A";
-                                document.getElementById("architectProfileLocation").innerText = data.location || "N/A";
-                                document.getElementById("architectProfilePhoto").src = data.photo || "/images/profile.jpg";
-                                // Credentials File handling
-                                if (!data.credentialsFile || data.credentialsFile === "null") {
-                                    // Hide the entire <p> section
-                                    document.querySelector("#architectProfileCredentials").closest("p").style.display = "none";
-                                } else {
-                                    // Show and update the link
-                                    const credLink = document.getElementById("architectProfileCredentials");
-                                    const credWrapper = credLink.closest("p");
-
-                                    if (
-                                        data.credentialsFile &&
-                                        data.credentialsFile !== "null" &&
-                                        data.credentialsFile.trim() !== ""
-                                    ) {
-                                        // Ensure absolute URL
-                                        if (data.credentialsFile.startsWith("http")) {
-                                            credLink.href = data.credentialsFile;
-                                        } else {
-                                            credLink.href = "/" + data.credentialsFile.replace(/^\/+/, "");
-                                        }
-
-                                        credLink.target = "_blank";
-                                        credLink.rel = "noopener noreferrer";
-                                        credWrapper.style.display = "block";
-                                    } else {
-                                        // 🔥 THIS is the missing part
-                                        credWrapper.style.display = "none";
-                                        credLink.removeAttribute("href");
-                                    }
-
-                                }
-
-                                architectModal.show();
-                            } else {
-                                alert("❌ Architect profile not found.");
-                            }
-                        })
-                        .catch(() => alert("❌ Failed to load architect profile."));
-
-                });
-            });
-        });
-
-        const chatWindow = document.getElementById('chatWindow');
-        const inputBox = document.getElementById('clientPrompt');
-        const searchBtn = document.getElementById('searchArchitects');
+        // ── DOM refs ─────────────────────────────────────────────────────
+        const chatWindow       = document.getElementById('chatWindow');
+        const inputBox         = document.getElementById('clientPrompt');
+        const searchBtn        = document.getElementById('searchArchitects');
         const resultsContainer = document.getElementById('resultsContainer');
 
-        // Append user messages
-        function appendUserMessage(message) {
-            let msg = document.createElement('div');
-            msg.className = "message-container own";
-            msg.innerHTML = `<div class="message-bubble own">${message}</div>`;
-            chatWindow.appendChild(msg);
+        // ── Sidebar adjustment ───────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.BlueprintLoader?.show) window.BlueprintLoader.show();
+
+            const sidebar        = document.querySelector('.sidebar');
+            const sidebarToggler = document.querySelector('.sidebar-toggler');
+            const mainContent    = document.querySelector('main.container');
+
+            function adjustMainContent() {
+                if (!sidebar || !mainContent) return;
+                if (sidebar.classList.contains('collapsed')) {
+                    mainContent.style.marginLeft = '110px';
+                    mainContent.style.maxWidth   = 'calc(100% - 130px)';
+                } else {
+                    mainContent.style.marginLeft = '300px';
+                    mainContent.style.maxWidth   = 'calc(100% - 320px)';
+                }
+            }
+            adjustMainContent();
+            sidebarToggler?.addEventListener('click', () => setTimeout(adjustMainContent, 50));
+
+            // Textarea auto-resize + Enter to send
+            inputBox?.addEventListener('input', function () {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+            });
+            inputBox?.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (this.value.trim()) searchBtn.click();
+                }
+            });
+
+            // Attach modal listeners to server-rendered cards
+            attachArchitectLinkListeners();
+
+            // Debug: log initial model scores
+            const matches = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
+            console.log("%c🔎 MATCH DEBUG", "color:#4F46E5;font-size:14px;font-weight:bold;");
+            matches.forEach(m => console.log(`%c${m.architectName} | Score: ${m.similarityScore}`, "color:#2563EB;"));
+        });
+
+        // ── Message helpers ──────────────────────────────────────────────
+        function appendUserMessage(text) {
+            const el = document.createElement('div');
+            el.className = "message-container own";
+            el.innerHTML = `
+                <div class="message-bubble own">${escapeHtml(text)}</div>
+                <div class="message-avatar user-avatar">You</div>`;
+            chatWindow.appendChild(el);
             chatWindow.scrollTop = chatWindow.scrollHeight;
         }
 
-        // Append system/assistant messages
-        function appendSystemMessage(message) {
-            let msg = document.createElement('div');
-            msg.className = "message-container";
-            msg.innerHTML = `<div class="message-bubble other">${message}</div>`;
-            chatWindow.appendChild(msg);
+        function appendSystemMessage(text) {
+            const el = document.createElement('div');
+            el.className = "message-container";
+            el.innerHTML = `
+                <div class="message-avatar">AI</div>
+                <div class="message-bubble other">${text}</div>`;
+            chatWindow.appendChild(el);
             chatWindow.scrollTop = chatWindow.scrollHeight;
         }
 
-        // Render architect cards dynamically
+        function appendTypingIndicator() {
+            const el = document.createElement('div');
+            el.className = "message-container";
+            el.id = "typingIndicator";
+            el.innerHTML = `
+                <div class="message-avatar">AI</div>
+                <div class="typing-bubble">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>`;
+            chatWindow.appendChild(el);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            document.getElementById('typingIndicator')?.remove();
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        }
+
+        // ── Render cards ─────────────────────────────────────────────────
         function renderArchitects(matches) {
             resultsContainer.innerHTML = "";
 
             if (!matches || matches.length === 0) {
                 resultsContainer.innerHTML = `
                     <div class="col-12">
-                        <div class="alert alert-warning">No architects found. Try refining your description.</div>
+                        <div class="alert alert-warning">
+                            No architects found. Try refining your description.
+                        </div>
                     </div>`;
                 appendSystemMessage("😕 No matches found. Try describing differently.");
                 return;
             }
 
             matches.forEach(m => {
+                const status = m.realMatchStatus || '';
+                const statusStyle = status === 'Pending'
+                    ? 'background:#fbbf24;color:#000;border:none;pointer-events:none;'
+                    : status === 'Approved'
+                        ? 'background:#22c55e;color:#fff;border:none;pointer-events:none;'
+                        : '';
+                const statusLabel = !status ? 'Match'
+                    : status === 'Pending' ? 'Pending…' : 'Matched ✓';
 
-                console.log(`Architect: ${m.architectName}, Similarity Score: ${m.similarityScore}`);
-
-                let card = document.createElement('div');
+                const card = document.createElement('div');
                 card.className = "col-lg-6 col-md-12 mb-3";
                 card.innerHTML = `
                     <div class="card shadow-sm h-100">
@@ -971,313 +1155,196 @@
                                             ${m.architectName || "Unnamed Architect"}
                                         </a>
                                     </h6>
-
-                                    <!-- Enhanced Rating Display -->
-                                            <div class="rating-wrapper mt-2 d-flex align-items-center gap-2">
-                                                <div class="rating-bar">
-                                                    <div class="rating-fill" style="width: ${m.averageRating * 20}%;"></div>
-                                                </div>
-                                                <span class="rating-text">${m.averageRating.toFixed(1)}</span>
-
-                                                <span class="badge bg-primary">${m.similarityPercentage}%</span>
-                                            </div>
-
-                                            <small class="text-muted">
-                                                (${m.ratingCount} ${m.ratingCount === 1 ? "rating" : "ratings"})
-                                            </small>
+                                    <div class="rating-wrapper mt-2 d-flex align-items-center gap-2">
+                                        <div class="rating-bar">
+                                            <div class="rating-fill" style="width:${m.averageRating * 20}%;"></div>
+                                        </div>
+                                        <span class="rating-text">${m.averageRating.toFixed(1)}</span>
+                                        <span class="badge bg-primary">${m.similarityPercentage}%</span>
+                                    </div>
+                                    <small class="text-muted">
+                                        (${m.ratingCount} ${m.ratingCount === 1 ? 'rating' : 'ratings'})
+                                    </small>
                                 </div>
                             </div>
-                                    <button class="btn w-100 mt-auto match-btn"
+                            <button class="btn w-100 mt-auto match-btn"
                                     data-architect-id="${m.architectId}"
-                                    data-status="${m.realMatchStatus || ''}"
-                                    style="
-                                        ${m.realMatchStatus == null ? '' : 'pointer-events:none;'}
-                                        ${m.realMatchStatus === 'Pending' ? 'background:#fbbf24;color:#000;border:none;' : ''}
-                                        ${m.realMatchStatus === 'Approved' ? 'background:#22c55e;color:#fff;border:none;' : ''}
-                                    ">
-                                    ${m.realMatchStatus == null ? 'Match' :
-                                       (m.realMatchStatus === 'Pending' ? 'Pending…' : 'Matched ✓')}
-                                </button>
-
-                            </div>
+                                    data-status="${status}"
+                                    style="${statusStyle}">
+                                ${statusLabel}
+                            </button>
                         </div>
-                `;
+                    </div>`;
                 resultsContainer.appendChild(card);
             });
 
-            // 🧩 Re-attach modal event listeners for dynamically added architect links
+            attachArchitectLinkListeners();
+        }
+
+        function renderRankingFooter(shown, total) {
+            if (!total) return;
+            const footer = document.createElement('div');
+            footer.className = "col-12 mt-3";
+            footer.innerHTML = `
+                <div class="alert alert-info text-center small">
+                    <strong>${shown}</strong> of <strong>${total}</strong> architects shown based on your prompt.
+                    <br><span class="text-muted">Lower-ranked architects were omitted due to low relevance.</span>
+                </div>`;
+            resultsContainer.appendChild(footer);
+        }
+
+        // ── Architect modal ───────────────────────────────────────────────
+        function attachArchitectLinkListeners() {
             document.querySelectorAll('.architect-link').forEach(link => {
-                link.addEventListener('click', function(e) {
+                // Remove old listener by cloning
+                const fresh = link.cloneNode(true);
+                link.parentNode.replaceChild(fresh, link);
+
+                fresh.addEventListener('click', function (e) {
                     e.preventDefault();
-                    const id = this.dataset.architectId;
-
-                    const explanationBox = document.getElementById("matchExplanationText");
-                    const explanationSection = document.getElementById("matchExplanationSection");
-
-                    // Show placeholder while AI thinks
-                    explanationBox.textContent = "🤖 Generating explanation...";
-                    explanationSection.style.display = "block";
-
-                    // Use last user prompt (chat-based search)
-                    const clientQuery = document.getElementById("clientPrompt")?.value || "";
-
-                    // Call ExplainMatch controller
-                    fetch("/ClientInterface/ExplainMatch", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                                body: JSON.stringify({
-                                    architectId: id,
-                                    query: clientQuery,
-                                    lacksDetails: clientQuery.length < 30
-                                })
-
-                    })
-                    .then(res => {
-                        if (!res.ok) throw new Error("ExplainMatch failed");
-                        return res.json();
-                    })
-                    .then(data => {
-                        explanationBox.textContent =
-                            data.explanation || "No explanation returned.";
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        explanationBox.textContent =
-                            "Unable to generate explanation at this time.";
-                    });
-
-
-                    fetch(`/ClientInterface/GetArchitectProfile?id=${id}`)
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data) {
-                                document.getElementById("architectProfileName").innerText = data.fullName;
-                                document.getElementById("architectProfileEmail").innerText = data.email || "No email provided";
-                                document.getElementById("architectProfilePhone").innerText = data.phone || "No phone provided";
-                                document.getElementById("architectProfileLicense").innerText = data.license || "N/A";
-                                document.getElementById("architectProfileStyle").innerText = data.style || "N/A";
-                                document.getElementById("architectProfileSpecialization").innerText = data.specialization || "N/A";
-                                document.getElementById("architectProfileLocation").innerText = data.location || "N/A";
-                                const credLink = document.getElementById("architectProfileCredentials");
-                                const credWrapper = credLink.closest("p");
-
-                                if (
-                                    data.credentialsFile &&
-                                    data.credentialsFile !== "null" &&
-                                    data.credentialsFile.trim() !== ""
-                                ) {
-                                    // normalize path
-                                    if (data.credentialsFile.startsWith("http")) {
-                                        credLink.href = data.credentialsFile;
-                                    } else {
-                                        credLink.href = "/" + data.credentialsFile.replace(/^\/+/, "");
-                                    }
-
-                                    credLink.target = "_blank";
-                                    credLink.rel = "noopener noreferrer";
-                                    credWrapper.style.display = "block";
-                                } else {
-                                    // hide ONLY when no file
-                                    credWrapper.style.display = "none";
-                                    credLink.removeAttribute("href");
-                                }
-
-                                document.getElementById("architectProfilePhoto").src = data.photo || "/images/profile.jpg";
-                                const modal = new bootstrap.Modal(document.getElementById('architectProfileModal'));
-                                modal.show();
-                            } else {
-                                alert("❌ Architect profile not found.");
-                            }
-                        })
-                        .catch(() => alert("❌ Failed to load architect profile."));
+                    openArchitectModal(this.dataset.architectId);
                 });
             });
         }
 
-                function renderRankingFooter(shownCount, totalCount) {
-            if (!totalCount) return;
+        function openArchitectModal(architectId) {
+            const explanationBox = document.getElementById("matchExplanationText");
 
+            // Reset explanation to loading state
+            explanationBox.innerHTML = `
+                <div class="explanation-loading">
+                    <div class="typing-bubble">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                    <span style="font-size:0.8rem;color:#94A3B8;">Generating explanation…</span>
+                </div>`;
 
-            const footer = document.createElement("div");
-            footer.className = "col-12 mt-3";
+            // Load profile
+            fetch(`/ClientInterface/GetArchitectProfile?id=${architectId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (!data) { alert("❌ Architect profile not found."); return; }
 
-            footer.innerHTML = `
-                <div class="alert alert-info text-center small">
-                    <strong>${shownCount}</strong> out of <strong>${totalCount}</strong> architects are shown based on your prompt.<br>
-                    <span class="text-muted">
-                        Lower-ranked architects were omitted due to low relevance.
-                    </span>
-                </div>
-            `;
+                    document.getElementById("architectProfileName").innerText         = data.fullName || "—";
+                    document.getElementById("architectProfileEmail").innerText        = data.email    || "No email provided";
+                    document.getElementById("architectProfilePhone").innerText        = data.phone    || "No phone provided";
+                    document.getElementById("architectProfileLicense").innerText      = data.license  || "N/A";
+                    document.getElementById("architectProfileStyle").innerText        = data.style    || "N/A";
+                    document.getElementById("architectProfileLocation").innerText     = data.location || "N/A";
+                    document.getElementById("architectProfileSpecialization").innerText = data.specialization || "N/A";
+                    document.getElementById("architectProfilePhoto").src             = data.photo    || "/images/profile.jpg";
 
-            resultsContainer.appendChild(footer);
+                    // Credentials
+                    const credLink    = document.getElementById("architectProfileCredentials");
+                    const credRow     = document.getElementById("credentialsRow");
+                    const hasCredFile = data.credentialsFile && data.credentialsFile !== "null" && data.credentialsFile.trim() !== "";
+
+                    if (hasCredFile) {
+                        credLink.href   = data.credentialsFile.startsWith("http")
+                            ? data.credentialsFile
+                            : "/" + data.credentialsFile.replace(/^\/+/, "");
+                        credLink.target = "_blank";
+                        credLink.rel    = "noopener noreferrer";
+                        credRow.style.display = "";
+                    } else {
+                        credRow.style.display = "none";
+                    }
+
+                    new bootstrap.Modal(document.getElementById('architectProfileModal')).show();
+                })
+                .catch(() => alert("❌ Failed to load architect profile."));
+
+            // Load explanation separately (uses lastQuery — never empty)
+            fetch("/ClientInterface/ExplainMatch", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ architectId: architectId, query: lastQuery })
+            })
+            .then(res => {
+                if (!res.ok) throw new Error(`ExplainMatch returned ${res.status}`);
+                return res.json();
+            })
+            .then(data => {
+                explanationBox.innerHTML =
+                    `<p class="explanation-text">${data.explanation || "No explanation returned."}</p>`;
+            })
+            .catch(err => {
+                console.error("ExplainMatch error:", err);
+                explanationBox.innerHTML =
+                    `<p class="explanation-text" style="color:#94A3B8;">
+                        Unable to generate explanation. Please try again.
+                    </p>`;
+            });
         }
 
-
-        // Global Match button click (works for static + dynamic)
-        $(document).on("click", ".match-btn", function () {
-            let status = $(this).data("status");
-
-            // 🔒 Prevent double-matching
-            if (status === "Pending") {
-                showNotification("Already Pending",
-                    "You've already requested a match with this architect.");
-                return;
-            }
-
-            if (status === "Approved") {
-                showNotification("Already Matched",
-                    "You are already matched with this architect.");
-                return;
-            }
-            let architectId = $(this).data("architect-id");
-            let token = $('input[name="__RequestVerificationToken"]').val();
-
-            $.post("/ClientInterface/RequestMatch", { architectId: architectId, __RequestVerificationToken: token })
-                .done(res => {
-                    showNotification(
-                        "Success ✅",
-                        res.message || "Match request sent successfully!"
-                    );
-                    if (res.success) location.reload();
-                })
-                .fail(() => {
-                    showNotification(
-                    "Error ❌",
-                    "Failed to send match request."
-                );
-            });
-        });
-
-        // Handle search with chat integration
+        // ── Search ───────────────────────────────────────────────────────
         searchBtn.addEventListener('click', function () {
-            let prompt = inputBox.value.trim();
-            if (!prompt) {
-                alert("Please describe your desired architect.");
-                return;
-            }
+            const prompt = inputBox.value.trim();
+            if (!prompt) { alert("Please describe your desired architect."); return; }
+
+            lastQuery = prompt; // ← save before clearing
             appendUserMessage(prompt);
-            appendSystemMessage("🔎 Searching for architects...");
             inputBox.value = "";
+            inputBox.style.height = 'auto';
+
+            appendTypingIndicator();
 
             fetch(`/ClientInterface/Matches?query=${encodeURIComponent(prompt)}`, {
                 headers: { "X-Requested-With": "XMLHttpRequest" }
             })
             .then(res => res.json())
             .then(data => {
+                removeTypingIndicator();
 
-                // 🔹 Handle out-of-scope request
                 if (data.outOfScope) {
-                    appendSystemMessage("⚠️ " + data.message);
-                    renderArchitects([]); // optional: clear previous results
-                    return; // stop further processing
+                    appendSystemMessage("⚠️ That doesn't seem architecture-related. Try describing a building, design style, or project type.");
+                    renderArchitects([]);
+                    return;
                 }
 
-                // 🔹 Handle low similarity feedback
                 if (data.showFeedback) {
-                    appendSystemMessage(
-                        "⚠️ No architect closely matches your current description yet. " +
-                        "The architects shown below may still be suitable with adjustments."
-                    );
-
-                    
+                    appendSystemMessage("⚠️ No closely matching architects found. The results below may still be useful — try adding more detail.");
                 }
-                if (data.lacksDetails) {
-                        appendSystemMessage(
-                            "💡 Tip: Adding more details like budget, location, and style will improve match quality."
-                        );
-                    }
 
-                // ✅ Add confirmation that results are available
-                
+                if (data.matches && data.matches.length > 0) {
+                    appendSystemMessage(`✅ Found <strong>${data.matches.length}</strong> architect${data.matches.length > 1 ? 's' : ''} matching your request.`);
+                }
 
                 renderArchitects(data.matches);
-                           renderRankingFooter(
-                        data.matches.length,
-                        data.totalArchitects
-                    );
-                })
+                renderRankingFooter(data.matches.length, data.totalArchitects);
+            })
             .catch(err => {
+                removeTypingIndicator();
                 console.error("Search failed:", err);
                 appendSystemMessage("❌ Search failed. Please try again.");
                 renderArchitects([]);
             });
         });
 
+        // ── Match button ─────────────────────────────────────────────────
+        $(document).on("click", ".match-btn", function () {
+            const status      = $(this).data("status");
+            const architectId = $(this).data("architect-id");
+            const token       = $('input[name="__RequestVerificationToken"]').val();
 
-        function showNotification(title, message) {
-            document.getElementById('notificationTitle').textContent = title;
-            document.getElementById('notificationMessage').textContent = message;
-            const modal = new bootstrap.Modal(document.getElementById('notificationModal'));
-            modal.show();
-        }
+            if (status === "Pending")   { showNotification("Already Pending",  "You've already sent a match request to this architect."); return; }
+            if (status === "Approved")  { showNotification("Already Matched",   "You are already matched with this architect."); return; }
 
-               document.addEventListener("DOMContentLoaded", function () {
-
-            // ⭐ Show loader
-            if (window.BlueprintLoader && typeof window.BlueprintLoader.show === 'function') {
-                window.BlueprintLoader.show();
-            }
-
-            // ⭐ Sidebar adjustment
-            const sidebar = document.querySelector('.sidebar');
-            const sidebarToggler = document.querySelector('.sidebar-toggler');
-            const mainContent = document.querySelector('main.container');
-
-            function adjustMainContent() {
-                if (sidebar && mainContent) {
-                    if (sidebar.classList.contains('collapsed')) {
-                        mainContent.style.marginLeft = '110px';
-                        mainContent.style.maxWidth = 'calc(100% - 130px)';
-                    } else {
-                        mainContent.style.marginLeft = '300px';
-                        mainContent.style.maxWidth = 'calc(100% - 320px)';
-                    }
-                }
-            }
-
-            adjustMainContent();
-
-            if (sidebarToggler) {
-                sidebarToggler.addEventListener('click', function () {
-                    setTimeout(adjustMainContent, 50);
-                });
-            }
-
-            // ⭐ Textarea auto-expand + Enter send
-            const messageInput = document.getElementById('clientPrompt');
-            if (messageInput) {
-                messageInput.addEventListener('input', function () {
-                    this.style.height = 'auto';
-                    this.style.height = Math.min(this.scrollHeight, 100) + 'px';
-                });
-
-                messageInput.addEventListener('keydown', function (e) {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        if (this.value.trim()) {
-                            document.getElementById('searchArchitects').click();
-                        }
-                    }
-                });
-            }
-
-            // ⭐ Log similarity scores
-            const matches = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
-
-            console.log("%c🔎 MATCH DEBUG — Raw Similarity Scores (0–1 float)",
-                "color:#4F46E5; font-size:14px; font-weight:bold;");
-
-            matches.forEach(m => {
-                console.log(
-                    `%cArchitect: ${m.architectName} | Score: ${m.similarityScore}`,
-                    "color:#2563EB; font-weight:bold;"
-                );
-            });
-
+            $.post("/ClientInterface/RequestMatch", { architectId, __RequestVerificationToken: token })
+                .done(res => {
+                    showNotification("Success ✅", res.message || "Match request sent!");
+                    if (res.success) location.reload();
+                })
+                .fail(() => showNotification("Error ❌", "Failed to send match request."));
         });
 
+        // ── Notification helper ──────────────────────────────────────────
+        function showNotification(title, message) {
+            document.getElementById('notificationTitle').textContent  = title;
+            document.getElementById('notificationMessage').textContent = message;
+            new bootstrap.Modal(document.getElementById('notificationModal')).show();
+        }
     </script>
 }

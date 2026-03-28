@@ -30,6 +30,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
         private readonly IHubContext<ChatHub> _hubContext;
         private readonly StripeSettings _stripeSettings;
 
+
         public ClientInterfaceController(
            AppDbContext _context,
            UserManager<User> _userManager,
@@ -397,156 +398,141 @@ namespace BlueprintProWeb.Controllers.ClientSide
         [HttpGet]
         public async Task<IActionResult> Matches(string? query)
         {
+            // 1. Auth guard
             var currentUser = await userManager.GetUserAsync(User);
-            if (currentUser == null)
+            if (currentUser is null)
                 return RedirectToAction("Login", "Account");
 
-            var chatClient = _openAi.GetChatClient("gpt-5-mini");
-
-            // 🔹 Step 0: Check if request is architecture-related
-            var scopeCheckMessages = new List<ChatMessage>
-{
-                new SystemChatMessage(
-                    @"You are classifying client messages for an architecture matching system.
-
-                    Classify the message into ONE of the following categories:
-                    - ARCHITECTURE_RELATED: Any message related to architectural design, building design, interiors, construction, renovation, styles, or architectural capabilities — even if vague or incomplete.
-                    - NOT_ARCHITECTURE_RELATED: Clearly unrelated topics (games, programming, food, weather, etc.)
-
-                    Important rules:
-                    - Vague or short messages are STILL architecture-related if they mention styles, design, architects, buildings, or services.
-                    - Missing budget, location, or project details does NOT make it out of scope.
-                    - Capability statements like ""can do modern designs"" ARE architecture-related.
-
-                    Respond ONLY with:
-                    ARCHITECTURE_RELATED or NOT_ARCHITECTURE_RELATED"
-                    ),
-                    new UserChatMessage(query ?? "")
-                };
-
-
-            var scopeResult = await chatClient.CompleteChatAsync(scopeCheckMessages);
-
-            bool isArchitectureRelated =
-                scopeResult.Value.Content[0].Text.Trim()
-                    .Equals("ARCHITECTURE_RELATED", StringComparison.OrdinalIgnoreCase);
-
-            bool outOfScope = !isArchitectureRelated;
-
-            // Step 1: Default query
-            string searchQuery = string.IsNullOrWhiteSpace(query)
-                ? $"Style: {currentUser.user_Style}, Location: {currentUser.user_Location}, Budget: {currentUser.user_Budget}"
-                : query;
-
-            // 🔍 Check if client request lacks key details
-            bool lacksDetails =
-                !searchQuery.Contains("budget", StringComparison.OrdinalIgnoreCase) ||
-                !searchQuery.Contains("location", StringComparison.OrdinalIgnoreCase) ||
-                !searchQuery.Contains("style", StringComparison.OrdinalIgnoreCase);
-
-            
-
-            // Step 2: Expand query
-            var messages = new List<ChatMessage>
-    {
-        new SystemChatMessage("You rewrite client needs into a clear architectural request."),
-        new UserChatMessage($"User request: {searchQuery}. Expand into 2–3 descriptive sentences.")
-    };
-
-            var response = await chatClient.CompleteChatAsync(messages);
-            var expansion = response.Value.Content[0].Text;
-            var finalQuery = $"{searchQuery}. Expanded: {expansion}";
-
-            // Step 3: Generate embedding
-            var embeddingResponse = await _embeddingClient.GenerateEmbeddingAsync(finalQuery);
-            var queryVector = embeddingResponse.Value.ToFloats().ToArray();
-
-            // Step 4: Compare with architects
-            var architects = context.Users
-                .Where(u => u.user_role == "Architect" && !string.IsNullOrEmpty(u.PortfolioEmbedding))
-                .ToList();
-            int totalArchitects = architects.Count;
-    
-            var ranked = architects
-            .Select(a =>
+            // 2. If no query at all, just return the empty view — nothing to match against
+            if (string.IsNullOrWhiteSpace(query))
             {
-                var vecA = ParseEmbedding(a.PortfolioEmbedding);
-                if (vecA == null || vecA.Length != queryVector.Length) return null;
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    return Json(new { matches = new List<object>(), totalArchitects = 0, showFeedback = true, outOfScope = false });
 
-                var score = CosineSimilarity(queryVector, vecA);
-                if (a.IsPro) score += 0.05;
-
-                return new MatchViewModel
-                {
-                    MatchId = null,
-                    ClientId = currentUser.Id,
-                    ClientName = $"{currentUser.user_fname} {currentUser.user_lname}",
-
-                    ArchitectId = a.Id,
-                    ArchitectName = $"{a.user_fname} {a.user_lname}",
-                    ArchitectStyle = a.user_Style,
-                    ArchitectLocation = a.user_Location,
-                    ArchitectBudget = a.user_Budget,
-
-                    ProfilePhoto = string.IsNullOrEmpty(a.user_profilePhoto)
-                        ? Url.Content("~/images/profile.jpg")
-                        : Url.Content(a.user_profilePhoto),
-
-                    MatchStatus = a.IsPro ? "AI + Portfolio Match (Pro)" : "AI + Portfolio Match",
-                    MatchDate = DateTime.UtcNow,
-
-                    SimilarityScore = score,
-                    SimilarityPercentage = Math.Round(score * 100, 1),
-
-                    TotalRatings = a.user_Rating ?? 0.0,
-                    RatingCount = context.Projects.Count(p =>
-                        p.user_architectId == a.Id &&
-                        p.project_clientHasRated),
-
-                    RealMatchStatus = context.Matches
-                        .Where(m => m.ClientId == currentUser.Id && m.ArchitectId == a.Id)
-                        .Select(m => m.MatchStatus)
-                        .FirstOrDefault(),
-
-                    MatchExplanation = null
-                };
-            })
-            .Where(x => x != null && x.SimilarityPercentage >= 35) // 🔹 Only include architects >= 35%
-            .OrderByDescending(x => x!.SimilarityScore)
-            .ToList();
-
-
-            // Compute average ratings
-            foreach (var vm in ranked)
-            {
-                vm.AverageRating = vm.RatingCount > 0
-                    ? Math.Round(vm.TotalRatings / vm.RatingCount, 1)
-                    : 0.0;
+                ViewBag.HasStrongMatch = false;
+                ViewBag.OutOfScope = false;
+                return View(new List<MatchViewModel>());
             }
 
-            // Strong match & feedback
-            bool hasStrongMatch = ranked.Count > 0 && ranked[0].SimilarityPercentage >= 35;
-            bool showFeedback = !hasStrongMatch;
+            // 3. Scope check — is the prompt architecture-related?
+            var chatClient = _openAi.GetChatClient("gpt-4o-mini");
 
-            // Return JSON for AJAX
+            var scopeMessages = new List<ChatMessage>
+    {
+        new SystemChatMessage(
+            @"You are classifying client messages for an architecture matching system.
+
+            Classify the message into ONE of the following categories:
+            - ARCHITECTURE_RELATED: Any message related to architectural design,
+              building design, interiors, construction, renovation, styles, or
+              architectural capabilities — even if vague or incomplete.
+            - NOT_ARCHITECTURE_RELATED: Clearly unrelated topics (games,
+              programming, food, weather, etc.)
+
+            Important rules:
+            - Vague or short messages are STILL architecture-related if they mention
+              styles, design, architects, buildings, or services.
+            - Missing budget, location, or project details does NOT make it out of scope.
+
+            Respond ONLY with: ARCHITECTURE_RELATED or NOT_ARCHITECTURE_RELATED"),
+        new UserChatMessage(query)
+    };
+
+            var scopeResult = await chatClient.CompleteChatAsync(scopeMessages);
+            bool outOfScope = !scopeResult.Value.Content[0].Text
+                .Trim()
+                .Equals("ARCHITECTURE_RELATED", StringComparison.OrdinalIgnoreCase);
+
+            // 4. Expand the raw prompt into a richer search query
+            var expandMessages = new List<ChatMessage>
+    {
+        new SystemChatMessage(
+            "You rewrite client needs into a clear architectural request. " +
+            "Focus only on what the client described — their project type, " +
+            "design intent, and any specific requirements. " +
+            "Do not invent or assume budget, location, or style if not mentioned."),
+        new UserChatMessage(
+            $"Client request: {query}\n\n" +
+            "Expand into 2–3 descriptive sentences useful for matching against architect credentials.")
+    };
+
+            var expandResult = await chatClient.CompleteChatAsync(expandMessages);
+            string expansion = expandResult.Value.Content[0].Text;
+            string finalText = $"{query}. {expansion}";
+
+            // 5. Generate embedding for the expanded prompt
+            var embeddingResponse = await _embeddingClient.GenerateEmbeddingAsync(finalText);
+            var queryVector = embeddingResponse.Value.ToFloats().ToArray();
+
+            // 6. Fetch all architects that have credentials/portfolio text embedded
+            var architects = await context.Users
+                .Where(u => u.user_role == "Architect" && !string.IsNullOrEmpty(u.PortfolioEmbedding))
+                .AsNoTracking()
+                .ToListAsync();
+
+            int totalArchitects = architects.Count;
+
+            // 7. Score purely on cosine similarity against credentials embedding
+            var ranked = architects
+                .Select(a =>
+                {
+                    var vecA = ParseEmbedding(a.PortfolioEmbedding);
+                    if (vecA == null || vecA.Length != queryVector.Length) return null;
+
+                    double score = CosineSimilarity(queryVector, vecA);
+
+                    int ratingCount = context.Projects
+                        .Count(p => p.user_architectId == a.Id && p.project_clientHasRated);
+
+                    return new MatchViewModel
+                    {
+                        MatchId = null,
+                        ClientId = currentUser.Id,
+                        ClientName = $"{currentUser.user_fname} {currentUser.user_lname}",
+                        ArchitectId = a.Id,
+                        ArchitectName = $"{a.user_fname} {a.user_lname}",
+                        ArchitectStyle = a.user_Style,
+                        ArchitectLocation = a.user_Location,
+                        ArchitectBudget = a.user_Budget,
+                        ProfilePhoto = string.IsNullOrEmpty(a.user_profilePhoto)
+                            ? Url.Content("~/images/profile.jpg")
+                            : Url.Content(a.user_profilePhoto),
+                        MatchStatus = "AI + Portfolio Match",
+                        MatchDate = DateTime.UtcNow,
+                        SimilarityScore = score,
+                        SimilarityPercentage = Math.Round(score * 100, 1),
+                        TotalRatings = a.user_Rating ?? 0.0,
+                        RatingCount = ratingCount,
+                        AverageRating = ratingCount > 0
+                            ? Math.Round((a.user_Rating ?? 0.0) / ratingCount, 1)
+                            : 0.0,
+                        RealMatchStatus = context.Matches
+                            .Where(m => m.ClientId == currentUser.Id && m.ArchitectId == a.Id)
+                            .Select(m => m.MatchStatus)
+                            .FirstOrDefault(),
+                        MatchExplanation = null
+                    };
+                })
+                .Where(x => x != null && x.SimilarityPercentage >= 35)
+                .OrderByDescending(x => x!.SimilarityScore)
+                .ToList();
+
+            // 8. Response
+            bool hasStrongMatch = ranked.Count > 0;
+
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
-                
                 return Json(new
                 {
                     matches = ranked,
                     totalArchitects = totalArchitects,
-                    showFeedback,
-                    lacksDetails,
+                    showFeedback = !hasStrongMatch,
                     outOfScope
                 });
             }
 
-            // For normal page load
             ViewBag.HasStrongMatch = hasStrongMatch;
             ViewBag.OutOfScope = outOfScope;
-            ViewBag.LacksDetails = lacksDetails;
-
             return View(ranked);
         }
 
@@ -995,15 +981,17 @@ namespace BlueprintProWeb.Controllers.ClientSide
         [HttpPost]
         public async Task<IActionResult> ExplainMatch([FromBody] ExplainMatchRequest request)
         {
+            if (string.IsNullOrWhiteSpace(request.ArchitectId) || string.IsNullOrWhiteSpace(request.Query))
+                return BadRequest(new { explanation = "Missing required fields." });
+
             var architect = await context.Users.FindAsync(request.ArchitectId);
-            if (architect == null) return NotFound();
+            if (architect == null)
+                return NotFound(new { explanation = "Architect not found." });
 
-            var explanation = await GenerateMatchExplanation(
-                request.Query,
-                architect,
-                request.LacksDetails
-               );
+            if (string.IsNullOrWhiteSpace(architect.PortfolioText))
+                return Json(new { explanation = "This architect hasn't added credential details yet." });
 
+            var explanation = await GenerateMatchExplanation(request.Query, architect);
             return Json(new { explanation });
         }
 
@@ -1011,60 +999,41 @@ namespace BlueprintProWeb.Controllers.ClientSide
         {
             public string ArchitectId { get; set; }
             public string Query { get; set; }
-            public bool LacksDetails { get; set; }
+            // LacksDetails removed — no longer part of the matching logic
         }
 
-
-
-        private async Task<string> GenerateMatchExplanation(
-    string clientQuery,
-    User architect,
-    bool lacksDetails)
+        private async Task<string> GenerateMatchExplanation(string clientQuery, User architect)
         {
-            var chatClient = _openAi.GetChatClient("gpt-5-mini");
+            var chatClient = _openAi.GetChatClient("gpt-4o-mini"); // fixed: was gpt-5-mini
 
-            // ✅ Build the user prompt FIRST
-            var userPrompt = $@"
-                Client request:
-                {clientQuery}
-
-                Reference material (internal):
-                {architect.PortfolioText}
-
-                Explain why this recommendation fits the client's request.
-                ";
-
-            // ✅ Conditionally ask for clarification guidance
-            if (lacksDetails)
-            {
-                userPrompt += @"
-
-                    Also, if the client's request is missing important details,
-                    gently suggest what information would help clarify the project
-                    (such as budget range, project scale, style preference, or location).";
-            }
+            var userPrompt =
+                $@"Client request:
+                    {clientQuery}
+ 
+                    Architect credentials and experience:
+                    {architect.PortfolioText}
+ 
+                    Based only on the credentials above, explain in 2 short sentences why this architect
+                    is a good fit for the client's request.";
 
             var messages = new List<ChatMessage>
     {
         new SystemChatMessage(
-                @"You are a professional architectural matching assistant.
+            @"You are a professional architectural matching assistant.
+ 
+            Your task is to explain why a recommended architect fits the client's specific request,
+            based strictly on the architect's credentials and experience.
+ 
+            Guidelines:
+            - Speak directly to the client using ""you"" and ""your"".
+            - Ground every claim in the provided credentials — do not invent experience.
+            - Highlight the most relevant skills or projects that match the client's needs.
+            - Never mention portfolios, matching systems, scores, or AI.
+            - Do not list credentials as bullet points.
+            - Keep the tone confident and professional.
+            - Maximum of 2 short sentences."),
 
-                Your task is to explain WHY the suggested architect could be suitable for the client's needs,
-                even if the architect’s primary style or specialty does not exactly match the request.
-
-                Guidelines:
-                - Speak directly to the client using ""you"" and ""your"".
-                - Focus on transferable skills, adaptable design principles, comparable project experience, or flexible approaches.
-                - If styles differ, explain how the architect’s experience can still support the client’s goals.
-                - Base reasoning only on the provided reference material.
-                - Never mention portfolios, internal systems, matching, scores, or AI.
-                - Do not list credentials.
-                - Do not describe the architect personally.
-                - Keep the tone reassuring and professional.
-                - Maximum of 2 short sentences."
-             ),
-
-                new UserChatMessage(userPrompt)
+        new UserChatMessage(userPrompt)
     };
 
             var response = await chatClient.CompleteChatAsync(messages);

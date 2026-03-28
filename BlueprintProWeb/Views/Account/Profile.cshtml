@@ -7,7 +7,7 @@
 @section Styles {
     <style>
         @@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800&display=swap');
-        
+
         /* Override shared layout background for profile page */
         body::before {
             background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
@@ -50,32 +50,6 @@
             position: relative;
         }
 
-        /* Pro Badge on Profile Card */
-        .pro-badge {
-            position: absolute;
-            top: 20px;
-            right: 25px;
-            background: linear-gradient(135deg, #0D3C80, #1a5bb8);
-            color: white;
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            box-shadow: 0 4px 15px rgba(13, 60, 128, 0.3);
-            animation: proBadgeGlow 2s ease-in-out infinite alternate;
-        }
-
-        @@keyframes proBadgeGlow {
-            0% {
-                box-shadow: 0 4px 15px rgba(13, 60, 128, 0.3);
-            }
-            100% {
-                box-shadow: 0 4px 20px rgba(13, 60, 128, 0.5);
-            }
-        }
-
         .page-header {
             display: flex;
             justify-content: space-between;
@@ -84,28 +58,10 @@
             position: relative;
         }
 
-        .page-header h2 {
-            color: #0D3C80;
-            font-weight: 700;
-        }
-
-        /* Pro indicator next to name */
-        .user-name-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .pro-indicator {
-            background: linear-gradient(135deg, #0D3C80, #1a5bb8);
-            color: white;
-            padding: 2px 8px;
-            border-radius: 8px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+            .page-header h2 {
+                color: #0D3C80;
+                font-weight: 700;
+            }
 
         .profile-section {
             margin-bottom: 30px;
@@ -124,16 +80,10 @@
             transition: all 0.3s ease;
         }
 
-        .profile-card:hover {
-            box-shadow: 0px 12px 35px rgba(13, 60, 128, 0.18);
-            transform: translateY(-2px);
-        }
-
-        /* Pro border for profile card */
-        .profile-card.pro-user {
-            border: 2px solid #0D3C80;
-            background: linear-gradient(135deg, rgba(13, 60, 128, 0.02), rgba(255, 255, 255, 0.9));
-        }
+            .profile-card:hover {
+                box-shadow: 0px 12px 35px rgba(13, 60, 128, 0.18);
+                transform: translateY(-2px);
+            }
 
         .avatar-container {
             position: relative;
@@ -156,27 +106,21 @@
             transition: all 0.3s ease;
         }
 
-        .avatar:hover {
-            border-color: #0D3C80;
-            transform: scale(1.05);
-        }
+            .avatar:hover {
+                border-color: #0D3C80;
+                transform: scale(1.05);
+            }
 
-        .avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+            .avatar img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
 
         .avatar-placeholder {
             color: #0D3C80;
             font-size: 28px;
             font-weight: 700;
-        }
-
-        /* Pro user avatar styling */
-        .avatar.pro-user {
-            border: 3px solid #0D3C80;
-            box-shadow: 0 0 20px rgba(13, 60, 128, 0.4);
         }
 
         .profile-info {
@@ -193,33 +137,33 @@
             gap: 8px;
         }
 
-        .user-details h3 {
-            margin: 0;
-            color: #0D3C80;
-            font-weight: 700;
-            font-size: 1.4rem;
-        }
+            .user-details h3 {
+                margin: 0;
+                color: #0D3C80;
+                font-weight: 700;
+                font-size: 1.4rem;
+            }
 
-        .user-details .email,
-        .user-details .phone {
-            font-size: 1rem;
-            color: #666;
-            font-weight: 500;
-        }
+            .user-details .email,
+            .user-details .phone {
+                font-size: 1rem;
+                color: #666;
+                font-weight: 500;
+            }
 
-        .user-details .role-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-            color: #0D3C80;
-            padding: 3px 8px;
-            border-radius: 8px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border: 1px solid rgba(13, 60, 128, 0.2);
-            width: fit-content;
-        }
+            .user-details .role-badge {
+                display: inline-block;
+                background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+                color: #0D3C80;
+                padding: 3px 8px;
+                border-radius: 8px;
+                font-size: 0.75rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                border: 1px solid rgba(13, 60, 128, 0.2);
+                width: fit-content;
+            }
 
         /* Architect credentials styling */
         .architect-credentials {
@@ -257,11 +201,11 @@
             margin-bottom: 0;
         }
 
-        .credential-item strong {
-            color: #0D3C80;
-            font-weight: 600;
-            min-width: 120px;
-        }
+            .credential-item strong {
+                color: #0D3C80;
+                font-weight: 600;
+                min-width: 120px;
+            }
 
         .credentials-file-link {
             color: #0D3C80;
@@ -270,10 +214,10 @@
             transition: color 0.3s ease;
         }
 
-        .credentials-file-link:hover {
-            color: #1a5bb8;
-            text-decoration: underline;
-        }
+            .credentials-file-link:hover {
+                color: #1a5bb8;
+                text-decoration: underline;
+            }
 
         .action-buttons {
             display: flex;
@@ -282,8 +226,7 @@
             align-items: flex-end;
         }
 
-        .edit-btn,
-        .subscription-btn {
+        .edit-btn {
             background: linear-gradient(135deg, #0D3C80, #1a5bb8);
             color: white;
             border: none;
@@ -301,57 +244,12 @@
             letter-spacing: 0.5px;
         }
 
-        .edit-btn:hover,
-        .subscription-btn:hover {
-            background: linear-gradient(135deg, #0A2F66, #164a9e);
-            color: white;
-            transform: translateY(-3px);
-            box-shadow: 0px 8px 25px rgba(13, 60, 128, 0.4);
-        }
-
-        /* Pro subscription button styling */
-        .subscription-btn.subscription-card-pro {
-            background: linear-gradient(135deg, rgba(13, 60, 128, 0.1), rgba(255, 255, 255, 0.95));
-            color: #0D3C80;
-            border: 2px solid #0D3C80;
-            position: relative;
-            box-shadow: 0 4px 15px rgba(13, 60, 128, 0.2);
-        }
-
-        .subscription-btn.subscription-card-pro::after {
-            content: "PRO";
-            position: absolute;
-            top: -2px;
-            right: -2px;
-            background: linear-gradient(135deg, #0D3C80, #1a5bb8);
-            color: white;
-            padding: 3px 10px;
-            border-radius: 0 10px 0 10px;
-            font-size: 0.65rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .subscription-btn.subscription-card-pro:hover {
-            background: linear-gradient(135deg, rgba(13, 60, 128, 0.15), rgba(255, 255, 255, 1));
-            color: #0D3C80;
-            transform: translateY(-3px);
-            box-shadow: 0px 8px 25px rgba(13, 60, 128, 0.3);
-        }
-
-        .subscription-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none !important;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
-            background: #6c757d !important;
-        }
-
-        .subscription-btn:disabled:hover {
-            transform: none !important;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
-        }
+            .edit-btn:hover {
+                background: linear-gradient(135deg, #0A2F66, #164a9e);
+                color: white;
+                transform: translateY(-3px);
+                box-shadow: 0px 8px 25px rgba(13, 60, 128, 0.4);
+            }
 
         .alert {
             padding: 15px 20px;
@@ -373,451 +271,6 @@
             border-left: 4px solid #dc3545;
         }
 
-        /* SUBSCRIPTION MODAL STYLES */
-        .subscription-modal {
-            display: none;
-            position: fixed;
-            z-index: 9999;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(5px);
-        }
-
-        .subscription-modal.show {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-content-large {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(15px);
-            border-radius: 24px;
-            padding: 0;
-            margin: 20px;
-            box-shadow: 0 20px 60px rgba(13, 60, 128, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            max-width: 800px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-            position: relative;
-        }
-
-        .modal-content-medium {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(15px);
-            border-radius: 20px;
-            padding: 0;
-            margin: 20px;
-            box-shadow: 0 20px 60px rgba(13, 60, 128, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            max-width: 600px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            position: relative;
-        }
-
-        .modal-header-custom {
-            background: linear-gradient(135deg, #0D3C80, #1a5bb8);
-            color: white;
-            padding: 30px;
-            border-radius: 24px 24px 0 0;
-            text-align: center;
-            position: relative;
-        }
-
-        .modal-close {
-            position: absolute;
-            top: 20px;
-            right: 25px;
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.8rem;
-            cursor: pointer;
-            padding: 0;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background-color 0.3s ease;
-        }
-
-        .modal-close:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-
-        .modal-title-custom {
-            font-size: 1.25rem !important;
-            font-weight: 700;
-        }
-
-        .modal-subtitle {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 1.1rem;
-            margin-top: 10px;
-            font-weight: 400;
-        }
-
-        .modal-body-custom {
-            padding: 40px;
-        }
-
-        /* Plans Container */
-        .plans-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 25px;
-            max-width: 100%;
-        }
-
-        .plan-card {
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 20px;
-            padding: 35px 30px;
-            text-align: left;
-            position: relative;
-            box-shadow: 0 8px 30px rgba(13, 60, 128, 0.1);
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-            min-height: 300px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .plan-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 16px 50px rgba(13, 60, 128, 0.2);
-        }
-
-        .plan-card.pro-plan {
-            border-color: #0D3C80;
-            background: linear-gradient(135deg, rgba(13, 60, 128, 0.05), rgba(255, 255, 255, 0.95));
-        }
-
-        .plan-card.current-plan {
-            border-color: #28a745;
-            background: linear-gradient(135deg, rgba(40, 167, 69, 0.05), rgba(255, 255, 255, 0.95));
-        }
-
-        .plan-badge {
-            position: absolute;
-            top: -1px;
-            right: -1px;
-            padding: 8px 16px;
-            border-radius: 0 20px 0 20px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .recommended-badge {
-            background: linear-gradient(135deg, #0D3C80, #1a5bb8);
-            color: white;
-        }
-
-        .current-badge {
-            background: linear-gradient(135deg, #28a745, #20c997);
-            color: white;
-        }
-
-        .plan-header {
-            margin-bottom: 25px;
-        }
-
-        .plan-name {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #0D3C80;
-            margin-bottom: 15px;
-        }
-
-        .plan-price {
-            font-size: 2.8rem;
-            font-weight: 800;
-            color: #0D3C80;
-            margin-bottom: 8px;
-            line-height: 1;
-        }
-
-        .plan-billing {
-            color: #666;
-            font-size: 1rem;
-            font-weight: 400;
-            margin-bottom: 25px;
-        }
-
-        .plan-features {
-            flex: 1;
-            margin-bottom: 25px;
-        }
-
-        .features-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .features-list li {
-            color: #333;
-            font-size: 1rem;
-            line-height: 1.6;
-            margin-bottom: 8px;
-        }
-
-        .plan-button {
-            width: 100%;
-            padding: 15px 25px;
-            border: none;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-top: auto;
-        }
-
-        .plan-button.primary {
-            background: linear-gradient(135deg, #0D3C80, #1a5bb8);
-            color: white;
-        }
-
-        .plan-button.primary:hover {
-            background: linear-gradient(135deg, #0A2F66, #164a9e);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(13, 60, 128, 0.3);
-        }
-
-        .plan-button.current-btn {
-            background: linear-gradient(135deg, #28a745, #20c997);
-            color: white;
-            cursor: default;
-        }
-
-        /* CHECKOUT STYLES */
-        .checkout-container {
-            display: none;
-            max-width: 100%;
-        }
-
-        .checkout-container.show {
-            display: block;
-        }
-
-        .back-button {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 10px;
-            padding: 5px 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .back-button:hover {
-            opacity: 0.8;
-        }
-
-        .checkout-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-        }
-
-        .order-summary {
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 8px 30px rgba(13, 60, 128, 0.1);
-            border: 2px solid #0D3C80;
-        }
-
-        .summary-header {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: #0D3C80;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid rgba(13, 60, 128, 0.1);
-        }
-
-        .summary-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding: 10px 0;
-        }
-
-        .summary-item-name {
-            font-weight: 600;
-            color: #333;
-        }
-
-        .summary-item-price {
-            font-weight: 700;
-            color: #0D3C80;
-            font-size: 1.1rem;
-        }
-
-        .summary-total {
-            border-top: 2px solid rgba(13, 60, 128, 0.1);
-            padding-top: 15px;
-            margin-top: 15px;
-        }
-
-        .total-amount {
-            font-size: 1.6rem;
-            font-weight: 800;
-            color: #0D3C80;
-        }
-
-        .payment-form {
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 8px 30px rgba(13, 60, 128, 0.1);
-        }
-
-        .form-section {
-            margin-bottom: 25px;
-        }
-
-        .form-section-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #0D3C80;
-            margin-bottom: 15px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid rgba(13, 60, 128, 0.1);
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 500;
-            color: #0D3C80;
-            font-size: 0.9rem;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.9);
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: #0D3C80;
-            box-shadow: 0 0 0 3px rgba(13, 60, 128, 0.1);
-            background: white;
-        }
-
-        .payment-methods {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .payment-method {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 15px;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: white;
-        }
-
-        .payment-method:hover {
-            border-color: #0D3C80;
-        }
-
-        .payment-method.selected {
-            border-color: #0D3C80;
-            background: rgba(13, 60, 128, 0.05);
-        }
-
-        .payment-method input[type="radio"] {
-            margin: 0;
-        }
-
-        .checkout-buttons {
-            display: flex;
-            gap: 15px;
-            margin-top: 30px;
-        }
-
-        .btn-back {
-            flex: 1;
-            padding: 15px 25px;
-            border: 2px solid #0D3C80;
-            border-radius: 12px;
-            background: transparent;
-            color: #0D3C80;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-back:hover {
-            background: #0D3C80;
-            color: white;
-        }
-
-        .btn-confirm {
-            flex: 2;
-            padding: 15px 25px;
-            border: none;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #0D3C80, #1a5bb8);
-            color: white;
-            font-weight: 700;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .btn-confirm:hover {
-            background: linear-gradient(135deg, #0A2F66, #164a9e);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(13, 60, 128, 0.3);
-        }
-
         /* Responsive adjustments */
         @@media (max-width: 767.98px) {
             main.container {
@@ -831,13 +284,6 @@
             .profile-main-card {
                 padding: 20px !important;
                 margin: 0 10px 20px 10px;
-            }
-
-            .pro-badge {
-                top: 15px;
-                right: 15px;
-                padding: 4px 12px;
-                font-size: 0.7rem;
             }
 
             .profile-card {
@@ -857,47 +303,11 @@
                 gap: 10px;
             }
 
-            .action-buttons .edit-btn,
-            .action-buttons .subscription-btn {
-                flex: 1;
-                min-width: auto;
-                margin: 0;
-            }
-
-            .modal-content-large {
-                margin: 10px;
-                width: 95%;
-            }
-
-            .modal-body-custom {
-                padding: 25px;
-            }
-
-            .plans-container {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-
-            .plan-card {
-                min-height: auto;
-            }
-
-            .modal-title-custom {
-                font-size: 1.6rem;
-            }
-
-            .checkout-content {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-
-            .checkout-buttons {
-                flex-direction: column;
-            }
+                .action-buttons .edit-btn {
+                    flex: 1;
+                    min-width: auto;
+                    margin: 0;
+                }
         }
 
         .purchased-list {
@@ -918,10 +328,10 @@
             transition: transform 0.2s ease;
         }
 
-        .purchased-item:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(13, 60, 128, 0.15);
-        }
+            .purchased-item:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 15px rgba(13, 60, 128, 0.15);
+            }
 
         .purchased-image {
             width: 50px;
@@ -1012,15 +422,92 @@
             color: #0D3C80;
             font-size: 0.9rem;
         }
+
+        /* PURCHASED BLUEPRINTS MODAL */
+        .subscription-modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+        }
+
+            .subscription-modal.show {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+        .modal-content-medium {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 0;
+            margin: 20px;
+            box-shadow: 0 20px 60px rgba(13, 60, 128, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-header-custom {
+            background: linear-gradient(135deg, #0D3C80, #1a5bb8);
+            color: white;
+            padding: 30px;
+            border-radius: 24px 24px 0 0;
+            text-align: center;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.8rem;
+            cursor: pointer;
+            padding: 0;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s ease;
+        }
+
+            .modal-close:hover {
+                background-color: rgba(255, 255, 255, 0.2);
+            }
+
+        .modal-title-custom {
+            font-size: 1.25rem !important;
+            font-weight: 700;
+        }
+
+        .modal-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+            margin-top: 10px;
+            font-weight: 400;
+        }
+
+        .modal-body-custom {
+            padding: 40px;
+        }
     </style>
 }
 
 <div class="profile-main-card">
-    @if (Model.IsPro)
-    {
-        <div class="pro-badge">PRO</div>
-    }
-
     @if (TempData["Success"] != null)
     {
         <div class="alert alert-success">@TempData["Success"]</div>
@@ -1035,10 +522,10 @@
     </div>
 
     <div class="profile-section">
-        <div class="profile-card @(Model.IsPro ? "pro-user" : "")">
+        <div class="profile-card">
             <div class="profile-info">
                 <div class="avatar-container">
-                    <div class="avatar @(Model.IsPro ? "pro-user" : "")" @* onclick="document.getElementById('profilePictureInput').click()" *@ >
+                    <div class="avatar">
                         @if (!string.IsNullOrEmpty(Model.ProfilePhoto))
                         {
                             <img src="@Url.Content(Model.ProfilePhoto)" alt="@Model.FullName">
@@ -1052,13 +539,7 @@
                     </div>
                 </div>
                 <div class="user-details">
-                    <div class="user-name-container">
-                        <h3 class="name">@Model.FullName</h3>
-                        @if (Model.IsPro)
-                        {
-                            <span class="pro-indicator">PRO</span>
-                        }
-                    </div>
+                    <h3 class="name">@Model.FullName</h3>
                     <div class="email">@Model.Email</div>
                     <div class="phone">@(Model.PhoneNumber ?? "No phone number")</div>
                     <div class="role-badge">@Model.Role</div>
@@ -1068,7 +549,7 @@
                     {
                         <div class="architect-credentials">
                             <div class="credentials-title">Professional Credentials</div>
-                            
+
                             @if (!string.IsNullOrEmpty(Model.LicenseNo))
                             {
                                 <div class="credential-item">
@@ -1113,8 +594,8 @@
                             {
                                 <div class="credential-item">
                                     <strong>Credentials File:</strong>
-                                    <a href="@Url.Content($"~/credentials/{Model.CredentialsFilePath}")" 
-                                       target="_blank" 
+                                    <a href="@Url.Content($"~/credentials/{Model.CredentialsFilePath}")"
+                                       target="_blank"
                                        class="credentials-file-link">
                                         <i class="fas fa-file-pdf"></i> @Model.CredentialsFilePath
                                     </a>
@@ -1149,15 +630,6 @@
                 <a asp-controller="Account" asp-action="EditProfile" class="edit-btn">
                     <i class="fas fa-edit"></i> Edit Profile
                 </a>
-                @if (Model.Role != "Client")
-                {
-                    <button class="subscription-btn @(Model.IsPro ? "subscription-card-pro" : "")"
-                        title="@(Model.Role == "Client" ? "Subscription is only available for architects" : "")"
-                        onclick="@(Model.Role == "Client" ? "return false;" : "openSubscriptionModal()")"
-                        @(Model.Role == "Client" ? "disabled" : "")>
-                        <i class="fas fa-crown"></i> Subscription
-                    </button>
-                }
                 @if (Model.Role == "Client")
                 {
                     <button class="edit-btn" onclick="openPurchasedBlueprintsModal()">
@@ -1172,85 +644,6 @@
     <form asp-action="UploadProfilePicture" method="post" enctype="multipart/form-data" style="display: none;">
         <input type="file" id="profilePictureInput" name="ProfilePicture" accept="image/*" onchange="uploadProfilePicture(this)" class="file-input" />
     </form>
-</div>
-
-<!-- SUBSCRIPTION MODAL -->
-<div id="subscriptionModal" class="subscription-modal">
-    <div class="modal-content-large">
-        <div class="modal-header-custom">
-            <button class="modal-close" onclick="closeSubscriptionModal()">&times;</button>
-            <h2 class="modal-title-custom" id="modalTitle">Choose Your Plan</h2>
-            <p class="modal-subtitle" id="modalSubtitle">Select the subscription that fits your needs</p>
-        </div>
-
-        <div class="modal-body-custom">
-            <div id="plansView" class="plans-container">
-
-                <!-- Free Plan -->
-                <div class="plan-card @(Model.IsPro ? "" : "current-plan")">
-                    @if (!Model.IsPro)
-                    {
-                        <div class="plan-badge current-badge">Current</div>
-                    }
-                    <div class="plan-header">
-                        <div class="plan-name">Free</div>
-                        <div class="plan-price">₱0</div>
-                        <div class="plan-billing">per month, no credit card required</div>
-                    </div>
-
-                    <div class="plan-features">
-                        <ul class="features-list">
-                            <li>Standard AI matching</li>
-                        </ul>
-                    </div>
-
-                    @if (!Model.IsPro)
-                    {
-                        <button class="plan-button current-btn">Current Plan</button>
-                    }
-                    else
-                    {
-                        <button class="plan-button" style="background: #dc3545; color: white, cursor: pointer;" onclick="confirmDowngrade()">Downgrade</button>
-                    }
-                </div>
-
-                <!-- Pro Plan -->
-                <div class="plan-card @(Model.IsPro ? "current-plan" : "pro-plan")">
-                    @if (Model.IsPro)
-                    {
-                        <div class="plan-badge current-badge">Current</div>
-                    }
-                    else
-                    {
-                        <div class="plan-badge recommended-badge">Recommended</div>
-                    }
-                    <div class="plan-header">
-                        <div class="plan-name">Pro</div>
-                        <div class="plan-price">₱180</div>
-                        <div class="plan-billing">per month, billed monthly</div>
-                    </div>
-
-                    <div class="plan-features">
-                        <ul class="features-list">
-                            <li>Priority AI matching — appear at the top of client searches and gain more visibility in project recommendations</li>
-                            <li>Access to premium analytics and insights</li>
-                            <li>Cancel anytime</li>
-                        </ul>
-                    </div>
-
-                    @if (Model.IsPro)
-                    {
-                        <button class="plan-button current-btn">Current Plan</button>
-                    }
-                    else
-                    {
-                        <!-- Updated button: Directly redirects to Stripe -->
-                        <button class="plan-button primary" onclick="upgradeToPro()">Get Started</button>
-                    }
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
 <!-- PURCHASED BLUEPRINTS MODAL -->
@@ -1342,27 +735,6 @@
             }
 
             input.form.submit();
-        }
-
-        // SUBSCRIPTION FLOW
-        function openSubscriptionModal() {
-            const modal = document.getElementById('subscriptionModal');
-            modal.classList.add('show');
-            document.body.style.overflow = 'hidden';
-            showPlansView();
-        }
-
-        function closeSubscriptionModal() {
-            const modal = document.getElementById('subscriptionModal');
-            modal.classList.remove('show');
-            document.body.style.overflow = 'auto';
-            showPlansView();
-        }
-
-        function showPlansView() {
-            document.getElementById('plansView').style.display = 'grid';
-            document.getElementById('modalTitle').textContent = 'Choose Your Plan';
-            document.getElementById('modalSubtitle').textContent = 'Select the subscription that fits your needs';
         }
 
         // PURCHASED BLUEPRINTS MODAL
@@ -1460,115 +832,8 @@
 
         // CLOSE MODAL EVENTS
         document.addEventListener('click', function (e) {
-            const modal = document.getElementById('subscriptionModal');
-            if (e.target === modal) {
-                closeSubscriptionModal();
-            }
-        });
-
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') {
-                closeSubscriptionModal();
-            }
-        });
-
-        // PURCHASED BLUEPRINTS MODAL
-        function openPurchasedBlueprintsModal() {
-            const modal = document.getElementById('purchasedBlueprintsModal');
-            modal.classList.add('show');
-            document.body.style.overflow = 'hidden';
-            loadPurchasedBlueprints();
-        }
-
-        function closePurchasedBlueprintsModal() {
-            const modal = document.getElementById('purchasedBlueprintsModal');
-            modal.classList.remove('show');
-            document.body.style.overflow = 'auto';
-        }
-
-        async function loadPurchasedBlueprints() {
-            try {
-                const response = await fetch('/ClientInterface/GetPurchasedBlueprints');
-                const blueprints = await response.json();
-
-                const container = document.getElementById('purchasedBlueprintsContainer');
-
-                if (blueprints.length === 0) {
-                    container.innerHTML = `
-                        <div class="text-center">
-                            <i class="fas fa-shopping-bag fa-3x text-muted"></i>
-                            <h4 class="mt-3">No Purchased Blueprints</h4>
-                            <p>You haven't purchased any blueprints yet.</p>
-                            <a href="/ClientInterface/BlueprintMarketplace" class="edit-btn">Browse Marketplace</a>
-                        </div>
-                    `;
-                    return;
-                }
-
-                let html = '<div class="purchased-list">';
-                blueprints.forEach(bp => {
-                    const imageUrl = bp.image ? `/images/${bp.image}` : '/images/default-blueprint.png';
-                    html += `
-                        <div class="purchased-item" onclick="openBlueprintDetailsModal(${bp.id})" style="cursor: pointer;">
-                            <img src="${imageUrl}" alt="${bp.name}" class="purchased-image">
-                            <div class="purchased-details">
-                                <h5>${bp.name}</h5>
-                                <p>Style: ${bp.style || 'N/A'}</p>
-                                <p class="purchased-price">₱${bp.price}</p>
-                            </div>
-                        </div>
-                    `;
-                });
-                html += '</div>';
-                container.innerHTML = html;
-            } catch (error) {
-                console.error('Error loading purchased blueprints:', error);
-                document.getElementById('purchasedBlueprintsContainer').innerHTML = `
-                    <div class="text-center">
-                        <i class="fas fa-exclamation-triangle fa-3x text-danger"></i>
-                        <h4 class="mt-3">Error Loading Blueprints</h4>
-                        <p>Please try again later.</p>
-                    </div>
-                `;
-            }
-        }
-
-        // BLUEPRINT DETAILS MODAL
-        async function openBlueprintDetailsModal(blueprintId) {
-            try {
-                const response = await fetch(`/ClientInterface/GetBlueprintDetails?id=${blueprintId}`);
-                const blueprint = await response.json();
-
-                const content = document.getElementById('blueprintDetailsContent');
-                const imageUrl = blueprint.image ? `/images/${blueprint.image}` : '/images/default-blueprint.png';
-
-                content.innerHTML = `
-                    <img src="${imageUrl}" alt="${blueprint.name}" class="blueprint-details-image">
-                    <h3 class="blueprint-details-title">${blueprint.name}</h3>
-                    <p class="blueprint-details-price">₱${blueprint.price}</p>
-                    <p class="blueprint-details-description">${blueprint.description || 'No description available.'}</p>
-                    <p class="blueprint-details-architect">Architect: ${blueprint.architectName || 'Unknown'}</p>
-                `;
-
-                const modal = document.getElementById('blueprintDetailsModal');
-                modal.classList.add('show');
-                document.body.style.overflow = 'hidden';
-            } catch (error) {
-                console.error('Error loading blueprint details:', error);
-                alert('Failed to load blueprint details.');
-            }
-        }
-
-        function closeBlueprintDetailsModal() {
-            const modal = document.getElementById('blueprintDetailsModal');
-            modal.classList.remove('show');
-            document.body.style.overflow = 'auto';
-        }
-
-        // CLOSE PURCHASED BLUEPRINTS MODAL EVENTS
-        document.addEventListener('click', function (e) {
-            const modal = document.getElementById('purchasedBlueprintsModal');
-            if (e.target === modal) {
+            const purchasedModal = document.getElementById('purchasedBlueprintsModal');
+            if (e.target === purchasedModal) {
                 closePurchasedBlueprintsModal();
             }
         });
@@ -1577,7 +842,6 @@
             if (e.key === 'Escape') {
                 closePurchasedBlueprintsModal();
                 closeBlueprintDetailsModal();
-                closeSubscriptionModal();
             }
         });
     </script>
