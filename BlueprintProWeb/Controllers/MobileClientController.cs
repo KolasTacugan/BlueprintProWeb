@@ -581,8 +581,7 @@ namespace BlueprintProWeb.Controllers
             }
         }
 
-
-
+        [HttpPost("ExplainMatch")]
         public async Task<IActionResult> ExplainMatch([FromBody] ExplainMatchRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.ArchitectId) || string.IsNullOrWhiteSpace(request.Query))
