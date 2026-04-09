@@ -83,18 +83,21 @@
             color: #1a202c;
             margin-bottom: 1.5rem;
             padding-top: 0;
+            padding-bottom: 1.25rem;
+            border-bottom: 1px solid #e8edf5;
         }
 
         .greeting-text {
-            font-weight: 600;
+            font-weight: 700;
             font-size: 1.75rem;
+            letter-spacing: -0.3px;
         }
 
         .greeting-subtitle {
-            font-size: 1rem;
+            font-size: 0.9rem;
             font-weight: 400;
-            color: #718096; /* Lighter gray for subtitle */
-            margin-top: 0.5rem;
+            color: #94a3b8;
+            margin-top: 0.3rem;
         }
 
         .dashboard-greeting .text-primary {
@@ -110,36 +113,41 @@
 
         .stat-card {
             background: #FFFFFF;
-            border-radius: 12px; /* Slightly smaller radius */
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(7, 23, 68, 0.07);
+            border: 1px solid #eef2f7;
+            border-top: 3px solid #344EAD;
             flex: 1;
-            padding: 1.5rem 1.25rem; /* Reduced padding for tighter look */
+            padding: 1.4rem 1.25rem;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
             justify-content: center;
-            min-height: 100px; /* Reduced height */
+            min-height: 100px;
             transition: all 0.2s ease;
         }
 
         .stat-card:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 6px 20px rgba(52, 78, 173, 0.12);
             transform: translateY(-2px);
+            border-top-color: #2563EB;
         }
 
         .stat-card .stat-value {
             color: #344EAD;
-            font-size: 2.25rem; /* Slightly smaller */
+            font-size: 2.25rem;
             font-weight: 700;
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.2rem;
             line-height: 1;
+            letter-spacing: -0.5px;
         }
 
         .stat-card .stat-label {
-            color: #1a202c; /* Much darker text */
-            font-size: 0.9rem; /* Slightly smaller */
+            color: #64748b;
+            font-size: 0.8rem;
             font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         /* Second row - matches and blueprint card side by side with gap */
@@ -153,9 +161,9 @@
         .dashboard-matches {
             background: #FFFFFF;
             border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            border: none;
-            padding: 1.25rem; /* Reduced padding */
+            box-shadow: 0 2px 12px rgba(7, 23, 68, 0.07);
+            border: 1px solid #eef2f7;
+            padding: 1.25rem;
             flex: 2 1 0;
             display: flex;
             flex-direction: column;
@@ -165,16 +173,19 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 1.25rem; /* Reduced spacing */
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #f0f4f8;
         }
 
         .matches-title {
             display: flex;
             align-items: center;
-            gap: 0.6rem; /* Slightly tighter */
-            color: #1a202c; /* Much darker text */
-            font-weight: 600;
-            font-size: 1rem; /* Slightly smaller */
+            gap: 0.6rem;
+            color: #1a202c;
+            font-weight: 700;
+            font-size: 0.95rem;
+            letter-spacing: -0.1px;
         }
 
         .matches-icon {
@@ -212,22 +223,29 @@
             text-decoration: none;
         }
 
+        .table-responsive {
+            max-height: 200px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
         .matches-table {
             width: 100%;
             background: #F1F7F9;
             border-radius: 10px;
             overflow: hidden;
-            flex: 1;
         }
 
         .matches-table th {
-            background: #F1F7F9;
-            color: #1a202c; /* Much darker text */
-            font-weight: 600;
-            font-size: 0.8rem; /* Smaller text */
+            background: #f8fafc;
+            color: #64748b;
+            font-weight: 700;
+            font-size: 0.72rem;
             border: none;
-            padding: 0.75rem 1rem; /* Reduced padding */
+            padding: 0.7rem 1rem;
             text-align: left;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         /* Adjust column widths for better layout */
@@ -249,11 +267,20 @@
         }
 
         .matches-table td {
-            background: #F1F7F9;
-            color: #2d3748; /* Darker text */
-            font-size: 0.8rem; /* Smaller text */
+            background: #f8fafc;
+            color: #374151;
+            font-size: 0.8rem;
             border: none;
-            padding: 0.75rem 1rem; /* Reduced padding */
+            padding: 0.75rem 1rem;
+            transition: background 0.15s ease;
+        }
+
+        .matches-table tbody tr:hover td {
+            background: rgba(52, 78, 173, 0.04);
+        }
+
+        .matches-table tbody tr {
+            border-bottom: 1px solid rgba(240, 244, 248, 0.8);
         }
 
         /* Clickable architect name styling */
@@ -275,14 +302,13 @@
         .dashboard-blueprints {
             background: #FFFFFF;
             border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            border: none;
-            /* Match the exact width of one stat card - calculated as (100% - 2 gaps) / 3 */
-            width: calc((100% - 2.5rem) / 3); /* 2.5rem = 2 * 1.25rem gaps */
+            box-shadow: 0 2px 12px rgba(7, 23, 68, 0.07);
+            border: 1px solid #eef2f7;
+            width: calc((100% - 2.5rem) / 3);
             min-width: calc((100% - 2.5rem) / 3);
             max-width: calc((100% - 2.5rem) / 3);
-            flex: none; /* Remove flex grow/shrink to maintain exact width */
-            padding: 1.25rem; /* Reduced padding */
+            flex: none;
+            padding: 1.25rem;
             display: flex;
             flex-direction: column;
         }
@@ -291,16 +317,19 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 1.25rem; /* Reduced spacing */
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #f0f4f8;
         }
 
         .blueprint-title {
             display: flex;
             align-items: center;
-            gap: 0.6rem; /* Slightly tighter */
-            color: #1a202c; /* Much darker text */
-            font-weight: 600;
-            font-size: 1rem; /* Slightly smaller */
+            gap: 0.6rem;
+            color: #1a202c;
+            font-weight: 700;
+            font-size: 0.95rem;
+            letter-spacing: -0.1px;
         }
 
         .blueprint-icon {
@@ -348,6 +377,8 @@
             display: flex;
             flex-direction: column;
             gap: 0.5rem; /* Tighter spacing */
+            max-height: 180px;
+            overflow-y: auto;
         }
 
         .blueprint-item {
@@ -414,7 +445,8 @@
         .dashboard-overview {
             background: #ffffff;
             border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 12px rgba(7, 23, 68, 0.07);
+            border: 1px solid #eef2f7;
             padding: 1.5rem;
             margin-bottom: 1.5rem;
         }
@@ -423,10 +455,13 @@
             display: flex;
             align-items: center;
             gap: 0.6rem;
-            font-weight: 600;
-            font-size: 1rem;
+            font-weight: 700;
+            font-size: 0.95rem;
             color: #1a202c;
+            letter-spacing: -0.1px;
             margin-bottom: 1.25rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #f0f4f8;
         }
 
         .overview-icon {
@@ -491,6 +526,54 @@
                 background: #E0E7FF;
                 color: #2563EB;
             }
+
+        /* Thin styled scrollbars for detail cards */
+        .table-responsive::-webkit-scrollbar,
+        .blueprint-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .table-responsive::-webkit-scrollbar-track,
+        .blueprint-list::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb,
+        .blueprint-list::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb:hover,
+        .blueprint-list::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Empty state styling */
+        .matches-table td.text-center.text-muted {
+            padding: 2.5rem 1rem;
+            color: #94a3b8 !important;
+            font-size: 0.85rem;
+        }
+
+        .dashboard-overview .text-center.text-muted {
+            padding: 2rem 1rem;
+        }
+
+        .dashboard-overview .text-center.text-muted p {
+            color: #94a3b8;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Icon container consistency */
+        .matches-icon,
+        .blueprint-icon,
+        .overview-icon {
+            background: rgba(52, 78, 173, 0.08) !important;
+            color: #344EAD !important;
+        }
 
     </style>
 }
