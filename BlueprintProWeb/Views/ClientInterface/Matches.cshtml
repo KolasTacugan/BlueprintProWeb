@@ -244,6 +244,17 @@
             min-width: 2rem;
         }
 
+        .match-pct-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.2rem 0.6rem;
+            border-radius: 999px;
+            letter-spacing: 0.02em;
+        }
+
         .alert-warning {
             background: linear-gradient(135deg, rgba(251,191,36,0.1) 0%, rgba(245,158,11,0.05) 100%);
             border: 1px solid rgba(251,191,36,0.2);
@@ -762,6 +773,127 @@
                 background: #94A3B8;
             }
 
+        /* ── Clarification Card ─────────────────────────────────── */
+        .clarification-card {
+            max-width: 92% !important;
+            padding: 1rem 1.25rem !important;
+        }
+
+        .clarify-question {
+            margin-bottom: 0.85rem;
+        }
+
+        .clarify-question-text {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.4rem;
+        }
+
+        .clarify-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+        }
+
+        .clarify-option-btn {
+            background: #F1F5F9;
+            border: 1.5px solid #E2E8F0;
+            border-radius: 20px;
+            padding: 0.3rem 0.8rem;
+            font-size: 0.78rem;
+            font-family: 'Raleway', sans-serif;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-weight: 500;
+        }
+
+        .clarify-option-btn:hover {
+            border-color: #344EAD;
+            color: #344EAD;
+            background: #EEF2FF;
+        }
+
+        .clarify-option-btn.selected {
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            border-color: transparent;
+            color: white;
+        }
+
+        .clarify-submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 0.6rem 1rem;
+            font-size: 0.85rem;
+            font-family: 'Raleway', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 0.5rem;
+            box-shadow: 0 2px 8px rgba(52,78,173,0.2);
+        }
+
+        .clarify-submit-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(52,78,173,0.3);
+        }
+
+        .clarify-question-footer {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            margin-top: 0.45rem;
+        }
+
+        .clarify-text-input {
+            flex: 1;
+            border: 1.5px solid #E2E8F0;
+            border-radius: 8px;
+            padding: 0.28rem 0.65rem;
+            font-size: 0.78rem;
+            font-family: 'Raleway', sans-serif;
+            color: #374151;
+            background: #F8FAFD;
+            outline: none;
+            transition: border-color 0.15s ease;
+            min-width: 0;
+        }
+
+        .clarify-text-input:focus {
+            border-color: #344EAD;
+            background: #fff;
+        }
+
+        .clarify-skip-btn {
+            background: transparent;
+            border: 1.5px solid #E2E8F0;
+            border-radius: 20px;
+            padding: 0.25rem 0.7rem;
+            font-size: 0.72rem;
+            font-family: 'Raleway', sans-serif;
+            color: #94A3B8;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .clarify-skip-btn:hover {
+            border-color: #94A3B8;
+            color: #475569;
+        }
+
+        .clarify-skip-btn.active {
+            background: #F1F5F9;
+            border-color: #94A3B8;
+            color: #64748B;
+            text-decoration: line-through;
+        }
+
         @@media (max-width: 768px) {
             main.container {
                 margin-left: 0 !important;
@@ -841,7 +973,10 @@
                                                         @match.ArchitectName
                                                     </a>
                                                 </h6>
-                                                <div class="rating-wrapper mt-2" style="max-width:140px;">
+                                                <div class="d-flex align-items-center gap-2 mt-1 mb-1">
+                                                    <span class="match-pct-badge">@match.SimilarityPercentage% Match</span>
+                                                </div>
+                                                <div class="rating-wrapper mt-1" style="max-width:140px;">
                                                     <div class="rating-bar">
                                                         <div class="rating-fill" style="width:@(match.AverageRating * 20)%;"></div>
                                                     </div>
@@ -897,6 +1032,29 @@
                         👋 Hi! Tell me what kind of architect you're looking for and I'll find the best matches for you.
                     </div>
                 </div>
+                @if (ViewBag.NeedsClarification == true)
+                {
+                    <div class="message-container own">
+                        <div class="message-bubble own">@ViewBag.OriginalQuery</div>
+                        <div class="message-avatar user-avatar">You</div>
+                    </div>
+                    <script>
+                        window.__clarificationData = {
+                            questions: @Html.Raw((string)ViewBag.ClarifyingQuestionsJson),
+                            originalQuery: @Html.Raw(System.Text.Json.JsonSerializer.Serialize((string)ViewBag.OriginalQuery))
+                        };
+                    </script>
+                }
+                @if (ViewBag.ShowConversationHistory == true)
+                {
+                    <script>
+                        window.__conversationHistory = {
+                            originalQuery: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.OriginalQuery != null ? (string)ViewBag.OriginalQuery : "")),
+                            clarifications: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Clarifications != null ? (string)ViewBag.Clarifications : "")),
+                            resultCount: @(ViewBag.ResultCount != null ? (int)ViewBag.ResultCount : 0)
+                        };
+                    </script>
+                }
             </div>
 
             <!-- Input -->
@@ -1017,7 +1175,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         // ── State ────────────────────────────────────────────────────────
-        let lastQuery = ""; // persists the last search prompt for ExplainMatch
+        let lastQuery = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.SubmittedQuery != null ? (string)ViewBag.SubmittedQuery : ""));
 
         // ── DOM refs ─────────────────────────────────────────────────────
         const chatWindow       = document.getElementById('chatWindow');
@@ -1060,6 +1218,25 @@
 
             // Attach modal listeners to server-rendered cards
             attachArchitectLinkListeners();
+
+            // Render server-side clarification questions if present (non-AJAX path)
+            if (window.__clarificationData) {
+                renderClarificationCard(window.__clarificationData.questions, window.__clarificationData.originalQuery);
+            }
+
+            // Reconstruct full conversation after a clarification form POST
+            if (window.__conversationHistory) {
+                const ch = window.__conversationHistory;
+                if (ch.originalQuery) appendUserMessage(ch.originalQuery);
+                appendSystemMessage('I had a few quick questions to better understand your needs.');
+                if (ch.clarifications) appendUserMessage(ch.clarifications);
+                if (ch.resultCount > 0) {
+                    appendSystemMessage(`✅ Found <strong>${ch.resultCount}</strong> architect${ch.resultCount !== 1 ? 's' : ''} matching your request.`);
+                } else {
+                    appendSystemMessage('😕 No close matches found. Try adding more detail to your description.');
+                }
+                chatWindow.scrollTop = chatWindow.scrollHeight;
+            }
 
             // Debug: log initial model scores
             const matches = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
@@ -1111,6 +1288,109 @@
             return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
         }
 
+        // ── Clarification card ───────────────────────────────────────────
+        function renderClarificationCard(questions, originalQuery) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'message-container';
+            wrapper.id = 'clarificationCard';
+
+            let questionsHtml = '';
+            questions.forEach((q, qIdx) => {
+                const optionsHtml = q.options.map((opt, oIdx) =>
+                    `<button type="button" class="clarify-option-btn" data-q="${qIdx}" data-o="${oIdx}">${escapeHtml(opt)}</button>`
+                ).join('');
+                questionsHtml += `
+                    <div class="clarify-question" data-q="${qIdx}">
+                        <div class="clarify-question-text">${escapeHtml(q.question)}</div>
+                        <div class="clarify-options">${optionsHtml}</div>
+                        <div class="clarify-question-footer">
+                            <input type="text" class="clarify-text-input" data-q="${qIdx}"
+                                   placeholder="Or type your own answer…" autocomplete="off" />
+                            <button type="button" class="clarify-skip-btn" data-q="${qIdx}">Skip</button>
+                        </div>
+                    </div>`;
+            });
+
+            wrapper.innerHTML = `
+                <div class="message-avatar">AI</div>
+                <div class="message-bubble other clarification-card">
+                    <div style="font-size:0.85rem;font-weight:600;margin-bottom:0.75rem;color:#344EAD;">
+                        I need a bit more detail to find the best match. Answer what you can — skip anything that doesn't apply.
+                    </div>
+                    ${questionsHtml}
+                    <form method="post" action="/ClientInterface/Matches" id="clarificationForm" style="margin-top:0.75rem;">
+                        <input type="hidden" name="__RequestVerificationToken" id="clarifyToken" />
+                        <input type="hidden" name="query" value="${escapeHtml(originalQuery)}" />
+                        <input type="hidden" name="clarifications" id="clarificationsValue" />
+                        <button type="submit" class="clarify-submit-btn">Find My Architect &rarr;</button>
+                    </form>
+                </div>`;
+
+            chatWindow.appendChild(wrapper);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+
+            // Option button selection — clears text + skip for that question
+            wrapper.querySelectorAll('.clarify-option-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const qIdx = parseInt(this.dataset.q);
+                    wrapper.querySelectorAll(`.clarify-option-btn[data-q="${qIdx}"]`).forEach(b => b.classList.remove('selected'));
+                    this.classList.add('selected');
+                    const textInput = wrapper.querySelector(`.clarify-text-input[data-q="${qIdx}"]`);
+                    const skipBtn   = wrapper.querySelector(`.clarify-skip-btn[data-q="${qIdx}"]`);
+                    if (textInput) textInput.value = '';
+                    if (skipBtn)   skipBtn.classList.remove('active');
+                });
+            });
+
+            // Typed answer takes priority — deselects buttons and clears skip
+            wrapper.querySelectorAll('.clarify-text-input').forEach(input => {
+                input.addEventListener('input', function () {
+                    const qIdx = parseInt(this.dataset.q);
+                    if (this.value.trim()) {
+                        wrapper.querySelectorAll(`.clarify-option-btn[data-q="${qIdx}"]`).forEach(b => b.classList.remove('selected'));
+                        wrapper.querySelector(`.clarify-skip-btn[data-q="${qIdx}"]`)?.classList.remove('active');
+                    }
+                });
+            });
+
+            // Skip button toggles — clears selection and text for that question
+            wrapper.querySelectorAll('.clarify-skip-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const qIdx = parseInt(this.dataset.q);
+                    this.classList.toggle('active');
+                    if (this.classList.contains('active')) {
+                        wrapper.querySelectorAll(`.clarify-option-btn[data-q="${qIdx}"]`).forEach(b => b.classList.remove('selected'));
+                        const textInput = wrapper.querySelector(`.clarify-text-input[data-q="${qIdx}"]`);
+                        if (textInput) textInput.value = '';
+                    }
+                });
+            });
+
+            // Compose clarifications at submit time — text > button > nothing (skipped/unanswered excluded)
+            wrapper.querySelector('#clarificationForm').addEventListener('submit', function () {
+                const parts = [];
+                questions.forEach((q, i) => {
+                    const skipBtn = wrapper.querySelector(`.clarify-skip-btn[data-q="${i}"]`);
+                    if (skipBtn && skipBtn.classList.contains('active')) return;
+
+                    const textInput  = wrapper.querySelector(`.clarify-text-input[data-q="${i}"]`);
+                    const typedVal   = textInput ? textInput.value.trim() : '';
+                    const selectedBtn = wrapper.querySelector(`.clarify-option-btn[data-q="${i}"].selected`);
+                    const btnVal     = selectedBtn ? q.options[parseInt(selectedBtn.dataset.o)] : '';
+                    const finalVal   = typedVal || btnVal;
+
+                    if (finalVal) {
+                        const label = q.question.replace(/\?$/, '');
+                        parts.push(`${label}: ${finalVal}`);
+                    }
+                });
+
+                document.getElementById('clarificationsValue').value = parts.join('. ');
+                const tokenInput = document.querySelector('#tokenForm input[name="__RequestVerificationToken"]');
+                if (tokenInput) document.getElementById('clarifyToken').value = tokenInput.value;
+            });
+        }
+
         // ── Render cards ─────────────────────────────────────────────────
         function renderArchitects(matches) {
             resultsContainer.innerHTML = "";
@@ -1155,12 +1435,14 @@
                                             ${m.architectName || "Unnamed Architect"}
                                         </a>
                                     </h6>
-                                    <div class="rating-wrapper mt-2 d-flex align-items-center gap-2">
+                                    <div class="d-flex align-items-center gap-2 mt-1 mb-1">
+                                        <span class="match-pct-badge">${m.similarityPercentage}% Match</span>
+                                    </div>
+                                    <div class="rating-wrapper mt-1 d-flex align-items-center gap-2">
                                         <div class="rating-bar">
                                             <div class="rating-fill" style="width:${m.averageRating * 20}%;"></div>
                                         </div>
                                         <span class="rating-text">${m.averageRating.toFixed(1)}</span>
-                                        <span class="badge bg-primary">${m.similarityPercentage}%</span>
                                     </div>
                                     <small class="text-muted">
                                         (${m.ratingCount} ${m.ratingCount === 1 ? 'rating' : 'ratings'})
@@ -1301,6 +1583,11 @@
                 if (data.outOfScope) {
                     appendSystemMessage("⚠️ That doesn't seem architecture-related. Try describing a building, design style, or project type.");
                     renderArchitects([]);
+                    return;
+                }
+
+                if (data.needsClarification && data.questions && data.questions.length > 0) {
+                    renderClarificationCard(data.questions, data.originalQuery);
                     return;
                 }
 

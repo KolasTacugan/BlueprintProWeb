@@ -460,12 +460,13 @@ namespace BlueprintProWeb.Controllers
         [HttpGet("Matches")]
         [AllowAnonymous]
         public async Task<IActionResult> GetMatches(
-    [FromQuery] string? clientId,
-    [FromQuery] string? query)
+            [FromQuery] string? clientId,
+            [FromQuery] string? query,
+            [FromQuery] string? clarifications)
         {
             try
             {
-                // 1. No query → return empty early, nothing to match against
+                // 1. No query → return empty early
                 if (string.IsNullOrWhiteSpace(query))
                 {
                     return Ok(new
@@ -473,17 +474,18 @@ namespace BlueprintProWeb.Controllers
                         matches = new List<object>(),
                         totalArchitects = 0,
                         outOfScope = false,
-                        showFeedback = true
+                        showFeedback = true,
+                        needsClarification = false
                     });
                 }
 
-                var chatClient = _openAi.GetChatClient("gpt-4o-mini"); // fixed: was gpt-5-mini
+                var chatClient = _openAi.GetChatClient("gpt-4o-mini");
 
                 // 2. Scope check
                 var scopeMessages = new List<ChatMessage>
-        {
-            new SystemChatMessage(
-                @"You are classifying client messages for an architecture matching system.
+                {
+                    new SystemChatMessage(
+                        @"You are classifying client messages for an architecture matching system.
                 Classify the message into ONE of the following categories:
                 - ARCHITECTURE_RELATED
                 - NOT_ARCHITECTURE_RELATED
@@ -491,36 +493,107 @@ namespace BlueprintProWeb.Controllers
                 - Vague architectural requests are still ARCHITECTURE_RELATED
                 - Missing details does NOT make it out of scope
                 Respond ONLY with the category."),
-            new UserChatMessage(query)
-        };
+                    new UserChatMessage(query)
+                };
 
                 var scopeResult = await chatClient.CompleteChatAsync(scopeMessages);
                 bool outOfScope = !scopeResult.Value.Content[0].Text
                     .Trim()
                     .Equals("ARCHITECTURE_RELATED", StringComparison.OrdinalIgnoreCase);
 
-                // 3. Expand the raw prompt — no profile fallback, no lacksDetails
-                var expandMessages = new List<ChatMessage>
-        {
-            new SystemChatMessage(
-                "You rewrite client needs into a clear architectural request. " +
-                "Focus only on what the client described — their project type, " +
-                "design intent, and any specific requirements. " +
-                "Do not invent or assume budget, location, or style if not mentioned."),
-            new UserChatMessage(
-                $"Client request: {query}\n\n" +
-                "Expand into 2–3 descriptive sentences useful for matching against architect credentials.")
-        };
+                // 3. Clarification check — only if in scope and no clarifications already provided
+                if (!outOfScope && string.IsNullOrWhiteSpace(clarifications))
+                {
+                    var clarityMessages = new List<ChatMessage>
+                    {
+                        new SystemChatMessage(
+                            @"You evaluate whether an architecture client's query needs clarifying questions before architect matching.
+First, identify every architectural detail already mentioned in the query — style, building type, features, intended use, scale, structural elements, aesthetics, or construction intent.
+A query is SUFFICIENT if it provides enough context to identify a clear architectural direction. It does not need to cover every dimension — if the client has already stated 2 or more specific architectural details, lean toward SUFFICIENT.
+A query is NEEDS_CLARIFICATION only if it is genuinely vague or missing critical architectural context that would meaningfully affect matching.
+Respond ONLY with: SUFFICIENT or NEEDS_CLARIFICATION"),
+                        new UserChatMessage(query)
+                    };
 
-                var expandResponse = await chatClient.CompleteChatAsync(expandMessages);
-                string expansion = expandResponse.Value.Content[0].Text;
-                string finalQuery = $"{query}. {expansion}";
+                    var clarityResult = await chatClient.CompleteChatAsync(clarityMessages);
+                    bool needsClarification = clarityResult.Value.Content[0].Text
+                        .Trim()
+                        .Equals("NEEDS_CLARIFICATION", StringComparison.OrdinalIgnoreCase);
 
-                // 4. Generate embedding
+                    if (needsClarification)
+                    {
+                        var questionMessages = new List<ChatMessage>
+                        {
+                            new SystemChatMessage(
+                                @"You generate architecture-specific clarifying questions to help match clients with architects.
+
+Step 1 — Read the client's query carefully and determine which of these FIVE architectural dimensions are already stated (explicitly or implicitly):
+  1. Design style (e.g. modern, minimalist, brutalist, tropical, classical, industrial)
+  2. Building type (e.g. house, office, school, apartment, clinic, retail, warehouse)
+  3. Spatial or structural features (e.g. open plan, high ceilings, passive ventilation, mezzanine, courtyard)
+  4. Intended use or purpose (e.g. family home, co-working space, community center, worship space)
+  5. Scale or size (e.g. small, large, compact, multi-storey, single-storey, 200 sqm)
+
+Step 2 — Identify only the dimensions that are completely absent from the query. A dimension is present even if mentioned briefly or loosely — do not ask about it.
+
+Step 3 — Generate questions using these rules:
+  - If 1 dimension is missing: generate exactly 1 question
+  - If 2 dimensions are missing: generate exactly 2 questions
+  - If 3 or more dimensions are missing: generate exactly 3 questions (maximum)
+  - If 0 dimensions are missing or the query is detailed enough: respond with exactly the word SUFFICIENT and nothing else
+
+Each question must:
+  - Be about one of the five dimensions listed above that is absent from the query
+  - Feel like a natural, specific follow-up to the client's exact words — not a generic checklist item
+  - Have exactly 3 to 4 short option labels drawn from real architectural concepts relevant to what the client described
+
+NEVER ask about: budget, cost, price, timeline, schedule, deadlines, location, city, country, or anything non-architectural.
+NEVER generate a question for a dimension already present in the query.
+
+Respond ONLY with valid JSON (no markdown, no extra text) or the single word SUFFICIENT. JSON format:
+[{""question"":""..."",""options"":[""..."",""..."",""...""]},...]"),
+                            new UserChatMessage(query)
+                        };
+
+                        var questionResult = await chatClient.CompleteChatAsync(questionMessages);
+                        string rawJson = questionResult.Value.Content[0].Text.Trim();
+
+                        int jsonStart = rawJson.IndexOf('[');
+                        int jsonEnd = rawJson.LastIndexOf(']');
+                        if (jsonStart >= 0 && jsonEnd > jsonStart)
+                            rawJson = rawJson.Substring(jsonStart, jsonEnd - jsonStart + 1);
+
+                        List<MobileClarifyingQuestion>? questions = null;
+                        try
+                        {
+                            questions = System.Text.Json.JsonSerializer.Deserialize<List<MobileClarifyingQuestion>>(
+                                rawJson,
+                                new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                        }
+                        catch { /* fall through to matching on parse failure */ }
+
+                        if (questions != null && questions.Count > 0)
+                        {
+                            return Ok(new
+                            {
+                                needsClarification = true,
+                                originalQuery = query,
+                                questions
+                            });
+                        }
+                    }
+                }
+
+                // 4. Compose final query — append clarifications if provided
+                string finalQuery = string.IsNullOrWhiteSpace(clarifications)
+                    ? query
+                    : $"{query}. {clarifications}";
+
+                // 5. Generate embedding
                 var embeddingResponse = await _embeddingClient.GenerateEmbeddingAsync(finalQuery);
                 var queryVector = embeddingResponse.Value.ToFloats().ToArray();
 
-                // 5. Fetch architects (async — was sync .ToListAsync() missing before)
+                // 6. Fetch architects
                 var architects = await context.Users
                     .Where(u => u.user_role == "Architect" && !string.IsNullOrEmpty(u.PortfolioEmbedding))
                     .AsNoTracking()
@@ -528,7 +601,7 @@ namespace BlueprintProWeb.Controllers
 
                 int totalArchitects = architects.Count;
 
-                // 6. Score purely on cosine similarity — no Pro boost
+                // 7. Score on cosine similarity
                 var ranked = architects
                     .Select(a =>
                     {
@@ -549,7 +622,7 @@ namespace BlueprintProWeb.Controllers
                             ArchitectStyle = a.user_Style,
                             ArchitectLocation = a.user_Location,
                             ArchitectBudget = a.user_Budget,
-                            MatchStatus = "AI + Portfolio Match", // Pro label removed
+                            MatchStatus = "AI + Portfolio Match",
                             RealMatchStatus = string.IsNullOrEmpty(clientId)
                                 ? null
                                 : context.Matches
@@ -571,8 +644,8 @@ namespace BlueprintProWeb.Controllers
                     matches = ranked,
                     totalArchitects = totalArchitects,
                     outOfScope,
-                    showFeedback = ranked.Count == 0
-                    // lacksDetails removed
+                    showFeedback = ranked.Count == 0,
+                    needsClarification = false
                 });
             }
             catch (Exception ex)
@@ -1131,6 +1204,12 @@ namespace BlueprintProWeb.Controllers
                 location = architect.user_Location,
                 credentialsFile = credentialsPath
             });
+        }
+
+        public class MobileClarifyingQuestion
+        {
+            public string Question { get; set; } = "";
+            public List<string> Options { get; set; } = new();
         }
 
         public class MatchDto
