@@ -66,10 +66,11 @@
         .sidebar-header {
             position: relative;
             display: flex;
-            padding: 25px 20px;
+            padding: 20px 20px 18px;
             align-items: center;
             justify-content: flex-start;
             gap: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .sidebar-header .header-logo {
@@ -170,17 +171,30 @@
         .sidebar-nav .nav-link {
             display: flex;
             align-items: center;
-            color: #fff;
+            color: rgba(255, 255, 255, 0.8);
             text-decoration: none;
             gap: 12px;
-            padding: 12px 15px;
+            padding: 11px 15px;
             border-radius: 8px;
-            transition: 0.4s ease;
+            transition: all 0.25s ease;
+            font-size: 0.875rem;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+            border-left: 3px solid transparent;
         }
 
         .sidebar-nav .nav-link:hover {
-            background: #fff;
-            color: #071744;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            border-left-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .sidebar-nav .nav-link.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            font-weight: 600;
+            border-left-color: #6B8FE3;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
         }
 
         .sidebar-nav .nav-link .nav-label {
@@ -211,7 +225,9 @@
             /* keeps items to the right */
             align-items: center;
             /* vertical centering */
-            border-radius: 8px;
+            border-radius: 12px;
+            box-shadow: 0 2px 16px rgba(7, 23, 68, 0.08);
+            border: 1px solid rgba(226, 232, 240, 0.8);
         }
 
         .navbar-div {
@@ -236,15 +252,21 @@
         .top-nav-item a {
             display: flex;
             align-items: center;
-            /* centers icon + text */
             justify-content: center;
-            color: #071744;
-            margin-right: 25px;
+            color: #4a5568;
+            margin-right: 20px;
             text-decoration: none;
             height: 100%;
-            /* match navbar height */
             gap: 6px;
-            /* spacing between icon and text */
+            transition: color 0.2s ease;
+        }
+
+        .top-nav-item a:hover {
+            color: #344EAD;
+        }
+
+        .top-nav-item:last-child a {
+            margin-right: 8px;
         }
 
         .logout-form {
@@ -459,6 +481,17 @@
                     sidebar.classList.toggle("collapsed");
                 });
             }
+
+            /* ----------------------------------------------------
+                ACTIVE NAV ITEM
+            ---------------------------------------------------- */
+            const currentPath = window.location.pathname.toLowerCase();
+            document.querySelectorAll('.sidebar-nav .nav-link').forEach(link => {
+                const href = link.getAttribute('href');
+                if (href && currentPath === href.toLowerCase()) {
+                    link.classList.add('active');
+                }
+            });
 
 
             /* ----------------------------------------------------

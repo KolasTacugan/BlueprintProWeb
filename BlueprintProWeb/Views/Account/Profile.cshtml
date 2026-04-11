@@ -1,4 +1,4 @@
-﻿@model BlueprintProWeb.ViewModels.ProfileViewModel
+@model BlueprintProWeb.ViewModels.ProfileViewModel
 @{
     Layout = ViewData["Layout"]?.ToString();
     ViewData["Title"] = "Profile";
@@ -6,424 +6,322 @@
 
 @section Styles {
     <style>
-        @@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800&display=swap');
-
-        /* Override shared layout background for profile page */
         body::before {
             background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
             opacity: 0.1 !important;
         }
 
-        /* Ensure scrollable page */
         body {
             overflow-y: auto !important;
             height: auto !important;
             font-family: 'Raleway', sans-serif;
-            margin: 0;
-            min-height: 100vh;
+            background: #F1F7F9 !important;
         }
 
-        /* Main content positioning that responds to sidebar state */
         main.container {
             margin-left: 300px;
-            padding-top: 90px;
-            padding: 2rem;
-            max-width: calc(100% - 420px);
+            padding-top: 5rem;
+            padding-left: 2rem;
+            padding-right: 2rem;
+            padding-bottom: 2rem;
+            max-width: calc(100% - 320px);
             transition: margin-left 0.4s ease, max-width 0.4s ease;
         }
 
-        /* When sidebar is collapsed, adjust main content */
         .sidebar.collapsed ~ * main.container,
         body:has(.sidebar.collapsed) main.container {
             margin-left: 110px;
             max-width: calc(100% - 130px);
         }
 
-        .profile-main-card {
-            background: rgba(255, 255, 255, 0.4);
-            backdrop-filter: blur(12px);
-            border-radius: 24px;
-            padding: 40px;
-            margin: 0 0 40px 0;
-            box-shadow: 0 12px 40px rgba(13, 60, 128, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            position: relative;
-        }
-
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-            .page-header h2 {
-                color: #0D3C80;
-                font-weight: 700;
-            }
-
-        .profile-section {
-            margin-bottom: 30px;
-        }
-
-        .profile-card {
-            background: rgba(255, 255, 255, 0.85);
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0px 8px 25px rgba(13, 60, 128, 0.12);
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            position: relative;
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            transition: all 0.3s ease;
-        }
-
-            .profile-card:hover {
-                box-shadow: 0px 12px 35px rgba(13, 60, 128, 0.18);
-                transform: translateY(-2px);
-            }
-
-        .avatar-container {
-            position: relative;
-            width: 80px;
-            height: 80px;
-        }
-
-        .avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            overflow: hidden;
-            border: 3px solid #EBF1FD;
-            background: #f8f9fa;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-            .avatar:hover {
-                border-color: #0D3C80;
-                transform: scale(1.05);
-            }
-
-            .avatar img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-            }
-
-        .avatar-placeholder {
-            color: #0D3C80;
-            font-size: 28px;
-            font-weight: 700;
-        }
-
-        .profile-info {
-            display: flex;
-            align-items: flex-start;
-            flex: 1;
-            gap: 20px;
-        }
-
-        .user-details {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-            .user-details h3 {
-                margin: 0;
-                color: #0D3C80;
-                font-weight: 700;
-                font-size: 1.4rem;
-            }
-
-            .user-details .email,
-            .user-details .phone {
-                font-size: 1rem;
-                color: #666;
-                font-weight: 500;
-            }
-
-            .user-details .role-badge {
-                display: inline-block;
-                background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-                color: #0D3C80;
-                padding: 3px 8px;
-                border-radius: 8px;
-                font-size: 0.75rem;
-                font-weight: 600;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-                border: 1px solid rgba(13, 60, 128, 0.2);
-                width: fit-content;
-            }
-
-        /* Architect credentials styling */
-        .architect-credentials {
-            margin-top: 20px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.6);
-            border-radius: 12px;
-            border: 1px solid rgba(13, 60, 128, 0.15);
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .credentials-title {
-            color: #0D3C80;
-            font-weight: 600;
-            font-size: 0.9rem;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            width: 100%;
-        }
-
-        .credential-item {
-            flex: 1 1 45%;
-            background: rgba(255, 255, 255, 0.8);
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid rgba(13, 60, 128, 0.1);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.95rem;
-            color: #555;
-            margin-bottom: 0;
-        }
-
-            .credential-item strong {
-                color: #0D3C80;
-                font-weight: 600;
-                min-width: 120px;
-            }
-
-        .credentials-file-link {
-            color: #0D3C80;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s ease;
-        }
-
-            .credentials-file-link:hover {
-                color: #1a5bb8;
-                text-decoration: underline;
-            }
-
-        .action-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            align-items: flex-end;
-        }
-
-        .edit-btn {
-            background: linear-gradient(135deg, #0D3C80, #1a5bb8);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 12px;
-            cursor: pointer;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
-            text-align: center;
-            min-width: 140px;
-            width: 180px;
-            box-shadow: 0 4px 15px rgba(13, 60, 128, 0.3);
-            letter-spacing: 0.5px;
-        }
-
-            .edit-btn:hover {
-                background: linear-gradient(135deg, #0A2F66, #164a9e);
-                color: white;
-                transform: translateY(-3px);
-                box-shadow: 0px 8px 25px rgba(13, 60, 128, 0.4);
-            }
-
+        /* ── Alert ──────────────────────────────── */
         .alert {
-            padding: 15px 20px;
-            margin-bottom: 25px;
-            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 20px;
+            border-radius: 10px;
             font-weight: 600;
+            font-size: 0.875rem;
             border: none;
         }
 
         .alert-success {
-            background: linear-gradient(135deg, #d1edff, #e8f4fd);
-            color: #0D3C80;
-            border-left: 4px solid #0D3C80;
+            background: #eff8f1;
+            color: #166534;
+            border-left: 4px solid #22c55e;
         }
 
         .alert-danger {
-            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
-            color: #721c24;
-            border-left: 4px solid #dc3545;
+            background: #fef2f2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
         }
 
-        /* Responsive adjustments */
-        @@media (max-width: 767.98px) {
-            main.container {
-                margin-left: 0 !important;
-                padding-top: 75px;
-                max-width: 100% !important;
-                padding: 1rem;
-                padding-top: 2rem;
-            }
-
-            .profile-main-card {
-                padding: 20px !important;
-                margin: 0 10px 20px 10px;
-            }
-
-            .profile-card {
-                flex-direction: column;
-                align-items: flex-start !important;
-                gap: 20px;
-            }
-
-            .profile-info {
-                width: 100%;
-            }
-
-            .action-buttons {
-                flex-direction: row;
-                align-self: stretch;
-                justify-content: space-between;
-                gap: 10px;
-            }
-
-                .action-buttons .edit-btn {
-                    flex: 1;
-                    min-width: auto;
-                    margin: 0;
-                }
+        /* ── Wrapper ────────────────────────────── */
+        .profile-wrapper {
+            width: 100%;
         }
 
-        .purchased-list {
+        /* ── Main Card ──────────────────────────── */
+        .profile-card {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid #eef2f7;
+            box-shadow: 0 2px 20px rgba(7, 23, 68, 0.08);
+            overflow: hidden;
+        }
+
+        /* ── Banner ─────────────────────────────── */
+        .profile-banner {
+            height: 130px;
+            background: linear-gradient(135deg, #071744 0%, #1e3a8a 50%, #344EAD 100%);
+            position: relative;
             display: flex;
-            flex-direction: column;
-            gap: 10px;
-            padding: 15px;
+            align-items: flex-start;
+            justify-content: flex-end;
+            padding: 20px 24px;
         }
 
-        .purchased-item {
+        .profile-banner::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            pointer-events: none;
+        }
+
+        .banner-actions {
+            display: flex;
+            gap: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── Edit / Action Buttons ──────────────── */
+        .edit-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 9px 18px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            letter-spacing: 0.2px;
+        }
+
+        .edit-btn:hover {
+            background: rgba(255, 255, 255, 0.28);
+            color: #ffffff;
+            text-decoration: none;
+            transform: translateY(-1px);
+        }
+
+        /* ── Profile Body ───────────────────────── */
+        .profile-body {
+            padding: 24px 36px 36px;
+        }
+
+        /* ── Identity Row (Avatar + Name) ───────── */
+        .profile-identity {
+            display: flex;
+            align-items: flex-end;
+            gap: 24px;
+            margin-bottom: 28px;
+        }
+
+        .avatar-container {
+            flex-shrink: 0;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 4px solid #ffffff;
+            overflow: hidden;
+            background: #EBF1FD;
             display: flex;
             align-items: center;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 10px;
-            padding: 10px;
-            box-shadow: 0 2px 10px rgba(13, 60, 128, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.5);
+            justify-content: center;
+            box-shadow: 0 4px 16px rgba(7, 23, 68, 0.15);
+            margin-top: -50px;
+            cursor: pointer;
             transition: transform 0.2s ease;
         }
 
-            .purchased-item:hover {
-                transform: translateY(-1px);
-                box-shadow: 0 4px 15px rgba(13, 60, 128, 0.15);
-            }
-
-        .purchased-image {
-            width: 50px;
-            height: 50px;
-            object-fit: cover;
-            border-radius: 6px;
-            margin-right: 12px;
-            border: 1px solid rgba(13, 60, 128, 0.1);
+        .avatar-container:hover {
+            transform: scale(1.04);
         }
 
-        .purchased-details h5 {
-            margin: 0 0 3px 0;
-            color: #0D3C80;
-            font-size: 0.95rem;
-            font-weight: 600;
-        }
-
-        .purchased-details p {
-            margin: 0;
-            color: #666;
-            font-size: 0.8rem;
-        }
-
-        .purchased-price {
-            color: #0D3C80 !important;
-            font-weight: 600 !important;
-        }
-
-        .blueprint-details-modal {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(15px);
-            border-radius: 15px;
-            padding: 0;
-            margin: 20px;
-            box-shadow: 0 15px 40px rgba(13, 60, 128, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            max-width: 450px;
-            width: 90%;
-            max-height: 70vh;
-            overflow-y: auto;
-            position: relative;
-        }
-
-        .blueprint-details-header {
-            background: linear-gradient(135deg, #0D3C80, #1a5bb8);
-            color: white;
-            padding: 15px;
-            border-radius: 15px 15px 0 0;
-            text-align: center;
-            position: relative;
-        }
-
-        .blueprint-details-body {
-            padding: 15px;
-        }
-
-        .blueprint-details-image {
+        .avatar-container img {
             width: 100%;
-            height: 150px;
+            height: 100%;
             object-fit: cover;
-            border-radius: 10px;
-            margin-bottom: 12px;
         }
 
-        .blueprint-details-title {
-            font-size: 1.1rem;
+        .avatar-initials {
+            font-size: 34px;
             font-weight: 700;
-            color: #0D3C80;
-            margin-bottom: 8px;
+            color: #344EAD;
+            line-height: 1;
         }
 
-        .blueprint-details-price {
-            font-size: 1rem;
+        .identity-text {
+            padding-bottom: 10px;
+        }
+
+        .profile-name {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0 0 10px;
+            letter-spacing: -0.4px;
+        }
+
+        .role-badge {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(52, 78, 173, 0.08);
+            color: #344EAD;
+            padding: 4px 13px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            border: 1px solid rgba(52, 78, 173, 0.2);
+        }
+
+        /* ── Contact Row ────────────────────────── */
+        .contact-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 18px 0;
+            border-top: 1px solid #f0f4f8;
+            border-bottom: 1px solid #f0f4f8;
+            margin-bottom: 28px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #475569;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .ci-icon {
+            width: 32px;
+            height: 32px;
+            background: rgba(52, 78, 173, 0.08);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #344EAD;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        /* ── Credentials ────────────────────────── */
+        .credentials-section {
+            margin-bottom: 28px;
+        }
+
+        .section-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 14px;
+        }
+
+        .credentials-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+        }
+
+        @@media (max-width: 1200px) {
+            .credentials-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .credential-card {
+            background: #f8fafc;
+            border: 1px solid #eef2f7;
+            border-radius: 10px;
+            padding: 14px 16px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .credential-card:hover {
+            border-color: rgba(52, 78, 173, 0.2);
+            box-shadow: 0 2px 8px rgba(52, 78, 173, 0.06);
+        }
+
+        .credential-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 5px;
+        }
+
+        .credential-value {
+            font-size: 0.925rem;
             font-weight: 600;
-            color: #0D3C80;
-            margin-bottom: 12px;
+            color: #1a202c;
         }
 
-        .blueprint-details-description {
-            color: #555;
-            line-height: 1.5;
-            margin-bottom: 12px;
-            font-size: 0.9rem;
-        }
-
-        .blueprint-details-architect {
+        .credentials-file-link {
+            color: #344EAD;
+            text-decoration: none;
             font-weight: 600;
-            color: #0D3C80;
-            font-size: 0.9rem;
+            transition: color 0.2s ease;
+            font-size: 0.875rem;
         }
 
-        /* PURCHASED BLUEPRINTS MODAL */
+        .credentials-file-link:hover {
+            color: #2563EB;
+            text-decoration: none;
+        }
+
+        /* ── Help Section ───────────────────────── */
+        .help-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-top: 20px;
+            border-top: 1px solid #f0f4f8;
+            color: #64748b;
+            font-size: 0.875rem;
+        }
+
+        .help-link {
+            color: #344EAD;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: color 0.2s ease;
+        }
+
+        .help-link:hover {
+            color: #2563EB;
+            text-decoration: none;
+        }
+
+        /* ── Modal styles ───────────────────────── */
         .subscription-modal {
             display: none;
             position: fixed;
@@ -432,24 +330,23 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(5px);
+            background-color: rgba(7, 23, 68, 0.5);
+            backdrop-filter: blur(4px);
         }
 
-            .subscription-modal.show {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
+        .subscription-modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
         .modal-content-medium {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(15px);
-            border-radius: 20px;
+            background: #ffffff;
+            border-radius: 16px;
             padding: 0;
             margin: 20px;
-            box-shadow: 0 20px 60px rgba(13, 60, 128, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 20px 60px rgba(7, 23, 68, 0.2);
+            border: 1px solid #eef2f7;
             max-width: 600px;
             width: 90%;
             max-height: 80vh;
@@ -458,56 +355,194 @@
         }
 
         .modal-header-custom {
-            background: linear-gradient(135deg, #0D3C80, #1a5bb8);
+            background: linear-gradient(135deg, #071744 0%, #344EAD 100%);
             color: white;
-            padding: 30px;
-            border-radius: 24px 24px 0 0;
-            text-align: center;
+            padding: 24px 28px;
+            border-radius: 16px 16px 0 0;
             position: relative;
+        }
+
+        .modal-title-custom {
+            font-size: 1.1rem !important;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .modal-subtitle {
+            color: rgba(255, 255, 255, 0.75);
+            font-size: 0.875rem;
+            margin-top: 4px;
+            font-weight: 400;
         }
 
         .modal-close {
             position: absolute;
-            top: 20px;
-            right: 25px;
-            background: none;
+            top: 16px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.15);
             border: none;
             color: white;
-            font-size: 1.8rem;
+            font-size: 1.25rem;
             cursor: pointer;
-            padding: 0;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background-color 0.3s ease;
+            transition: background 0.2s ease;
         }
 
-            .modal-close:hover {
-                background-color: rgba(255, 255, 255, 0.2);
-            }
-
-        .modal-title-custom {
-            font-size: 1.25rem !important;
-            font-weight: 700;
-        }
-
-        .modal-subtitle {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 1.1rem;
-            margin-top: 10px;
-            font-weight: 400;
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.25);
         }
 
         .modal-body-custom {
-            padding: 40px;
+            padding: 24px 28px;
+        }
+
+        .purchased-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .purchased-item {
+            display: flex;
+            align-items: center;
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 12px 14px;
+            border: 1px solid #eef2f7;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .purchased-item:hover {
+            border-color: rgba(52, 78, 173, 0.2);
+            box-shadow: 0 2px 10px rgba(52, 78, 173, 0.08);
+        }
+
+        .purchased-image {
+            width: 52px;
+            height: 52px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-right: 14px;
+            border: 1px solid #eef2f7;
+            flex-shrink: 0;
+        }
+
+        .purchased-details h5 {
+            margin: 0 0 3px;
+            color: #0f172a;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .purchased-details p {
+            margin: 0;
+            color: #64748b;
+            font-size: 0.8rem;
+        }
+
+        .purchased-price {
+            color: #344EAD !important;
+            font-weight: 600 !important;
+        }
+
+        /* Blueprint details modal */
+        .blueprint-details-modal {
+            background: #ffffff;
+            border-radius: 16px;
+            max-width: 460px;
+            width: 90%;
+            max-height: 75vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(7, 23, 68, 0.2);
+            border: 1px solid #eef2f7;
+        }
+
+        .blueprint-details-header {
+            background: linear-gradient(135deg, #071744 0%, #344EAD 100%);
+            color: white;
+            padding: 20px 24px;
+            border-radius: 16px 16px 0 0;
+            position: relative;
+        }
+
+        .blueprint-details-body {
+            padding: 20px 24px;
+        }
+
+        .blueprint-details-image {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 14px;
+            border: 1px solid #eef2f7;
+        }
+
+        .blueprint-details-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 6px;
+        }
+
+        .blueprint-details-price {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #344EAD;
+            margin-bottom: 12px;
+        }
+
+        .blueprint-details-description {
+            color: #475569;
+            line-height: 1.6;
+            margin-bottom: 12px;
+            font-size: 0.875rem;
+        }
+
+        .blueprint-details-architect {
+            font-weight: 600;
+            color: #344EAD;
+            font-size: 0.875rem;
+        }
+
+        /* ── Responsive ─────────────────────────── */
+        @@media (max-width: 767.98px) {
+            main.container {
+                margin-left: 0 !important;
+                max-width: 100% !important;
+                padding: 1rem;
+                padding-top: 5rem;
+            }
+
+            .credentials-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-row {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .profile-identity {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .banner-actions {
+                flex-direction: column;
+                align-items: flex-end;
+            }
         }
     </style>
 }
 
-<div class="profile-main-card">
+<div class="profile-wrapper">
     @if (TempData["Success"] != null)
     {
         <div class="alert alert-success">@TempData["Success"]</div>
@@ -517,116 +552,11 @@
         <div class="alert alert-danger">@TempData["Error"]</div>
     }
 
-    <div class="page-header">
-        <h2>Profile</h2>
-    </div>
+    <div class="profile-card">
 
-    <div class="profile-section">
-        <div class="profile-card">
-            <div class="profile-info">
-                <div class="avatar-container">
-                    <div class="avatar">
-                        @if (!string.IsNullOrEmpty(Model.ProfilePhoto))
-                        {
-                            <img src="@Url.Content(Model.ProfilePhoto)" alt="@Model.FullName">
-                        }
-                        else
-                        {
-                            <div class="avatar-placeholder">
-                                @(Model.FirstName?.Substring(0, 1).ToUpper())@(Model.LastName?.Substring(0, 1).ToUpper())
-                            </div>
-                        }
-                    </div>
-                </div>
-                <div class="user-details">
-                    <h3 class="name">@Model.FullName</h3>
-                    <div class="email">@Model.Email</div>
-                    <div class="phone">@(Model.PhoneNumber ?? "No phone number")</div>
-                    <div class="role-badge">@Model.Role</div>
-
-                    @* Display architect credentials if user is an architect *@
-                    @if (Model.Role == "Architect")
-                    {
-                        <div class="architect-credentials">
-                            <div class="credentials-title">Professional Credentials</div>
-
-                            @if (!string.IsNullOrEmpty(Model.LicenseNo))
-                            {
-                                <div class="credential-item">
-                                    <strong>License No:</strong>
-                                    <span>@Model.LicenseNo</span>
-                                </div>
-                            }
-
-                            @if (!string.IsNullOrEmpty(Model.Style))
-                            {
-                                <div class="credential-item">
-                                    <strong>Style:</strong>
-                                    <span>@Model.Style</span>
-                                </div>
-                            }
-
-                            @if (!string.IsNullOrEmpty(Model.Specialization))
-                            {
-                                <div class="credential-item">
-                                    <strong>Specialization:</strong>
-                                    <span>@Model.Specialization</span>
-                                </div>
-                            }
-
-                            @if (!string.IsNullOrEmpty(Model.Location))
-                            {
-                                <div class="credential-item">
-                                    <strong>Location:</strong>
-                                    <span>@Model.Location</span>
-                                </div>
-                            }
-
-                            @if (!string.IsNullOrEmpty(Model.Budget))
-                            {
-                                <div class="credential-item">
-                                    <strong>Budget Range:</strong>
-                                    <span>@Model.Budget</span>
-                                </div>
-                            }
-
-                            @if (!string.IsNullOrEmpty(Model.CredentialsFilePath))
-                            {
-                                <div class="credential-item">
-                                    <strong>Credentials File:</strong>
-                                    <a href="@Url.Content($"~/credentials/{Model.CredentialsFilePath}")"
-                                       target="_blank"
-                                       class="credentials-file-link">
-                                        <i class="fas fa-file-pdf"></i> @Model.CredentialsFilePath
-                                    </a>
-                                </div>
-                            }
-                        </div>
-                    }
-                    <div style="margin-top: 15px;">
-                        @if (Model.Role == "Architect")
-                        {
-                            <span>Need help? Download the guide: </span>
-                            <a href="~/uploads/ARCHITECT USER GUIDE.pdf"
-                               download
-                               style="color:#0D3C80; text-decoration: underline;">
-                                Architect User Guide
-                            </a>
-                        }
-                        else
-                        {
-                            <span>Need help? Download the guide: </span>
-                            <a href="~/uploads/CLIENT USER GUIDE.pdf"
-                               download
-                               style="color:#0D3C80; text-decoration: underline;">
-                                Client User Guide
-                            </a>
-                        }
-                    </div>
-
-                </div>
-            </div>
-            <div class="action-buttons">
+        <!-- Banner -->
+        <div class="profile-banner">
+            <div class="banner-actions">
                 <a asp-controller="Account" asp-action="EditProfile" class="edit-btn">
                     <i class="fas fa-edit"></i> Edit Profile
                 </a>
@@ -638,9 +568,122 @@
                 }
             </div>
         </div>
+
+        <!-- Body -->
+        <div class="profile-body">
+
+            <!-- Identity -->
+            <div class="profile-identity">
+                <div class="avatar-container">
+                    @if (!string.IsNullOrEmpty(Model.ProfilePhoto))
+                    {
+                        <img src="@Url.Content(Model.ProfilePhoto)" alt="@Model.FullName">
+                    }
+                    else
+                    {
+                        <span class="avatar-initials">
+                            @(Model.FirstName?.Substring(0, 1).ToUpper())@(Model.LastName?.Substring(0, 1).ToUpper())
+                        </span>
+                    }
+                </div>
+                <div class="identity-text">
+                    <h3 class="profile-name">@Model.FullName</h3>
+                    <span class="role-badge">@Model.Role</span>
+                </div>
+            </div>
+
+            <!-- Contact -->
+            <div class="contact-row">
+                <div class="contact-item">
+                    <span class="ci-icon"><i class="fas fa-envelope"></i></span>
+                    <span>@Model.Email</span>
+                </div>
+                <div class="contact-item">
+                    <span class="ci-icon"><i class="fas fa-phone"></i></span>
+                    <span>@(Model.PhoneNumber ?? "No phone number")</span>
+                </div>
+            </div>
+
+            @* Architect credentials *@
+            @if (Model.Role == "Architect")
+            {
+                <div class="credentials-section">
+                    <div class="section-label">Professional Credentials</div>
+                    <div class="credentials-grid">
+                        @if (!string.IsNullOrEmpty(Model.LicenseNo))
+                        {
+                            <div class="credential-card">
+                                <div class="credential-label">License No</div>
+                                <div class="credential-value">@Model.LicenseNo</div>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.Style))
+                        {
+                            <div class="credential-card">
+                                <div class="credential-label">Style</div>
+                                <div class="credential-value">@Model.Style</div>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.Specialization))
+                        {
+                            <div class="credential-card">
+                                <div class="credential-label">Specialization</div>
+                                <div class="credential-value">@Model.Specialization</div>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.Location))
+                        {
+                            <div class="credential-card">
+                                <div class="credential-label">Location</div>
+                                <div class="credential-value">@Model.Location</div>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.Budget))
+                        {
+                            <div class="credential-card">
+                                <div class="credential-label">Budget Range</div>
+                                <div class="credential-value">@Model.Budget</div>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.CredentialsFilePath))
+                        {
+                            <div class="credential-card">
+                                <div class="credential-label">Credentials File</div>
+                                <div class="credential-value">
+                                    <a href="@Url.Content($"~/credentials/{Model.CredentialsFilePath}")"
+                                       target="_blank"
+                                       class="credentials-file-link">
+                                        <i class="fas fa-file-pdf"></i> @Model.CredentialsFilePath
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- Help -->
+            <div class="help-section">
+                <span class="ci-icon"><i class="fas fa-download"></i></span>
+                <span>Need help? Download the guide:</span>
+                @if (Model.Role == "Architect")
+                {
+                    <a href="~/uploads/ARCHITECT USER GUIDE.pdf" download class="help-link">
+                        <i class="fas fa-file-pdf"></i> Architect User Guide
+                    </a>
+                }
+                else
+                {
+                    <a href="~/uploads/CLIENT USER GUIDE.pdf" download class="help-link">
+                        <i class="fas fa-file-pdf"></i> Client User Guide
+                    </a>
+                }
+            </div>
+
+        </div>
     </div>
 
-    <!-- Hidden form for profile picture upload -->
+    <!-- Hidden upload form -->
     <form asp-action="UploadProfilePicture" method="post" enctype="multipart/form-data" style="display: none;">
         <input type="file" id="profilePictureInput" name="ProfilePicture" accept="image/*" onchange="uploadProfilePicture(this)" class="file-input" />
     </form>
@@ -652,15 +695,13 @@
         <div class="modal-header-custom">
             <button class="modal-close" onclick="closePurchasedBlueprintsModal()">&times;</button>
             <h2 class="modal-title-custom">Your Purchased Blueprints</h2>
-            <p class="modal-subtitle">View the blueprints you have purchased from the marketplace</p>
+            <p class="modal-subtitle">Blueprints you have purchased from the marketplace</p>
         </div>
-
         <div class="modal-body-custom">
             <div id="purchasedBlueprintsContainer">
-                <!-- Blueprints will be loaded here -->
-                <div class="text-center">
-                    <i class="fas fa-spinner fa-spin fa-2x"></i>
-                    <p>Loading your purchased blueprints...</p>
+                <div class="text-center py-4">
+                    <i class="fas fa-spinner fa-spin fa-2x text-muted"></i>
+                    <p class="mt-2 text-muted">Loading your purchased blueprints...</p>
                 </div>
             </div>
         </div>
@@ -674,9 +715,7 @@
             <button class="modal-close" onclick="closeBlueprintDetailsModal()">&times;</button>
             <h2 class="modal-title-custom">Blueprint Details</h2>
         </div>
-        <div class="blueprint-details-body" id="blueprintDetailsContent">
-            <!-- Details will be loaded here -->
-        </div>
+        <div class="blueprint-details-body" id="blueprintDetailsContent"></div>
     </div>
 </div>
 
@@ -727,27 +766,18 @@
                 return;
             }
 
-            const avatarContainer = document.querySelector('.avatar-container');
-            const overlay = avatarContainer.querySelector('.avatar-upload-overlay');
-            if (overlay) {
-                overlay.innerHTML = 'Uploading...';
-                overlay.style.opacity = '1';
-            }
-
             input.form.submit();
         }
 
         // PURCHASED BLUEPRINTS MODAL
         function openPurchasedBlueprintsModal() {
-            const modal = document.getElementById('purchasedBlueprintsModal');
-            modal.classList.add('show');
+            document.getElementById('purchasedBlueprintsModal').classList.add('show');
             document.body.style.overflow = 'hidden';
             loadPurchasedBlueprints();
         }
 
         function closePurchasedBlueprintsModal() {
-            const modal = document.getElementById('purchasedBlueprintsModal');
-            modal.classList.remove('show');
+            document.getElementById('purchasedBlueprintsModal').classList.remove('show');
             document.body.style.overflow = 'auto';
         }
 
@@ -755,18 +785,16 @@
             try {
                 const response = await fetch('/ClientInterface/GetPurchasedBlueprints');
                 const blueprints = await response.json();
-
                 const container = document.getElementById('purchasedBlueprintsContainer');
 
                 if (blueprints.length === 0) {
                     container.innerHTML = `
-                        <div class="text-center">
+                        <div class="text-center py-4">
                             <i class="fas fa-shopping-bag fa-3x text-muted"></i>
-                            <h4 class="mt-3">No Purchased Blueprints</h4>
-                            <p>You haven't purchased any blueprints yet.</p>
-                            <a href="/ClientInterface/BlueprintMarketplace" class="edit-btn">Browse Marketplace</a>
-                        </div>
-                    `;
+                            <h5 class="mt-3" style="color:#0f172a;">No Purchased Blueprints</h5>
+                            <p class="text-muted" style="font-size:0.875rem;">You haven't purchased any blueprints yet.</p>
+                            <a href="/ClientInterface/BlueprintMarketplace" class="edit-btn" style="background:#344EAD;border:none;margin-top:8px;display:inline-flex;">Browse Marketplace</a>
+                        </div>`;
                     return;
                 }
 
@@ -774,27 +802,24 @@
                 blueprints.forEach(bp => {
                     const imageUrl = bp.image ? `/images/${bp.image}` : '/images/default-blueprint.png';
                     html += `
-                        <div class="purchased-item" onclick="openBlueprintDetailsModal(${bp.id})" style="cursor: pointer;">
+                        <div class="purchased-item" onclick="openBlueprintDetailsModal(${bp.id})">
                             <img src="${imageUrl}" alt="${bp.name}" class="purchased-image">
                             <div class="purchased-details">
                                 <h5>${bp.name}</h5>
                                 <p>Style: ${bp.style || 'N/A'}</p>
                                 <p class="purchased-price">₱${bp.price}</p>
                             </div>
-                        </div>
-                    `;
+                        </div>`;
                 });
                 html += '</div>';
                 container.innerHTML = html;
             } catch (error) {
-                console.error('Error loading purchased blueprints:', error);
                 document.getElementById('purchasedBlueprintsContainer').innerHTML = `
-                    <div class="text-center">
+                    <div class="text-center py-4">
                         <i class="fas fa-exclamation-triangle fa-3x text-danger"></i>
-                        <h4 class="mt-3">Error Loading Blueprints</h4>
-                        <p>Please try again later.</p>
-                    </div>
-                `;
+                        <h5 class="mt-3">Error Loading Blueprints</h5>
+                        <p class="text-muted">Please try again later.</p>
+                    </div>`;
             }
         }
 
@@ -803,39 +828,30 @@
             try {
                 const response = await fetch(`/ClientInterface/GetBlueprintDetails?id=${blueprintId}`);
                 const blueprint = await response.json();
-
-                const content = document.getElementById('blueprintDetailsContent');
                 const imageUrl = blueprint.image ? `/images/${blueprint.image}` : '/images/default-blueprint.png';
 
-                content.innerHTML = `
+                document.getElementById('blueprintDetailsContent').innerHTML = `
                     <img src="${imageUrl}" alt="${blueprint.name}" class="blueprint-details-image">
                     <h3 class="blueprint-details-title">${blueprint.name}</h3>
                     <p class="blueprint-details-price">₱${blueprint.price}</p>
                     <p class="blueprint-details-description">${blueprint.description || 'No description available.'}</p>
-                    <p class="blueprint-details-architect">Architect: ${blueprint.architectName || 'Unknown'}</p>
-                `;
+                    <p class="blueprint-details-architect">Architect: ${blueprint.architectName || 'Unknown'}</p>`;
 
-                const modal = document.getElementById('blueprintDetailsModal');
-                modal.classList.add('show');
+                document.getElementById('blueprintDetailsModal').classList.add('show');
                 document.body.style.overflow = 'hidden';
             } catch (error) {
-                console.error('Error loading blueprint details:', error);
                 alert('Failed to load blueprint details.');
             }
         }
 
         function closeBlueprintDetailsModal() {
-            const modal = document.getElementById('blueprintDetailsModal');
-            modal.classList.remove('show');
+            document.getElementById('blueprintDetailsModal').classList.remove('show');
             document.body.style.overflow = 'auto';
         }
 
-        // CLOSE MODAL EVENTS
         document.addEventListener('click', function (e) {
             const purchasedModal = document.getElementById('purchasedBlueprintsModal');
-            if (e.target === purchasedModal) {
-                closePurchasedBlueprintsModal();
-            }
+            if (e.target === purchasedModal) closePurchasedBlueprintsModal();
         });
 
         document.addEventListener('keydown', function (e) {
