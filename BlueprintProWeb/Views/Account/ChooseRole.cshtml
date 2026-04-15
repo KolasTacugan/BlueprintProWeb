@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewData["Title"] = "Choose Account Type";
     Layout = null;
 }
@@ -11,14 +11,15 @@
     <title>@ViewData["Title"] - BlueprintPro</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
     <style>
-        * {
+        *, *::before, *::after {
+            box-sizing: border-box;
             font-family: 'Raleway', sans-serif;
         }
 
@@ -26,280 +27,400 @@
             margin: 0;
             padding: 20px;
             min-height: 100vh;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            background: linear-gradient(135deg, #e8edf5 0%, #d4dce9 100%);
             box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .choose-role-container {
             display: flex;
-            min-height: calc(100vh - 40px);
             width: 100%;
+            max-width: 1100px;
+            min-height: 560px;
+            max-height: calc(100vh - 40px);
             background: white;
             border-radius: 24px;
             overflow: hidden;
-            box-shadow: 0 20px 60px rgba(13, 60, 128, 0.15);
+            box-shadow: 0 24px 64px rgba(9, 22, 53, 0.22);
             position: relative;
         }
 
+        /* ── LEFT PANEL ── */
         .choose-role-left {
             flex: 1;
             position: relative;
-            background: url("/images/bldg_img_1") center/cover no-repeat;
+            background: url("/images/bldg_img_1.png") center/cover no-repeat;
             overflow: hidden;
             clip-path: polygon(0 0, 85% 0, 70% 100%, 0 100%);
         }
 
-        .choose-role-right {
-            flex: 1;
-            background: #fff;
-            margin-left: -10%;
-            padding-left: 15%;
-            padding: 2rem;
+        .left-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                170deg,
+                rgba(7, 23, 68, 0.52) 0%,
+                rgba(13, 60, 128, 0.22) 45%,
+                rgba(7, 23, 68, 0.78) 100%
+            );
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 3rem 3.5rem 4rem;
+        }
+
+        .left-brand-badge {
+            width: 52px;
+            height: 52px;
+            background: rgba(255, 255, 255, 0.14);
+            border: 1.5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
+            margin-bottom: 1.25rem;
+            backdrop-filter: blur(8px);
+            padding: 8px;
+        }
+
+        .left-brand-badge img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .left-brand-accent {
+            width: 40px;
+            height: 3px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.85), rgba(255,255,255,0.1));
+            border-radius: 2px;
+            margin-bottom: 1rem;
+        }
+
+        .left-brand-name {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+            line-height: 1.15;
+        }
+
+        .left-brand-tagline {
+            font-size: 0.88rem;
+            color: rgba(255, 255, 255, 0.62);
+            font-weight: 400;
+            margin-top: 0.5rem;
+            letter-spacing: 0.3px;
+        }
+
+        /* ── RIGHT PANEL ── */
+        .choose-role-right {
+            flex: 1;
+            background: #ffffff;
+            margin-left: -10%;
+            padding: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .choose-role-right::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle, rgba(13, 60, 128, 0.032) 1px, transparent 1px);
+            background-size: 22px 22px;
+            pointer-events: none;
         }
 
         .choose-role-content {
             width: 100%;
-            max-width: 500px;
+            max-width: 460px;
             text-align: center;
             margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .form-logo-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.25rem;
+        }
+
+        .form-logo-badge img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
         }
 
         .choose-role-title {
-            font-size: 2.5rem;
+            font-size: 2.1rem;
             font-weight: 800;
             color: #091635;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.4rem;
+            letter-spacing: -0.5px;
         }
 
         .choose-role-subtitle {
-            color: #6c757d;
+            color: #8b97a8;
             font-weight: 500;
-            font-size: 1.1rem;
-            margin-bottom: 3rem;
+            font-size: 0.9rem;
+            margin-bottom: 2.5rem;
         }
 
+        /* ── ROLE BUTTONS ── */
         .role-buttons {
             display: grid;
-            gap: 1.5rem;
+            gap: 1.25rem;
             margin-bottom: 2rem;
         }
 
         .role-btn {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 1rem;
-            padding: 1.5rem 2rem;
-            border: 2px solid rgba(13, 60, 128, 0.2);
-            border-radius: 16px;
-            background: rgba(255, 255, 255, 0.9);
+            gap: 1.25rem;
+            padding: 1.4rem 1.75rem;
+            border: 1.5px solid rgba(13, 60, 128, 0.18);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.95);
             color: #0D3C80;
             text-decoration: none;
             font-weight: 600;
-            font-size: 1.1rem;
+            font-size: 1rem;
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
+            text-align: left;
         }
 
-            .role-btn::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: -100%;
-                width: 100%;
-                height: 100%;
-                background: linear-gradient(135deg, #0D3C80 0%, #071744 100%);
-                transition: left 0.3s ease;
-                z-index: 0;
-            }
+        .role-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0D3C80 0%, #071744 100%);
+            transition: left 0.32s ease;
+            z-index: 0;
+        }
 
-            .role-btn span, .role-btn i {
-                position: relative;
-                z-index: 1;
-                transition: color 0.3s ease;
-            }
+        .role-btn-icon-wrap,
+        .role-btn-text,
+        .role-btn span,
+        .role-btn i {
+            position: relative;
+            z-index: 1;
+            transition: color 0.3s ease;
+        }
 
-            .role-btn i {
-                font-size: 1.5rem;
-            }
+        .role-btn-icon-wrap {
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
 
-            .role-btn:hover {
-                border-color: #0D3C80;
-                color: white;
-                text-decoration: none;
-                transform: translateY(-2px);
-                box-shadow: 0 8px 25px rgba(13, 60, 128, 0.3);
-            }
+        .role-btn-icon-wrap svg {
+            transition: fill 0.3s ease;
+        }
 
-                .role-btn:hover::before {
-                    left: 0;
-                }
+        .role-btn-text {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
 
-                .role-btn:hover span,
-                .role-btn:hover i {
-                    color: white;
-                }
+        .role-btn-label {
+            font-weight: 700;
+            font-size: 1rem;
+            line-height: 1.2;
+        }
 
+        .role-description {
+            font-size: 0.82rem;
+            font-weight: 400;
+            opacity: 0.7;
+            line-height: 1.3;
+        }
+
+        .role-btn:hover {
+            border-color: transparent;
+            color: white;
+            text-decoration: none;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(13, 60, 128, 0.32);
+        }
+
+        .role-btn:hover::before { left: 0; }
+        .role-btn:hover .role-description { opacity: 0.8; }
+
+        /* Client button */
         .client-btn {
-            background: linear-gradient(135deg, rgba(40, 167, 69, 0.05) 0%, rgba(34, 139, 58, 0.1) 100%);
-            border-color: rgba(40, 167, 69, 0.3);
+            border-color: rgba(40, 167, 69, 0.2);
+            color: #1d7a38;
+        }
+
+        .client-btn .role-btn-icon-wrap {
+            background: rgba(40, 167, 69, 0.1);
             color: #28a745;
         }
 
-            .client-btn::before {
-                background: linear-gradient(135deg, #28a745 0%, #218838 100%);
-            }
+        .client-btn::before {
+            background: linear-gradient(135deg, #28a745 0%, #1a6b30 100%);
+        }
 
-            .client-btn:hover {
-                border-color: #28a745;
-            }
+        .client-btn:hover {
+            box-shadow: 0 10px 28px rgba(40, 167, 69, 0.3);
+        }
 
+        .client-btn:hover .role-btn-icon-wrap {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+
+        /* Architect button */
         .architect-btn {
-            background: linear-gradient(135deg, rgba(13, 60, 128, 0.05) 0%, rgba(7, 23, 68, 0.1) 100%);
-            border-color: rgba(13, 60, 128, 0.3);
+            border-color: rgba(13, 60, 128, 0.2);
             color: #0D3C80;
         }
 
-            .architect-btn::before {
-                background: linear-gradient(135deg, #0D3C80 0%, #071744 100%);
-            }
+        .architect-btn .role-btn-icon-wrap {
+            background: rgba(13, 60, 128, 0.08);
+            color: #0D3C80;
+        }
 
-            .architect-btn:hover {
-                border-color: #0D3C80;
-            }
+        .architect-btn::before {
+            background: linear-gradient(135deg, #0D3C80 0%, #071744 100%);
+        }
 
+        .architect-btn:hover .role-btn-icon-wrap {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+
+        /* ── BACK LINK ── */
         .back-link {
-            margin-top: 2rem;
+            margin-top: 1.5rem;
         }
 
-            .back-link a {
-                color: #6c757d;
-                text-decoration: none;
-                font-weight: 500;
-                font-size: 1rem;
-                transition: all 0.3s ease;
-            }
-
-                .back-link a:hover {
-                    color: #0D3C80;
-                    text-decoration: underline;
-                }
-
-        /* Role descriptions */
-        .role-description {
-            font-size: 0.9rem;
-            color: #6c757d;
-            margin-top: 0.5rem;
-            font-weight: 400;
+        .back-link a {
+            color: #9aaab8;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.85rem;
+            transition: color 0.2s ease;
         }
 
-        /* Responsive Design */
+        .back-link a:hover {
+            color: #0D3C80;
+        }
+
+        /* ── RESPONSIVE ── */
         @@media (max-width: 768px) {
-            body
+            body { padding: 10px; }
 
-        {
-            padding: 10px;
-        }
-
-        .choose-role-container {
-            flex-direction: column;
-            min-height: calc(100vh - 20px);
-        }
-
-        .choose-role-left {
-            height: 30vh;
-            clip-path: polygon(0 0, 100% 0, 100% 85%, 0 95%);
-        }
-
-        .choose-role-right {
-            margin-left: 0;
-            padding-left: 2rem;
-            margin-top: -5%;
-            padding-top: 8%;
-        }
-
-        .choose-role-content {
-            max-width: 90%;
-        }
-
-        .choose-role-title {
-            font-size: 2rem;
-        }
-
-        .choose-role-subtitle {
-            font-size: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .role-btn {
-            padding: 1.25rem 1.5rem;
-            font-size: 1rem;
-        }
-
-            .role-btn i {
-                font-size: 1.25rem;
+            .choose-role-container {
+                flex-direction: column;
+                min-height: calc(100vh - 20px);
+                max-height: calc(100vh - 20px);
             }
 
+            .choose-role-left {
+                height: 30vh;
+                clip-path: polygon(0 0, 100% 0, 100% 85%, 0 95%);
+            }
+
+            .left-overlay {
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+                padding: 2rem;
+            }
+
+            .left-brand-accent { margin: 0 auto 1rem; }
+
+            .choose-role-right {
+                margin-left: 0;
+                padding: 1.5rem;
+                margin-top: -5%;
+                padding-top: 8%;
+                align-items: flex-start;
+            }
+
+            .choose-role-content { max-width: 90%; }
+            .choose-role-title { font-size: 1.9rem; }
+            .choose-role-subtitle { margin-bottom: 1.75rem; }
         }
 
         @@media (max-width: 480px) {
-            body
+            body { padding: 5px; }
 
-        {
-            padding: 5px;
-        }
+            .choose-role-container {
+                border-radius: 16px;
+                min-height: calc(100vh - 10px);
+                max-height: calc(100vh - 10px);
+            }
 
-        .choose-role-container {
-            border-radius: 16px;
-            min-height: calc(100vh - 10px);
-        }
-
-        .choose-role-right {
-            padding: 1rem;
-            padding-left: 1.5rem;
-        }
-
-        .choose-role-title {
-            font-size: 1.75rem;
-        }
-
-        .role-btn {
-            padding: 1rem 1.25rem;
-            font-size: 0.95rem;
-        }
-
+            .choose-role-right { padding: 1rem; }
+            .choose-role-title { font-size: 1.7rem; }
+            .role-btn { padding: 1.1rem 1.25rem; }
         }
     </style>
 
     <div class="choose-role-container">
-        <!-- Left Side - Display Image Only -->
+        <!-- Left Side – Image with Brand Overlay -->
         <div class="choose-role-left">
-            <!-- Pure image display - no content overlay -->
+            <div class="left-overlay">
+                <div class="left-brand-badge">
+                    <img src="/images/BBP Logo.png" alt="BlueprintPro" />
+                </div>
+                <div class="left-brand-accent"></div>
+                <div class="left-brand-name">BlueprintPro</div>
+                <div class="left-brand-tagline">Connecting clients &amp; architects</div>
+            </div>
         </div>
 
-        <!-- Right Side - Role Selection -->
+        <!-- Right Side – Role Selection -->
         <div class="choose-role-right">
             <div class="choose-role-content">
+                <div class="form-logo-badge">
+                    <img src="/images/BBP Logo.png" alt="BlueprintPro" />
+                </div>
+
                 <h2 class="choose-role-title">Choose Your Path</h2>
                 <p class="choose-role-subtitle">Select your account type to get started</p>
 
                 <div class="role-buttons">
                     <a asp-controller="Account" asp-action="Register" asp-route-role="Client" class="role-btn client-btn">
-                        <i class="fas fa-user"></i>
-                        <div>
-                            <span>I'm a Client</span>
+                        <div class="role-btn-icon-wrap">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+                            </svg>
+                        </div>
+                        <div class="role-btn-text">
+                            <span class="role-btn-label">I'm a Client</span>
                             <div class="role-description">Looking for architectural services</div>
                         </div>
                     </a>
 
                     <a asp-controller="Account" asp-action="Register" asp-route-role="Architect" class="role-btn architect-btn">
-                        <i class="fas fa-drafting-compass"></i>
-                        <div>
-                            <span>I'm an Architect</span>
+                        <div class="role-btn-icon-wrap">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>
+                            </svg>
+                        </div>
+                        <div class="role-btn-text">
+                            <span class="role-btn-label">I'm an Architect</span>
                             <div class="role-description">Providing architectural services</div>
                         </div>
                     </a>
@@ -307,7 +428,9 @@
 
                 <div class="back-link">
                     <a asp-controller="Account" asp-action="Login">
-                        <i class="fas fa-arrow-left me-2"></i>Back to Login
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="margin-right:5px;vertical-align:middle;">
+                            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                        </svg>Back to Login
                     </a>
                 </div>
             </div>

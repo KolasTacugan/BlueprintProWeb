@@ -1,4 +1,4 @@
-﻿@using BlueprintProWeb.ViewModels;
+@using BlueprintProWeb.ViewModels;
 @model LoginViewModel;
 
 @{
@@ -15,14 +15,15 @@
 	<link rel="icon" type="image/png" href="~/images/BBP Logo.png" />
 	<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
 	<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 	<style>
-		* {
+		*, *::before, *::after {
+			box-sizing: border-box;
 			font-family: 'Raleway', sans-serif;
 		}
 
@@ -30,7 +31,7 @@
 			margin: 0;
 			padding: 20px;
 			height: 100vh;
-			background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+			background: linear-gradient(135deg, #e8edf5 0%, #d4dce9 100%);
 			box-sizing: border-box;
 		}
 
@@ -41,10 +42,11 @@
 			background: white;
 			border-radius: 24px;
 			overflow: hidden;
-			box-shadow: 0 20px 60px rgba(13, 60, 128, 0.15);
+			box-shadow: 0 24px 64px rgba(9, 22, 53, 0.22);
 			position: relative;
 		}
 
+		/* ── LEFT PANEL ── */
 		.login-left {
 			flex: 1;
 			position: relative;
@@ -53,20 +55,95 @@
 			clip-path: polygon(0 0, 85% 0, 70% 100%, 0 100%);
 		}
 
-		.login-right {
-			flex: 1;
-			background: #fff;
+		.left-overlay {
+			position: absolute;
+			inset: 0;
+			background: linear-gradient(
+				170deg,
+				rgba(7, 23, 68, 0.52) 0%,
+				rgba(13, 60, 128, 0.22) 45%,
+				rgba(7, 23, 68, 0.78) 100%
+			);
+			display: flex;
+			flex-direction: column;
+			justify-content: flex-end;
+			padding: 3rem 3.5rem 4rem;
+		}
+
+		.left-brand-badge {
+			width: 52px;
+			height: 52px;
+			background: rgba(255, 255, 255, 0.14);
+			border: 1.5px solid rgba(255, 255, 255, 0.3);
+			border-radius: 14px;
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			padding: 2rem;
+			margin-bottom: 1.25rem;
+			backdrop-filter: blur(8px);
+			padding: 8px;
+		}
+
+		.left-brand-badge img {
+			width: 100%;
+			height: 100%;
+			object-fit: contain;
+		}
+
+		.left-brand-accent {
+			width: 40px;
+			height: 3px;
+			background: linear-gradient(90deg, rgba(255,255,255,0.85), rgba(255,255,255,0.1));
+			border-radius: 2px;
+			margin-bottom: 1rem;
+		}
+
+		.left-brand-name {
+			font-size: 2rem;
+			font-weight: 800;
+			color: #ffffff;
+			letter-spacing: -0.5px;
+			line-height: 1.15;
+		}
+
+		.left-brand-tagline {
+			font-size: 0.88rem;
+			color: rgba(255, 255, 255, 0.62);
+			font-weight: 400;
+			margin-top: 0.5rem;
+			letter-spacing: 0.3px;
+		}
+
+		/* ── RIGHT PANEL ── */
+		.login-right {
+			flex: 1;
+			background: #ffffff;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			padding: 2.5rem;
 			margin-left: -10%;
-			padding-left: 15%;
+			position: relative;
 		}
 
 		.login-form-container {
 			width: 100%;
-			max-width: 400px;
+			max-width: 380px;
+			position: relative;
+			z-index: 1;
+		}
+
+		.form-logo-badge {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			margin: 0 auto 1.25rem;
+		}
+
+		.form-logo-badge img {
+			width: 80px;
+			height: 80px;
+			object-fit: contain;
 		}
 
 		.login-welcome {
@@ -75,197 +152,255 @@
 		}
 
 		.login-title {
-			font-size: 2.5rem;
+			font-size: 2.1rem;
 			font-weight: 800;
 			color: #091635;
-			margin-bottom: 0.5rem;
+			margin-bottom: 0.35rem;
+			letter-spacing: -0.5px;
 		}
 
 		.login-subtitle {
-			color: #6c757d;
+			color: #8b97a8;
 			font-weight: 500;
+			font-size: 0.88rem;
 		}
 
+		/* ── FORM FIELDS ── */
 		.form-group {
-			margin-bottom: 1.5rem;
+			margin-bottom: 1.2rem;
 		}
 
-		.form-label {
-			font-weight: 600;
-			color: #091635;
+		.label-row {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
 			margin-bottom: 0.5rem;
 		}
 
-		.form-control {
-			border: 2px solid #e9ecef;
-			border-radius: 10px;
-			padding: 0.75rem 1rem;
-			font-size: 1rem;
-			transition: all 0.3s ease;
-			background: #fff;
+		.form-label {
+			font-weight: 700;
+			color: #3d4f65;
+			font-size: 0.75rem;
+			letter-spacing: 0.55px;
+			text-transform: uppercase;
+			margin-bottom: 0.5rem;
 		}
 
-			.form-control:focus {
-				border-color: #0D3C80;
-				box-shadow: 0 0 0 0.2rem rgba(13, 60, 128, 0.1);
-			}
-
-		.forgot-password {
-			text-align: right;
-			margin-bottom: 1rem;
+		.label-row .form-label {
+			margin-bottom: 0;
 		}
 
-			.forgot-password a {
-				color: #0D3C80;
-				text-decoration: none;
-				font-weight: 500;
-				font-size: 0.9rem;
-			}
-
-				.forgot-password a:hover {
-					text-decoration: underline;
-					color: #071744;
-				}
-
-		.form-check {
-			margin-bottom: 1.5rem;
-		}
-
-		.form-check-label {
+		.forgot-link {
+			font-size: 0.78rem;
 			font-weight: 500;
-			color: #6c757d;
+			color: #0D3C80;
+			text-decoration: none;
+			transition: color 0.2s ease;
+			position: relative;
 		}
 
-		.form-check-input:checked {
-			background-color: #0D3C80;
+		.forgot-link::after {
+			content: '';
+			position: absolute;
+			bottom: -1px;
+			left: 0;
+			width: 0;
+			height: 1px;
+			background: #0D3C80;
+			transition: width 0.25s ease;
+		}
+
+		.forgot-link:hover { color: #071744; }
+		.forgot-link:hover::after { width: 100%; }
+
+		/* ── INPUT WRAPPER WITH ICON ── */
+		.input-wrapper {
+			position: relative;
+		}
+
+		.input-icon {
+			position: absolute;
+			left: 1rem;
+			top: 50%;
+			transform: translateY(-50%);
+			color: #c0ccd9;
+			font-size: 0.85rem;
+			pointer-events: none;
+			transition: color 0.25s ease;
+			z-index: 2;
+		}
+
+		.input-wrapper:focus-within .input-icon {
+			color: #0D3C80;
+		}
+
+		.form-control {
+			width: 100%;
+			border: 1.5px solid #E2E8F0;
+			border-radius: 10px;
+			padding: 0.8rem 1rem 0.8rem 2.75rem;
+			font-size: 0.92rem;
+			transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.2s ease;
+			background: #F8FAFC;
+			color: #091635;
+			outline: none;
+		}
+
+		.form-control::placeholder {
+			color: #b4bfcc;
+			font-weight: 400;
+		}
+
+		.form-control:hover {
+			border-color: #b3c2d8;
+			background: #ffffff;
+		}
+
+		.form-control:focus {
 			border-color: #0D3C80;
+			background: #ffffff;
+			box-shadow: 0 0 0 3.5px rgba(13, 60, 128, 0.09);
 		}
 
-		.form-check-input:focus {
-			border-color: #0D3C80;
-			box-shadow: 0 0 0 0.25rem rgba(13, 60, 128, 0.25);
-		}
-
+		/* ── SUBMIT BUTTON ── */
 		.login-btn {
 			width: 100%;
-			padding: 0.875rem;
+			padding: 0.9rem;
 			background: linear-gradient(135deg, #0D3C80 0%, #071744 100%);
 			border: none;
 			border-radius: 25px;
 			color: white;
 			font-weight: 700;
-			font-size: 1rem;
+			font-size: 0.85rem;
+			letter-spacing: 0.8px;
+			text-transform: uppercase;
 			transition: all 0.3s ease;
+			margin-top: 0.75rem;
 			margin-bottom: 1.5rem;
+			cursor: pointer;
 		}
 
-			.login-btn:hover {
-				transform: translateY(-2px);
-				box-shadow: 0 8px 25px rgba(13, 60, 128, 0.3);
-				background: linear-gradient(135deg, #071744 0%, #0D3C80 100%);
-			}
+		.login-btn:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 10px 28px rgba(13, 60, 128, 0.38);
+			background: linear-gradient(135deg, #1147a0 0%, #0D3C80 100%);
+		}
 
+		.login-btn:active {
+			transform: translateY(0);
+			box-shadow: 0 4px 12px rgba(13, 60, 128, 0.2);
+		}
+
+		/* ── BOTTOM LINKS ── */
 		.register-link {
 			text-align: center;
-			margin-bottom: 1rem;
+			margin-bottom: 0.75rem;
+			font-size: 0.875rem;
+			color: #7a8799;
 		}
 
-			.register-link a {
-				color: #0D3C80;
-				text-decoration: none;
-				font-weight: 600;
-			}
+		.register-link a {
+			color: #0D3C80;
+			text-decoration: none;
+			font-weight: 600;
+		}
 
-				.register-link a:hover {
-					text-decoration: underline;
-					color: #071744;
-				}
+		.register-link a:hover {
+			color: #071744;
+			text-decoration: underline;
+		}
 
 		.back-link {
 			text-align: center;
 		}
 
-			.back-link a {
-				color: #6c757d;
-				text-decoration: none;
-				font-weight: 500;
-			}
+		.back-link a {
+			color: #9aaab8;
+			text-decoration: none;
+			font-weight: 500;
+			font-size: 0.85rem;
+			transition: color 0.2s;
+		}
 
-				.back-link a:hover {
-					color: #0D3C80;
-					text-decoration: underline;
-				}
+		.back-link a:hover {
+			color: #0D3C80;
+		}
 
 		.text-danger {
-			font-size: 0.875rem;
-			margin-top: 0.25rem;
+			font-size: 0.78rem;
+			margin-top: 0.3rem;
+			display: block;
 		}
 
-		/* Responsive Design */
+		/* ── RESPONSIVE ── */
 		@@media (max-width: 768px) {
-			body
+			body { padding: 10px; }
 
-		{
-			padding: 10px;
-		}
+			.login-container {
+				flex-direction: column;
+				height: calc(100vh - 20px);
+			}
 
-		.login-container {
-			flex-direction: column;
-			height: calc(100vh - 20px);
-		}
+			.login-left {
+				height: 35vh;
+				clip-path: polygon(0 0, 100% 0, 100% 85%, 0 95%);
+			}
 
-		.login-left {
-			height: 40vh;
-			clip-path: polygon(0 0, 100% 0, 100% 85%, 0 95%);
-		}
+			.left-overlay {
+				justify-content: center;
+				align-items: center;
+				text-align: center;
+				padding: 2rem;
+			}
 
-		.login-right {
-			height: 60vh;
-			padding: 1rem;
-			margin-left: 0;
-			padding-left: 2rem;
-			margin-top: -5%;
-			padding-top: 10%;
-		}
+			.left-brand-accent { margin: 0 auto 1rem; }
 
-		.login-title {
-			font-size: 2rem;
-		}
+			.login-right {
+				height: 65vh;
+				padding: 1.5rem;
+				margin-left: 0;
+				margin-top: -4%;
+				align-items: flex-start;
+				padding-top: 6%;
+			}
 
+			.login-title { font-size: 1.9rem; }
+			.form-logo-badge { width: 52px; height: 52px; font-size: 1.25rem; border-radius: 14px; }
 		}
 
 		@@media (max-width: 480px) {
-			body
+			body { padding: 5px; }
 
-		{
-			padding: 5px;
-		}
+			.login-container {
+				border-radius: 16px;
+				height: calc(100vh - 10px);
+			}
 
-		.login-container {
-			border-radius: 16px;
-			height: calc(100vh - 10px);
-		}
-
-		.login-right {
-			padding: 1rem;
-		}
-
-		.login-title {
-			font-size: 1.75rem;
-		}
-
+			.login-right { padding: 1rem; }
+			.login-title { font-size: 1.7rem; }
 		}
 	</style>
 
 	<div class="login-container">
-		<!-- Left Side - Display Image Only -->
+		<!-- Left Side – Image with Brand Overlay -->
 		<div class="login-left">
-			<!-- Pure image display - no content overlay -->
+			<div class="left-overlay">
+				<div class="left-brand-badge">
+					<img src="/images/BBP Logo.png" alt="BlueprintPro" />
+				</div>
+				<div class="left-brand-accent"></div>
+				<div class="left-brand-name">BlueprintPro</div>
+				<div class="left-brand-tagline">Connecting clients &amp; architects</div>
+			</div>
 		</div>
 
-		<!-- Right Side - Login Form -->
+		<!-- Right Side – Login Form -->
 		<div class="login-right">
 			<div class="login-form-container">
+				<div class="form-logo-badge">
+					<img src="/images/BBP Logo.png" alt="BlueprintPro" />
+				</div>
+
 				<div class="login-welcome">
 					<h2 class="login-title">Sign In</h2>
 					<p class="login-subtitle">Welcome to BlueprintPro</p>
@@ -276,20 +411,23 @@
 
 					<div class="form-group">
 						<label asp-for="Email" class="form-label">Email</label>
-						<input asp-for="Email" class="form-control" placeholder="Enter your email" />
+						<div class="input-wrapper">
+							<i class="fas fa-envelope input-icon"></i>
+							<input asp-for="Email" class="form-control" placeholder="Enter your email" />
+						</div>
 						<span asp-validation-for="Email" class="text-danger"></span>
 					</div>
 
 					<div class="form-group">
-						<label asp-for="Password" class="form-label">Password</label>
-						<input asp-for="Password" type="password" class="form-control" placeholder="Enter your password" />
+						<div class="label-row">
+							<label asp-for="Password" class="form-label">Password</label>
+							<a asp-controller="Account" asp-action="VerifyEmail" class="forgot-link">Forgot password?</a>
+						</div>
+						<div class="input-wrapper">
+							<i class="fas fa-lock input-icon"></i>
+							<input asp-for="Password" type="password" class="form-control" placeholder="Enter your password" />
+						</div>
 						<span asp-validation-for="Password" class="text-danger"></span>
-					</div>
-
-					<div class="forgot-password">
-						<a asp-controller="Account" asp-action="VerifyEmail">
-							Forgot password ?
-						</a>
 					</div>
 
 					<input type="submit" value="Login" class="login-btn" />

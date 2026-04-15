@@ -7,13 +7,11 @@
 
 @section Styles {
     <style>
-        /* Override shared layout background for projects page */
         body::before {
             background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
             opacity: 0.1 !important;
         }
 
-        /* Ensure scrollable page with consistent background */
         body {
             background: #F1F7F9 !important;
             overflow-y: auto !important;
@@ -21,7 +19,6 @@
             font-family: 'Raleway', sans-serif !important;
         }
 
-        /* Main content positioning that responds to sidebar state */
         main.container {
             margin-left: 300px;
             margin-top: 90px;
@@ -31,350 +28,528 @@
             transition: margin-left 0.4s ease, max-width 0.4s ease;
         }
 
-        /* When sidebar is collapsed, adjust main content */
         .sidebar.collapsed ~ * main.container,
         body:has(.sidebar.collapsed) main.container {
             margin-left: 110px;
             max-width: calc(100% - 130px);
         }
 
-        /* Page Header Styling */
-        .projects-header {
+        /* ── Page Header (matches dashboard-greeting) ─────────── */
+        .page-header {
+            color: #1a202c;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 1px solid #e8edf5;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid rgba(52, 78, 173, 0.1);
+            gap: 1rem;
         }
 
-        .projects-title-section {
+        .page-title {
+            font-weight: 700;
+            font-size: 1.75rem;
+            letter-spacing: -0.3px;
+            color: #1a202c;
+            margin: 0;
+        }
+
+        .page-subtitle {
+            font-size: 0.9rem;
+            font-weight: 400;
+            color: #94a3b8;
+            margin-top: 0.3rem;
+        }
+
+        .purchased-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #F8FAFC;
+            color: #344EAD;
+            border: 1.5px solid #E2E8F0;
+            border-radius: 10px;
+            padding: 0.65rem 1.15rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .purchased-btn:hover {
+            background: #F1F7F9;
+            border-color: #344EAD;
+            color: #344EAD;
+            transform: translateY(-1px);
+        }
+
+        .purchased-btn i {
+            font-size: 0.85rem;
+        }
+
+        /* ── Projects Grid ────────────────────────────────────── */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.25rem;
+        }
+
+        .project-card {
+            background: #FFFFFF;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(7, 23, 68, 0.07);
+            border: 1px solid #eef2f7;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.25s ease;
+        }
+
+        .project-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(52, 78, 173, 0.12);
+            border-color: rgba(52, 78, 173, 0.2);
+        }
+
+        .project-image-wrap {
+            position: relative;
+            width: 100%;
+            height: 170px;
+            overflow: hidden;
+            background: #F1F7F9;
+        }
+
+        .project-image-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.35s ease;
+        }
+
+        .project-card:hover .project-image-wrap img {
+            transform: scale(1.03);
+        }
+
+        .project-status-pill {
+            position: absolute;
+            top: 0.85rem;
+            left: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            backdrop-filter: blur(8px);
+        }
+
+        .project-status-pill i {
+            font-size: 0.55rem;
+        }
+
+        .status-ongoing {
+            background: rgba(59, 130, 246, 0.92);
+            color: #FFFFFF;
+        }
+
+        .status-review {
+            background: rgba(245, 158, 11, 0.92);
+            color: #FFFFFF;
+        }
+
+        .status-compliance {
+            background: rgba(139, 92, 246, 0.92);
+            color: #FFFFFF;
+        }
+
+        .status-finalization {
+            background: rgba(16, 185, 129, 0.92);
+            color: #FFFFFF;
+        }
+
+        .status-finished {
+            background: rgba(34, 197, 94, 0.92);
+            color: #FFFFFF;
+        }
+
+        .project-body {
+            padding: 1.25rem 1.35rem 1.1rem;
+            flex: 1;
             display: flex;
             flex-direction: column;
         }
 
-        .projects-title {
-            font-size: 1.75rem;
-            font-weight: 600;
-            color: #1a202c;
-            margin: 0;
-            font-family: 'Raleway', sans-serif;
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-        }
-
-        .projects-title i {
-            color: #344EAD;
-            font-size: 1.5rem;
-            width: 28px;
-            height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .projects-subtitle {
-            font-size: 1rem;
-            font-weight: 400;
-            color: #718096;
-            margin-top: 0.5rem;
-            margin-left: 2.2rem; /* Aligns with title text after icon */
-        }
-
-        .projects-actions {
-            display: flex;
-            align-items: center;
-        }
-
-        .project-btn {
-            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
-            border: none;
-            border-radius: 12px;
-            width: 45px;
-            height: 45px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
+        .project-title {
+            font-weight: 700;
             font-size: 1.1rem;
-            transition: all 0.2s ease;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(52, 78, 173, 0.3);
-        }
-
-        .project-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(52, 78, 173, 0.4);
-        }
-
-        /* Projects Container */
-        .projects-container {
-            background: #FFFFFF;
-            border-radius: 16px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(52, 78, 173, 0.05);
+            color: #1a202c;
+            margin: 0 0 0.85rem;
+            letter-spacing: -0.2px;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
             overflow: hidden;
         }
 
-        /* Enhanced Table Styling */
-        .blueprint-table {
-            border-collapse: separate;
-            border-spacing: 0;
-            background: transparent;
-            width: 100%;
-            margin: 0;
+        .project-meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.65rem;
+            margin-bottom: 1rem;
         }
 
-        .blueprint-table tbody tr {
-            background: #FFFFFF;
-            transition: all 0.2s ease;
-            border-bottom: 1px solid rgba(52, 78, 173, 0.05);
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.6rem 0.75rem;
+            background: #F8FAFC;
+            border-radius: 8px;
+            border-left: 3px solid #344EAD;
         }
 
-        .blueprint-table tbody tr:hover {
-            background: rgba(52, 78, 173, 0.02);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(52, 78, 173, 0.08);
-        }
-
-        .blueprint-table tbody tr:last-child {
-            border-bottom: none;
-        }
-
-        .blueprint-table td {
-            padding: 1.5rem;
-            border: none;
-            vertical-align: middle;
-        }
-
-        /* Enhanced Image Styling */
-        .bp-image {
-            width: 160px;
-            height: 80px;
-            border-radius: 12px;
-            object-fit: cover;
-            transition: all 0.3s ease;
-            border: 2px solid rgba(52, 78, 173, 0.1);
-        }
-
-        .blueprint-table tbody tr:hover .bp-image {
-            transform: scale(1.02);
-            border-color: rgba(52, 78, 173, 0.2);
-            box-shadow: 0 4px 12px rgba(52, 78, 173, 0.15);
-        }
-
-        /* Project Information Styling */
-        .project-info {
-            margin-left: 1.5rem;
-        }
-
-        .bp-name {
-            font-weight: 700;
-            color: #1a202c;
-            font-size: 1.1rem;
-            font-family: 'Raleway', sans-serif;
-            margin-bottom: 0.5rem;
-            line-height: 1.3;
-        }
-
-        .project-details {
-            margin-top: 0.75rem;
-        }
-
-        .project-detail-item {
-            margin-bottom: 0.25rem;
-            font-size: 0.9rem;
-        }
-
-        .project-detail-label {
-            font-weight: 600;
-            color: #64748B;
-            font-family: 'Raleway', sans-serif;
-        }
-
-        .project-detail-value {
-            color: #1a202c;
-            font-weight: 500;
-        }
-
-        /* Enhanced Architect Link Styling */
-        .architect-link,
-        .archi-cred {
-            color: #344EAD;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.2s ease;
-            border-bottom: 1px solid transparent;
-        }
-
-        .architect-link:hover,
-        .archi-cred:hover {
-            color: #2563EB;
-            text-decoration: none;
-            border-bottom-color: #2563EB;
-        }
-
-        /* Enhanced Track Button */
-        .track-btn {
+        .meta-icon {
+            width: 28px;
+            height: 28px;
             background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #FFFFFF;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .meta-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.1rem;
+            min-width: 0;
+        }
+
+        .meta-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: #64748B;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .meta-value {
+            font-size: 0.82rem;
             font-weight: 600;
-            font-family: 'Raleway', sans-serif;
-            font-size: 0.9rem;
+            color: #1a202c;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .meta-value.architect-link {
+            color: #344EAD;
+            cursor: pointer;
+            border-bottom: 1px dashed transparent;
             transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .meta-value.architect-link:hover {
+            color: #2563EB;
+            border-bottom-color: #2563EB;
+            text-decoration: none;
+        }
+
+        .project-actions {
+            display: flex;
+            gap: 0.6rem;
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid #f0f4f8;
+        }
+
+        .track-btn {
+            flex: 1;
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 0.5rem;
-            box-shadow: 0 2px 8px rgba(52, 78, 173, 0.2);
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            color: #FFFFFF;
+            border: none;
+            border-radius: 8px;
+            padding: 0.7rem 1.1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             text-decoration: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(52, 78, 173, 0.2);
         }
 
         .track-btn:hover {
+            background: linear-gradient(135deg, #2563EB 0%, #1d4ed8 100%);
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(52, 78, 173, 0.3);
-            background: linear-gradient(135deg, #2563EB 0%, #344EAD 100%);
-            color: white;
+            box-shadow: 0 4px 10px rgba(52, 78, 173, 0.3);
+            color: #FFFFFF;
             text-decoration: none;
         }
 
-        .track-btn:active {
-            transform: translateY(0);
+        /* ── Empty State ──────────────────────────────────────── */
+        .empty-state {
+            background: #FFFFFF;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(7, 23, 68, 0.07);
+            border: 1px solid #eef2f7;
+            text-align: center;
+            padding: 4rem 2rem;
         }
 
-        .track-btn::before {
-            content: "👁️";
-            font-size: 1rem;
+        .empty-state-icon {
+            width: 72px;
+            height: 72px;
+            background: rgba(52, 78, 173, 0.08);
+            border-radius: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #344EAD;
+            font-size: 1.75rem;
+            margin-bottom: 1.25rem;
         }
 
-        /* Enhanced Modal Styling */
+        .empty-state-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 0.35rem;
+            letter-spacing: -0.2px;
+        }
+
+        .empty-state-subtitle {
+            font-size: 0.875rem;
+            color: #64748B;
+            line-height: 1.55;
+            max-width: 380px;
+            margin: 0 auto;
+        }
+
+        /* ── Modals ───────────────────────────────────────────── */
         .modal-content {
             border-radius: 16px;
-            border: none;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border: 1px solid #eef2f7;
+            box-shadow: 0 20px 60px rgba(7, 23, 68, 0.2);
+            overflow: hidden;
         }
 
         .modal-header {
-            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
-            color: white;
-            border-radius: 16px 16px 0 0;
+            background: linear-gradient(135deg, #071744 0%, #344EAD 100%);
+            color: #FFFFFF;
             border-bottom: none;
-            padding: 1.5rem;
+            padding: 1.25rem 1.5rem;
         }
 
         .modal-title {
-            font-weight: 600;
-            font-family: 'Raleway', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.55rem;
+            letter-spacing: -0.1px;
+        }
+
+        .modal-title i {
+            font-size: 0.95rem;
         }
 
         .btn-close {
             filter: invert(1);
+            opacity: 0.85;
         }
 
         .modal-body {
-            padding: 2rem;
-            font-family: 'Raleway', sans-serif;
+            padding: 1.75rem;
         }
 
-        /* Profile Card in Modal */
+        /* ── Profile Card in Modal ────────────────────────────── */
         .profile-main-card {
             background: #F8FAFC;
             border-radius: 12px;
-            border: 1px solid rgba(52, 78, 173, 0.1);
+            border: 1px solid #eef2f7;
+            padding: 1.25rem;
         }
 
         .profile-info {
-            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 1px solid #eef2f7;
+        }
+
+        .avatar img {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #FFFFFF;
+            box-shadow: 0 4px 12px rgba(52, 78, 173, 0.15);
         }
 
         .architect-name {
             color: #1a202c;
-            font-family: 'Raleway', sans-serif;
+            font-weight: 700;
+            font-size: 1.15rem;
+            margin: 0 0 0.25rem;
+            letter-spacing: -0.2px;
         }
 
         .profile-info .text-muted {
             color: #64748B !important;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            margin-top: 0.2rem;
         }
 
-        .avatar img {
-            border: 3px solid rgba(52, 78, 173, 0.1);
+        .profile-info .text-muted i {
+            width: 14px;
+            color: #344EAD;
+            font-size: 0.75rem;
+        }
+
+        .profile-detail-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.6rem;
+        }
+
+        .profile-detail-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.65rem 0.85rem;
+            background: #FFFFFF;
+            border-radius: 8px;
+            border-left: 3px solid #344EAD;
+        }
+
+        .profile-detail-row i {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            color: #FFFFFF;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .profile-detail-row .detail-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: #64748B;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: block;
+        }
+
+        .profile-detail-row .detail-value {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #1a202c;
+        }
+
+        .archi-cred {
+            color: #344EAD;
+            font-weight: 600;
+            text-decoration: none;
+            border-bottom: 1px dashed transparent;
             transition: all 0.2s ease;
         }
 
-        .avatar img:hover {
-            border-color: rgba(52, 78, 173, 0.3);
-            transform: scale(1.05);
+        .archi-cred:hover {
+            color: #2563EB;
+            border-bottom-color: #2563EB;
+            text-decoration: none;
         }
 
-        /* Purchased Blueprints Modal Styles */
+        /* ── Purchased Blueprints Modal ───────────────────────── */
         .purchased-blueprint-item {
             display: flex;
             align-items: center;
-            padding: 1rem;
-            border-bottom: 1px solid #e2e8f0;
+            gap: 1rem;
+            padding: 1rem 1.15rem;
+            background: #F8FAFC;
+            border: 1px solid #eef2f7;
+            border-radius: 12px;
+            margin-bottom: 0.85rem;
+            transition: all 0.2s ease;
         }
 
         .purchased-blueprint-item:last-child {
-            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .purchased-blueprint-item:hover {
+            border-color: rgba(52, 78, 173, 0.2);
+            box-shadow: 0 2px 8px rgba(52, 78, 173, 0.06);
         }
 
         .purchased-blueprint-item img {
-            width: 80px;
-            height: 60px;
+            width: 90px;
+            height: 70px;
             object-fit: cover;
             border-radius: 8px;
-            margin-right: 1rem;
-            border: 2px solid rgba(52, 78, 173, 0.1);
+            border: 1px solid #eef2f7;
+            flex-shrink: 0;
+        }
+
+        .blueprint-info {
+            flex: 1;
+            min-width: 0;
         }
 
         .blueprint-info h5 {
-            margin: 0;
-            font-size: 1rem;
+            margin: 0 0 0.35rem;
+            font-size: 0.95rem;
+            font-weight: 700;
             color: #1a202c;
-            font-family: 'Raleway', sans-serif;
+            letter-spacing: -0.1px;
         }
 
         .blueprint-info p {
-            margin: 0.25rem 0;
-            font-size: 0.9rem;
+            margin: 0.15rem 0;
+            font-size: 0.8rem;
             color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
         }
 
-        /* Empty State Styling */
-        .empty-state {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: #64748B;
+        .blueprint-info p i {
+            width: 12px;
+            color: #344EAD;
+            font-size: 0.7rem;
         }
 
-        .empty-state-icon {
-            font-size: 4rem;
-            color: #CBD5E1;
-            margin-bottom: 1rem;
+        /* ── Responsive ───────────────────────────────────────── */
+        @@media (max-width: 1200px) {
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
-        .empty-state-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #475569;
-            margin-bottom: 0.5rem;
-            font-family: 'Raleway', sans-serif;
-        }
-
-        .empty-state-subtitle {
-            font-size: 0.9rem;
-            color: #64748B;
-            line-height: 1.5;
-        }
-
-        /* Responsive Design */
         @@media (max-width: 768px) {
             main.container {
                 margin-left: 0 !important;
@@ -384,152 +559,121 @@
                 padding-top: 2rem;
             }
 
-            .projects-header {
+            .page-header {
                 flex-direction: column;
+                align-items: flex-start;
                 gap: 1rem;
-                align-items: stretch;
             }
 
-            .projects-title {
+            .page-title {
                 font-size: 1.4rem;
             }
 
-            .blueprint-table td {
-                padding: 1rem;
-            }
-
-            .bp-image {
-                width: 120px;
-                height: 60px;
-            }
-
-            .project-info {
-                margin-left: 1rem;
-            }
-
-            .bp-name {
-                font-size: 1rem;
-            }
-
-            .track-btn {
-                padding: 0.6rem 1.2rem;
-                font-size: 0.85rem;
+            .project-meta {
+                grid-template-columns: 1fr;
             }
 
             .modal-body {
-                padding: 1.5rem;
-            }
-        }
-
-        @@media (max-width: 576px) {
-            .blueprint-table td {
-                padding: 0.75rem;
-            }
-
-            .bp-image {
-                width: 100px;
-                height: 50px;
-            }
-
-            .project-info {
-                margin-left: 0.75rem;
-            }
-
-            .projects-title {
-                font-size: 1.25rem;
-            }
-
-            .track-btn {
-                padding: 0.5rem 1rem;
-                font-size: 0.8rem;
+                padding: 1.25rem;
             }
         }
     </style>
 }
 
 <div>
-    <div class="projects-header">
-        <div class="projects-title-section">
-            <h2 class="projects-title">
-                <i class="fas fa-project-diagram"></i>
-                My Projects
-            </h2>
-            <div class="projects-subtitle">
-                Track your active construction projects
-            </div>
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">My Projects</h1>
+            <div class="page-subtitle">Track your active construction projects</div>
         </div>
-        <div class="projects-actions">
-            <button class="project-btn" title="Projects">
-                <span class="material-symbols-rounded">folder</span>
-            </button>
-        </div>
+        <button type="button" class="purchased-btn" id="purchasedBtn">
+            <i class="fas fa-folder-open"></i>
+            Purchased Blueprints
+        </button>
     </div>
 
-    <div class="projects-container">
-        @if (Model.Any())
-        {
-            <table class="table blueprint-table">
-                <tbody>
-                    @foreach (var project in Model)
-                    {
-                        <tr class="bp-row">
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <img src="@(project.Blueprint.blueprintImage.StartsWith("/uploads")
-                                                 ? project.Blueprint.blueprintImage
-                                                 : Url.Content("~/images/" + project.Blueprint.blueprintImage))"
-                                     class="bp-image"
-                                     asp-append-version="true"
-                                     alt="@project.project_Title" />
-                                    <div class="project-info">
-                                        <div class="bp-name">@project.project_Title</div>
-                                        <div class="project-details">
-                                            <div class="project-detail-item">
-                                                <span class="project-detail-label">Budget:</span>
-                                                <span class="project-detail-value">₱@project.project_Budget</span>
-                                            </div>
-                                            <div class="project-detail-item">
-                                                <span class="project-detail-label">Architect:</span>
-                                                <a href="#"
-                                                   class="architect-link"
-                                                   data-client-id="@project.Architect.Id">
-                                                    @project.Architect.user_fname @project.Architect.user_lname
-                                                </a>
-                                            </div>
-                                            <div class="project-detail-item">
-                                                <span class="project-detail-label">Project Status:</span>
-                                                <span class="project-detail-value">@project.project_Status</span>
-                                            </div>
-                                        </div>
-                                    </div>
+    @if (Model.Any())
+    {
+        <div class="projects-grid">
+            @foreach (var project in Model)
+            {
+                var statusClass = project.project_Status switch
+                {
+                    "Ongoing" => "status-ongoing",
+                    "Review" => "status-review",
+                    "Compliance" => "status-compliance",
+                    "Finalization" => "status-finalization",
+                    "Finished" => "status-finished",
+                    _ => "status-ongoing"
+                };
+
+                <div class="project-card">
+                    <div class="project-image-wrap">
+                        <img src="@(project.Blueprint.blueprintImage.StartsWith("/uploads")
+                                    ? project.Blueprint.blueprintImage
+                                    : Url.Content("~/images/" + project.Blueprint.blueprintImage))"
+                             asp-append-version="true"
+                             alt="@project.project_Title" />
+                        <span class="project-status-pill @statusClass">
+                            <i class="fas fa-circle"></i>
+                            @project.project_Status
+                        </span>
+                    </div>
+
+                    <div class="project-body">
+                        <h3 class="project-title">@project.project_Title</h3>
+
+                        <div class="project-meta">
+                            <div class="meta-item">
+                                <div class="meta-icon">
+                                    <i class="fas fa-peso-sign"></i>
                                 </div>
-                            </td>
-                            <td class="text-end">
-                                <a asp-controller="ClientInterface"
-                                   asp-action="ProjectTracker"
-                                   asp-route-id="@project.blueprint_Id"
-                                   class="track-btn">
-                                    Track
-                                </a>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        }
-        else
-        {
-            <div class="empty-state">
-                <div class="empty-state-icon">
-                    <i class="fas fa-project-diagram"></i>
+                                <div class="meta-content">
+                                    <span class="meta-label">Budget</span>
+                                    <span class="meta-value">₱@project.project_Budget</span>
+                                </div>
+                            </div>
+                            <div class="meta-item">
+                                <div class="meta-icon">
+                                    <i class="fas fa-drafting-compass"></i>
+                                </div>
+                                <div class="meta-content">
+                                    <span class="meta-label">Architect</span>
+                                    <a href="#"
+                                       class="meta-value architect-link"
+                                       data-client-id="@project.Architect.Id">
+                                        @project.Architect.user_fname @project.Architect.user_lname
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="project-actions">
+                            <a asp-controller="ClientInterface"
+                               asp-action="ProjectTracker"
+                               asp-route-id="@project.blueprint_Id"
+                               class="track-btn">
+                                <i class="fas fa-eye"></i>
+                                Track Project
+                            </a>
+                        </div>
+                    </div>
                 </div>
-                <div class="empty-state-title">No Projects Yet</div>
-                <div class="empty-state-subtitle">
-                    Your active projects will appear here once you start working with architects.
-                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="fas fa-project-diagram"></i>
             </div>
-        }
-    </div>
+            <div class="empty-state-title">No Projects Yet</div>
+            <div class="empty-state-subtitle">
+                Your active projects will appear here once you start working with architects.
+            </div>
+        </div>
+    }
 </div>
 
 <!-- Architect Profile Modal -->
@@ -537,32 +681,68 @@
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Architect Profile</h5>
+                <h5 class="modal-title">
+                    <i class="fas fa-user-circle"></i>
+                    Architect Profile
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="profile-container">
-                    <div class="profile-main-card p-3">
-                        <div class="profile-info d-flex align-items-center gap-3 mb-3">
-                            <div class="avatar">
-                                <img id="architectProfilePhoto" src="~/images/profile.jpg" alt="Avatar" style="width:64px;height:64px;border-radius:50%;">
+                <div class="profile-main-card">
+                    <div class="profile-info">
+                        <div class="avatar">
+                            <img id="architectProfilePhoto" src="~/images/profile.jpg" alt="Avatar">
+                        </div>
+                        <div class="user-details">
+                            <h3 id="architectProfileName" class="architect-name"></h3>
+                            <div id="architectProfileEmail" class="text-muted">
+                                <i class="fas fa-envelope"></i>
+                                <span></span>
                             </div>
-                            <div class="user-details">
-                                <h3 id="architectProfileName" class="architect-name mb-1 fw-bold"></h3>
-                                <div id="architectProfileEmail" class="text-muted"></div>
-                                <div id="architectProfilePhone" class="text-muted"></div>
+                            <div id="architectProfilePhone" class="text-muted">
+                                <i class="fas fa-phone"></i>
+                                <span></span>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="mt-3">
-                            <p><strong>License No:</strong> <span id="architectProfileLicense"></span></p>
-                            <p><strong>Style:</strong> <span id="architectProfileStyle"></span></p>
-                            <p><strong>Specialization:</strong> <span id="architectProfileSpecialization"></span></p>
-                            <p><strong>Location:</strong> <span id="architectProfileLocation"></span></p>
-                            <p>
-                                <strong>Credentials File:</strong>
-                                <a id="architectProfileCredentials" href="#" target="_blank" class="text-decoration-underline archi-cred">Architect's Credentials</a>
-                            </p>
+                    <div class="profile-detail-grid">
+                        <div class="profile-detail-row">
+                            <i class="fas fa-id-card"></i>
+                            <div>
+                                <span class="detail-label">License No</span>
+                                <div class="detail-value" id="architectProfileLicense"></div>
+                            </div>
+                        </div>
+                        <div class="profile-detail-row">
+                            <i class="fas fa-palette"></i>
+                            <div>
+                                <span class="detail-label">Style</span>
+                                <div class="detail-value" id="architectProfileStyle"></div>
+                            </div>
+                        </div>
+                        <div class="profile-detail-row">
+                            <i class="fas fa-star"></i>
+                            <div>
+                                <span class="detail-label">Specialization</span>
+                                <div class="detail-value" id="architectProfileSpecialization"></div>
+                            </div>
+                        </div>
+                        <div class="profile-detail-row">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <div>
+                                <span class="detail-label">Location</span>
+                                <div class="detail-value" id="architectProfileLocation"></div>
+                            </div>
+                        </div>
+                        <div class="profile-detail-row" id="credentialsRow">
+                            <i class="fas fa-file-pdf"></i>
+                            <div>
+                                <span class="detail-label">Credentials</span>
+                                <div class="detail-value">
+                                    <a id="architectProfileCredentials" href="#" target="_blank" class="archi-cred">View Credentials</a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -577,6 +757,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
+                    <i class="fas fa-folder-open"></i>
                     My Purchased Blueprints
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -593,7 +774,6 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Listen for sidebar toggle and adjust main content accordingly
             const sidebar = document.querySelector('.sidebar');
             const sidebarToggler = document.querySelector('.sidebar-toggler');
             const mainContent = document.querySelector('main.container');
@@ -618,7 +798,7 @@
                 });
             }
 
-            // ✅ Architect modal trigger
+            // Architect profile modal trigger
             const architectLinks = document.querySelectorAll('.architect-link');
 
             architectLinks.forEach(link => {
@@ -633,20 +813,19 @@
                         const data = await res.json();
 
                         document.getElementById('architectProfileName').textContent = data.fullName;
-                        document.getElementById('architectProfileEmail').textContent = data.email || '';
-                        document.getElementById('architectProfilePhone').textContent = data.phone || '';
+                        document.getElementById('architectProfileEmail').querySelector('span').textContent = data.email || 'No email provided';
+                        document.getElementById('architectProfilePhone').querySelector('span').textContent = data.phone || 'No phone provided';
                         document.getElementById('architectProfilePhoto').src = data.photo;
-                        document.getElementById('architectProfileLicense').textContent = data.license || '';
-                        document.getElementById('architectProfileStyle').textContent = data.style || '';
-                        document.getElementById('architectProfileSpecialization').textContent = data.specialization || '';
-                        document.getElementById('architectProfileLocation').textContent = data.location || '';
+                        document.getElementById('architectProfileLicense').textContent = data.license || 'N/A';
+                        document.getElementById('architectProfileStyle').textContent = data.style || 'N/A';
+                        document.getElementById('architectProfileSpecialization').textContent = data.specialization || 'N/A';
+                        document.getElementById('architectProfileLocation').textContent = data.location || 'N/A';
 
                         const credentialsLink = document.getElementById('architectProfileCredentials');
-                        const credentialsRow = credentialsLink.closest('p');
+                        const credentialsRow = document.getElementById('credentialsRow');
                         if (data.credentialsFile) {
                             credentialsLink.href = data.credentialsFile;
-                            credentialsLink.textContent = 'Architect Credentials';
-                            credentialsLink.style.display = 'inline';
+                            credentialsRow.style.display = 'flex';
                         } else {
                             credentialsRow.style.display = 'none';
                         }
@@ -661,9 +840,9 @@
             });
 
             // Purchased Blueprints Modal Trigger
-            const projectBtn = document.querySelector('.project-btn');
-            if (projectBtn) {
-                projectBtn.addEventListener('click', async function (e) {
+            const purchasedBtn = document.getElementById('purchasedBtn');
+            if (purchasedBtn) {
+                purchasedBtn.addEventListener('click', async function (e) {
                     e.preventDefault();
 
                     try {
@@ -677,7 +856,7 @@
 
                         if (blueprints.length === 0) {
                             container.innerHTML = `
-                                <div class="empty-state">
+                                <div class="empty-state" style="padding: 2.5rem 1rem; box-shadow: none; border: none;">
                                     <div class="empty-state-icon">
                                         <i class="fas fa-folder-open"></i>
                                     </div>
@@ -696,8 +875,8 @@
                                     <img src="${imageSrc}" alt="${bp.name}" />
                                     <div class="blueprint-info">
                                         <h5>${bp.name}</h5>
-                                        <p>Style: ${bp.style || 'N/A'}</p>
-                                        <p>Price: ₱${bp.price ? bp.price.toLocaleString() : 'N/A'}</p>
+                                        <p><i class="fas fa-palette"></i>Style: ${bp.style || 'N/A'}</p>
+                                        <p><i class="fas fa-peso-sign"></i>Price: ₱${bp.price ? bp.price.toLocaleString() : 'N/A'}</p>
                                     </div>
                                 `;
                                 container.appendChild(item);

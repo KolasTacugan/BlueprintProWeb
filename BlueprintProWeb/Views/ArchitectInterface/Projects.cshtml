@@ -1,4 +1,4 @@
-﻿@model IEnumerable<BlueprintProWeb.Models.Project>
+@model IEnumerable<BlueprintProWeb.Models.Project>
 
 @{
     ViewData["Title"] = "My Projects";
@@ -7,13 +7,11 @@
 
 @section Styles {
     <style>
-        /* Override shared layout background for projects page */
         body::before {
             background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
             opacity: 0.1 !important;
         }
 
-        /* Ensure scrollable page with consistent background */
         body {
             background: #F1F7F9 !important;
             overflow-y: auto !important;
@@ -21,7 +19,6 @@
             font-family: 'Raleway', sans-serif !important;
         }
 
-        /* Main content positioning that responds to sidebar state */
         main.container {
             margin-left: 300px;
             margin-top: 90px;
@@ -31,293 +28,608 @@
             transition: margin-left 0.4s ease, max-width 0.4s ease;
         }
 
-        /* When sidebar is collapsed, adjust main content */
         .sidebar.collapsed ~ * main.container,
         body:has(.sidebar.collapsed) main.container {
             margin-left: 110px;
             max-width: calc(100% - 130px);
         }
 
-        /* Page Header Styling */
-        .projects-header {
+        /* ── Page Header (matches dashboard-greeting) ─────────── */
+        .page-header {
+            color: #1a202c;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 1px solid #e8edf5;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid rgba(52, 78, 173, 0.1);
+            gap: 1rem;
         }
 
-        .projects-title-section {
+        .page-title {
+            font-weight: 700;
+            font-size: 1.75rem;
+            letter-spacing: -0.3px;
+            color: #1a202c;
+            margin: 0;
+        }
+
+        .page-subtitle {
+            font-size: 0.9rem;
+            font-weight: 400;
+            color: #94a3b8;
+            margin-top: 0.3rem;
+        }
+
+        .bin-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #F8FAFC;
+            color: #344EAD;
+            border: 1.5px solid #E2E8F0;
+            border-radius: 10px;
+            padding: 0.65rem 1.15rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .bin-btn:hover {
+            background: #F1F7F9;
+            border-color: #344EAD;
+            color: #344EAD;
+            transform: translateY(-1px);
+        }
+
+        .bin-btn i {
+            font-size: 0.85rem;
+        }
+
+        /* ── Projects Grid ────────────────────────────────────── */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.25rem;
+        }
+
+        .project-card {
+            background: #FFFFFF;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(7, 23, 68, 0.07);
+            border: 1px solid #eef2f7;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.25s ease;
+        }
+
+        .project-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(52, 78, 173, 0.12);
+            border-color: rgba(52, 78, 173, 0.2);
+        }
+
+        .project-image-wrap {
+            position: relative;
+            width: 100%;
+            height: 170px;
+            overflow: hidden;
+            background: #F1F7F9;
+        }
+
+        .project-image-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.35s ease;
+        }
+
+        .project-card:hover .project-image-wrap img {
+            transform: scale(1.03);
+        }
+
+        .project-status-pill {
+            position: absolute;
+            top: 0.85rem;
+            left: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            backdrop-filter: blur(8px);
+        }
+
+        .project-status-pill i {
+            font-size: 0.55rem;
+        }
+
+        .status-ongoing {
+            background: rgba(59, 130, 246, 0.92);
+            color: #FFFFFF;
+        }
+
+        .status-review {
+            background: rgba(245, 158, 11, 0.92);
+            color: #FFFFFF;
+        }
+
+        .status-compliance {
+            background: rgba(139, 92, 246, 0.92);
+            color: #FFFFFF;
+        }
+
+        .status-finalization {
+            background: rgba(16, 185, 129, 0.92);
+            color: #FFFFFF;
+        }
+
+        .status-finished {
+            background: rgba(34, 197, 94, 0.92);
+            color: #FFFFFF;
+        }
+
+        .project-body {
+            padding: 1.25rem 1.35rem 1.1rem;
+            flex: 1;
             display: flex;
             flex-direction: column;
         }
 
-        .projects-title {
-            font-size: 1.75rem;
-            font-weight: 600;
+        .project-title {
+            font-weight: 700;
+            font-size: 1.1rem;
             color: #1a202c;
-            margin: 0;
-            font-family: 'Raleway', sans-serif;
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-        }
-
-        .projects-title i {
-            color: #344EAD;
-            font-size: 1.5rem;
-            width: 28px;
-            height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .projects-subtitle {
-            font-size: 1rem;
-            font-weight: 400;
-            color: #718096;
-            margin-top: 0.5rem;
-            margin-left: 2.2rem; /* Aligns with title text after icon */
-        }
-
-        /* Projects Container */
-        .projects-container {
-            background: #FFFFFF;
-            border-radius: 16px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(52, 78, 173, 0.05);
+            margin: 0 0 0.85rem;
+            letter-spacing: -0.2px;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
             overflow: hidden;
         }
 
-        /* Enhanced Table Styling */
-        .blueprint-table {
-            border-collapse: separate;
-            border-spacing: 0;
-            background: transparent;
-            width: 100%;
-            margin: 0;
+        .project-meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.65rem;
+            margin-bottom: 1rem;
         }
 
-        .blueprint-table tbody tr {
-            background: #FFFFFF;
-            transition: all 0.2s ease;
-            border-bottom: 1px solid rgba(52, 78, 173, 0.05);
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.6rem 0.75rem;
+            background: #F8FAFC;
+            border-radius: 8px;
+            border-left: 3px solid #344EAD;
         }
 
-        .blueprint-table tbody tr:hover {
-            background: rgba(52, 78, 173, 0.02);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(52, 78, 173, 0.08);
+        .meta-icon {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #FFFFFF;
+            font-size: 0.75rem;
+            flex-shrink: 0;
         }
 
-        .blueprint-table tbody tr:last-child {
-            border-bottom: none;
+        .meta-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.1rem;
+            min-width: 0;
         }
 
-        .blueprint-table td {
-            padding: 1.5rem;
-            border: none;
-            vertical-align: middle;
-        }
-
-        /* Enhanced Image Styling */
-        .bp-image {
-            width: 160px;
-            height: 80px;
-            border-radius: 12px;
-            object-fit: cover;
-            transition: all 0.3s ease;
-            border: 2px solid rgba(52, 78, 173, 0.1);
-        }
-
-        .blueprint-table tbody tr:hover .bp-image {
-            transform: scale(1.02);
-            border-color: rgba(52, 78, 173, 0.2);
-            box-shadow: 0 4px 12px rgba(52, 78, 173, 0.15);
-        }
-
-        /* Project Information Styling */
-        .project-info {
-            margin-left: 1.5rem;
-        }
-
-        .bp-name {
+        .meta-label {
+            font-size: 0.65rem;
             font-weight: 700;
-            color: #1a202c;
-            font-size: 1.1rem;
-            font-family: 'Raleway', sans-serif;
-            margin-bottom: 0.5rem;
-            line-height: 1.3;
-        }
-
-        .project-details {
-            margin-top: 0.75rem;
-        }
-
-        .project-detail-item {
-            margin-bottom: 0.25rem;
-            font-size: 0.9rem;
-        }
-
-        .project-detail-label {
-            font-weight: 600;
             color: #64748B;
-            font-family: 'Raleway', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .project-detail-value {
-            color: #1a202c;
-            font-weight: 500;
-        }
-
-        /* Enhanced Client Link Styling */
-        .client-link {
-            color: #344EAD;
-            text-decoration: none;
+        .meta-value {
+            font-size: 0.82rem;
             font-weight: 600;
-            transition: all 0.2s ease;
-            border-bottom: 1px solid transparent;
+            color: #1a202c;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .client-link:hover {
+        .meta-value.client-link {
+            color: #344EAD;
+            cursor: pointer;
+            border-bottom: 1px dashed transparent;
+            transition: all 0.2s ease;
+        }
+
+        .meta-value.client-link:hover {
             color: #2563EB;
-            text-decoration: none;
             border-bottom-color: #2563EB;
         }
 
-        /* Enhanced Track Button */
+        .project-actions {
+            display: flex;
+            gap: 0.6rem;
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid #f0f4f8;
+        }
+
         .track-btn {
-            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            padding: 0.75rem 1.5rem;
-            font-weight: 600;
-            font-family: 'Raleway', sans-serif;
-            font-size: 0.9rem;
-            transition: all 0.2s ease;
+            flex: 1;
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 0.5rem;
-            box-shadow: 0 2px 8px rgba(52, 78, 173, 0.2);
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            color: #FFFFFF;
+            border: none;
+            border-radius: 8px;
+            padding: 0.7rem 1.1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             text-decoration: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(52, 78, 173, 0.2);
         }
 
         .track-btn:hover {
+            background: linear-gradient(135deg, #2563EB 0%, #1d4ed8 100%);
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(52, 78, 173, 0.3);
-            background: linear-gradient(135deg, #2563EB 0%, #344EAD 100%);
-            color: white;
+            box-shadow: 0 4px 10px rgba(52, 78, 173, 0.3);
+            color: #FFFFFF;
             text-decoration: none;
         }
 
-        .track-btn:active {
-            transform: translateY(0);
+        .delete-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: #FEF2F2;
+            color: #DC2626;
+            border: 1.5px solid #FECACA;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
         }
 
-        .track-btn::before {
-            content: "👁️";
-            font-size: 1rem;
+        .delete-btn:hover {
+            background: #DC2626;
+            color: #FFFFFF;
+            border-color: #DC2626;
+            transform: translateY(-1px);
         }
 
-        /* Enhanced Modal Styling */
+        /* ── Empty State ──────────────────────────────────────── */
+        .empty-state {
+            background: #FFFFFF;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(7, 23, 68, 0.07);
+            border: 1px solid #eef2f7;
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .empty-state-icon {
+            width: 72px;
+            height: 72px;
+            background: rgba(52, 78, 173, 0.08);
+            border-radius: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #344EAD;
+            font-size: 1.75rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .empty-state-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 0.35rem;
+            letter-spacing: -0.2px;
+        }
+
+        .empty-state-subtitle {
+            font-size: 0.875rem;
+            color: #64748B;
+            line-height: 1.55;
+            max-width: 380px;
+            margin: 0 auto;
+        }
+
+        /* ── Modals ───────────────────────────────────────────── */
         .modal-content {
             border-radius: 16px;
-            border: none;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border: 1px solid #eef2f7;
+            box-shadow: 0 20px 60px rgba(7, 23, 68, 0.2);
+            overflow: hidden;
         }
 
         .modal-header {
-            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
-            color: white;
-            border-radius: 16px 16px 0 0;
+            background: linear-gradient(135deg, #071744 0%, #344EAD 100%);
+            color: #FFFFFF;
             border-bottom: none;
-            padding: 1.5rem;
+            padding: 1.25rem 1.5rem;
         }
 
         .modal-title {
-            font-weight: 600;
-            font-family: 'Raleway', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.55rem;
+            letter-spacing: -0.1px;
         }
 
-        .modal-title::before {
-            content: "👤";
-            font-size: 1.2rem;
+        .modal-title i {
+            font-size: 0.95rem;
         }
 
         .btn-close {
             filter: invert(1);
+            opacity: 0.85;
         }
 
         .modal-body {
-            padding: 2rem;
-            font-family: 'Raleway', sans-serif;
+            padding: 1.75rem;
         }
 
-        /* Profile Card in Modal */
+        .modal-footer {
+            border-top: 1px solid #f0f4f8;
+            padding: 1rem 1.5rem;
+        }
+
+        /* ── Profile Card in Modal ────────────────────────────── */
         .profile-main-card {
             background: #F8FAFC;
             border-radius: 12px;
-            border: 1px solid rgba(52, 78, 173, 0.1);
+            border: 1px solid #eef2f7;
+            padding: 1.25rem;
         }
 
         .profile-info {
-            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .avatar img {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #FFFFFF;
+            box-shadow: 0 4px 12px rgba(52, 78, 173, 0.15);
         }
 
         .client-name {
             color: #1a202c;
-            font-family: 'Raleway', sans-serif;
+            font-weight: 700;
+            font-size: 1.15rem;
+            margin: 0 0 0.25rem;
+            letter-spacing: -0.2px;
         }
 
         .profile-info .text-muted {
             color: #64748B !important;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            margin-top: 0.2rem;
         }
 
-        .avatar img {
-            border: 3px solid rgba(52, 78, 173, 0.1);
+        .profile-info .text-muted i {
+            width: 14px;
+            color: #344EAD;
+            font-size: 0.75rem;
+        }
+
+        /* ── Deleted Projects List (Bin modal) ────────────────── */
+        .deleted-project-item {
+            background: #F8FAFC;
+            border: 1px solid #eef2f7;
+            border-radius: 12px;
+            padding: 1rem 1.15rem;
+            margin-bottom: 0.85rem;
+            text-align: left;
             transition: all 0.2s ease;
         }
 
-        .avatar img:hover {
-            border-color: rgba(52, 78, 173, 0.3);
-            transform: scale(1.05);
+        .deleted-project-item:last-child {
+            margin-bottom: 0;
         }
 
-        /* Empty State Styling */
-        .empty-state {
-            text-align: center;
-            padding: 4rem 2rem;
+        .deleted-project-item:hover {
+            border-color: rgba(52, 78, 173, 0.2);
+            box-shadow: 0 2px 8px rgba(52, 78, 173, 0.06);
+        }
+
+        .deleted-project-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #1a202c;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.1px;
+        }
+
+        .deleted-project-meta {
+            font-size: 0.8rem;
             color: #64748B;
+            margin-bottom: 0.15rem;
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
         }
 
-        .empty-state-icon {
-            font-size: 4rem;
-            color: #CBD5E1;
+        .deleted-project-meta i {
+            width: 13px;
+            color: #344EAD;
+            font-size: 0.72rem;
+        }
+
+        .deleted-project-meta strong {
+            color: #1a202c;
+            font-weight: 600;
+        }
+
+        .deleted-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.85rem;
+            padding-top: 0.85rem;
+            border-top: 1px solid #eef2f7;
+        }
+
+        .btn-restore {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: #FFFFFF;
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 0.9rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+        }
+
+        .btn-restore:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+            color: #FFFFFF;
+        }
+
+        .btn-delete-permanent {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: #FEF2F2;
+            color: #DC2626;
+            border: 1.5px solid #FECACA;
+            border-radius: 8px;
+            padding: 0.5rem 0.9rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .btn-delete-permanent:hover {
+            background: #DC2626;
+            color: #FFFFFF;
+            border-color: #DC2626;
+        }
+
+        .confirm-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
             margin-bottom: 1rem;
         }
 
-        .empty-state-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #475569;
-            margin-bottom: 0.5rem;
-            font-family: 'Raleway', sans-serif;
+        .confirm-icon.warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: #F59E0B;
         }
 
-        .empty-state-subtitle {
-            font-size: 0.9rem;
+        .confirm-icon.danger {
+            background: rgba(220, 38, 38, 0.1);
+            color: #DC2626;
+        }
+
+        .confirm-title {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: #1a202c;
+            margin-bottom: 0.4rem;
+        }
+
+        .confirm-subtitle {
+            font-size: 0.85rem;
             color: #64748B;
             line-height: 1.5;
         }
 
-        /* Responsive Design */
+        .btn-modal-cancel {
+            background: #F8FAFC;
+            color: #64748B;
+            border: 1.5px solid #E2E8F0;
+            border-radius: 8px;
+            padding: 0.6rem 1.25rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .btn-modal-cancel:hover {
+            background: #F1F7F9;
+            color: #1a202c;
+        }
+
+        .btn-modal-confirm {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+            color: #FFFFFF;
+            border: none;
+            border-radius: 8px;
+            padding: 0.6rem 1.25rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+        }
+
+        .btn-modal-confirm:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(220, 38, 38, 0.3);
+            color: #FFFFFF;
+        }
+
+        /* ── Responsive ───────────────────────────────────────── */
+        @@media (max-width: 1200px) {
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         @@media (max-width: 768px) {
             main.container {
                 margin-left: 0 !important;
@@ -327,165 +639,130 @@
                 padding-top: 2rem;
             }
 
-            .projects-header {
+            .page-header {
                 flex-direction: column;
+                align-items: flex-start;
                 gap: 1rem;
-                align-items: stretch;
             }
 
-            .projects-title {
+            .page-title {
                 font-size: 1.4rem;
             }
 
-            .blueprint-table td {
-                padding: 1rem;
-            }
-
-            .bp-image {
-                width: 120px;
-                height: 60px;
-            }
-
-            .project-info {
-                margin-left: 1rem;
-            }
-
-            .bp-name {
-                font-size: 1rem;
-            }
-
-            .track-btn {
-                padding: 0.6rem 1.2rem;
-                font-size: 0.85rem;
+            .project-meta {
+                grid-template-columns: 1fr;
             }
 
             .modal-body {
-                padding: 1.5rem;
-            }
-        }
-
-        @@media (max-width: 576px) {
-            .blueprint-table td {
-                padding: 0.75rem;
-            }
-
-            .bp-image {
-                width: 100px;
-                height: 50px;
-            }
-
-            .project-info {
-                margin-left: 0.75rem;
-            }
-
-            .projects-title {
-                font-size: 1.25rem;
-            }
-
-            .track-btn {
-                padding: 0.5rem 1rem;
-                font-size: 0.8rem;
+                padding: 1.25rem;
             }
         }
     </style>
 }
 
 <div>
-    <div class="projects-header">
-        <div class="projects-title-section">
-            <h2 class="projects-title">
-                <i class="fas fa-project-diagram"></i>
-                My Projects
-            </h2>
-            <div class="projects-subtitle">
-                Oversee your active client projects
-            </div>
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">My Projects</h1>
+            <div class="page-subtitle">Oversee your active client projects</div>
         </div>
-        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deletedProjectsModal">
-            <i class="fas fa-trash"></i> Bin
+        <button type="button" class="bin-btn" data-bs-toggle="modal" data-bs-target="#deletedProjectsModal">
+            <i class="fas fa-trash-alt"></i>
+            Recycle Bin
         </button>
     </div>
 
-    <div class="projects-container">
-        @if (Model.Any())
-        {
-            <table class="table blueprint-table">
-                <tbody>
-                    @foreach (var item in Model)
-                    {
-                        <tr class="bp-row">
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <img src="@(item.Blueprint.blueprintImage.StartsWith("/uploads")
-                                                 ? item.Blueprint.blueprintImage
-                                                 : Url.Content("~/images/" + item.Blueprint.blueprintImage))"
-                                     class="bp-image"
-                                     asp-append-version="true"
-                                     alt="@item.project_Title" />
-                                    <div class="project-info">
-                                        <div class="bp-name">@item.project_Title</div>
-                                        <div class="project-details">
-                                            <div class="project-detail-item">
-                                                <span class="project-detail-label">Budget:</span>
-                                                <span class="project-detail-value">₱@item.project_Budget</span>
-                                            </div>
-                                            <div class="project-detail-item">
-                                                <span class="project-detail-label">Client:</span>
-                                                <a href="#"
-                                                   class="client-link"
-                                                   data-client-id="@item.Client.Id">
-                                                    @item.Client.user_fname @item.Client.user_lname
-                                                </a>
-                                            </div>
-                                            <div class="project-detail-item">
-                                                <span class="project-detail-label">Project Status:</span>
-                                                <span class="project-detail-value">@item.project_Status</span>
-                                            </div>
-                                        </div>
-                                    </div>
+    @if (Model.Any())
+    {
+        <div class="projects-grid">
+            @foreach (var item in Model)
+            {
+                var statusClass = item.project_Status switch
+                {
+                    "Ongoing" => "status-ongoing",
+                    "Review" => "status-review",
+                    "Compliance" => "status-compliance",
+                    "Finalization" => "status-finalization",
+                    "Finished" => "status-finished",
+                    _ => "status-ongoing"
+                };
+
+                <div class="project-card">
+                    <div class="project-image-wrap">
+                        <img src="@(item.Blueprint.blueprintImage.StartsWith("/uploads")
+                                    ? item.Blueprint.blueprintImage
+                                    : Url.Content("~/images/" + item.Blueprint.blueprintImage))"
+                             asp-append-version="true"
+                             alt="@item.project_Title" />
+                        <span class="project-status-pill @statusClass">
+                            <i class="fas fa-circle"></i>
+                            @item.project_Status
+                        </span>
+                    </div>
+
+                    <div class="project-body">
+                        <h3 class="project-title">@item.project_Title</h3>
+
+                        <div class="project-meta">
+                            <div class="meta-item">
+                                <div class="meta-icon">
+                                    <i class="fas fa-peso-sign"></i>
                                 </div>
-                            </td>
-                            <td class="text-end">
-                                <a asp-controller="ArchitectInterface"
-                                   asp-action="ProjectTracker"
-                                   asp-route-id="@item.blueprint_Id"
-                                   class="track-btn">
-                                    Track
-                                </a>
-                            
-                                @if (item.project_Status == "Ongoing")
-                                {
-                                    <form asp-controller="ArchitectInterface"
-                                          asp-action="DeleteProject"
-                                          asp-route-id="@item.project_Id"
-                                          method="post"
-                                          style="display:inline;">
-                                        <button type="button"
-                                                class="btn btn-danger btn-sm ms-2"
-                                                onclick="openMoveToBinModal('@item.project_Id')">
-                                            <span class="material-symbols-outlined">DELETE</span>
-                                        </button>
-                                    </form>
-                                }
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        }
-        else
-        {
-            <div class="empty-state">
-                <div class="empty-state-icon">
-                    <i class="fas fa-project-diagram"></i>
+                                <div class="meta-content">
+                                    <span class="meta-label">Budget</span>
+                                    <span class="meta-value">₱@item.project_Budget</span>
+                                </div>
+                            </div>
+                            <div class="meta-item">
+                                <div class="meta-icon">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="meta-content">
+                                    <span class="meta-label">Client</span>
+                                    <a href="#"
+                                       class="meta-value client-link"
+                                       data-client-id="@item.Client.Id">
+                                        @item.Client.user_fname @item.Client.user_lname
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="project-actions">
+                            <a asp-controller="ArchitectInterface"
+                               asp-action="ProjectTracker"
+                               asp-route-id="@item.blueprint_Id"
+                               class="track-btn">
+                                <i class="fas fa-eye"></i>
+                                Track Project
+                            </a>
+                            @if (item.project_Status == "Ongoing")
+                            {
+                                <button type="button"
+                                        class="delete-btn"
+                                        title="Move to Bin"
+                                        onclick="openMoveToBinModal('@item.project_Id')">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            }
+                        </div>
+                    </div>
                 </div>
-                <div class="empty-state-title">No Projects Yet</div>
-                <div class="empty-state-subtitle">
-                    Your active projects will appear here once clients start working with you.
-                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="fas fa-project-diagram"></i>
             </div>
-        }
-    </div>
+            <div class="empty-state-title">No Projects Yet</div>
+            <div class="empty-state-subtitle">
+                Your active projects will appear here once clients start working with you.
+            </div>
+        </div>
+    }
 </div>
 
 <!-- Client Profile Modal -->
@@ -493,20 +770,27 @@
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Client Profile</h5>
+                <h5 class="modal-title">
+                    <i class="fas fa-user-circle"></i>
+                    Client Profile
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="profile-container">
-                    <div class="profile-main-card p-3">
-                        <div class="profile-info d-flex align-items-center gap-3 mb-3">
-                            <div class="avatar">
-                                <img id="clientProfilePhoto" src="~/images/profile.jpg" alt="Avatar" style="width:64px;height:64px;border-radius:50%;">
+                <div class="profile-main-card">
+                    <div class="profile-info">
+                        <div class="avatar">
+                            <img id="clientProfilePhoto" src="~/images/profile.jpg" alt="Avatar">
+                        </div>
+                        <div class="user-details">
+                            <h3 id="clientProfileName" class="client-name"></h3>
+                            <div id="clientProfileEmail" class="text-muted">
+                                <i class="fas fa-envelope"></i>
+                                <span></span>
                             </div>
-                            <div class="user-details">
-                                <h3 id="clientProfileName" class="client-name mb-1 fw-bold"></h3>
-                                <div id="clientProfileEmail" class="text-muted"></div>
-                                <div id="clientProfilePhone" class="text-muted"></div>
+                            <div id="clientProfilePhone" class="text-muted">
+                                <i class="fas fa-phone"></i>
+                                <span></span>
                             </div>
                         </div>
                     </div>
@@ -519,16 +803,15 @@
 <!-- Deleted Projects (Bin) Modal -->
 <div class="modal fade" id="deletedProjectsModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content rounded-3 shadow">
-            <div class="modal-header" style="background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%); color: white;">
+        <div class="modal-content">
+            <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="fas fa-trash"></i>
-                    Deleted Projects
+                    <i class="fas fa-trash-alt"></i>
+                    Recycle Bin
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(1);"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-
-            <div class="modal-body" style="padding: 2rem;">
+            <div class="modal-body">
                 <div id="deletedProjectsContainer" class="text-center text-muted">
                     <i class="fas fa-spinner fa-spin"></i> Loading deleted projects...
                 </div>
@@ -540,23 +823,27 @@
 <!-- Move to Bin Confirmation Modal -->
 <div class="modal fade" id="moveToBinModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-3 shadow">
-            <div class="modal-header" style="background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%); color: white;">
+        <div class="modal-content">
+            <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="fas fa-trash"></i>
+                    <i class="fas fa-trash-alt"></i>
                     Move to Bin
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(1);"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body text-center" style="padding: 2rem;">
-                <p class="fw-semibold mb-2">Are you sure you want to move this project to the bin?</p>
-                <p class="text-muted mb-0" style="font-size: 0.9rem;">You can restore it later if needed.</p>
+            <div class="modal-body text-center">
+                <div class="confirm-icon warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="confirm-title">Move this project to the bin?</div>
+                <div class="confirm-subtitle">You can restore it later from the Recycle Bin if needed.</div>
             </div>
-            <div class="modal-footer justify-content-center" style="border-top: 1px solid rgba(52,78,173,0.1);">
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal">Cancel</button>
                 <form id="moveToBinForm" method="post" action="/ArchitectInterface/DeleteProject">
                     <input type="hidden" name="id" id="moveToBinProjectId" />
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-trash"></i> Move to Bin
+                    <button type="submit" class="btn-modal-confirm">
+                        <i class="fas fa-trash-alt"></i> Move to Bin
                     </button>
                 </form>
             </div>
@@ -567,23 +854,27 @@
 <!-- Permanent Delete Confirmation Modal -->
 <div class="modal fade" id="permanentDeleteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-3 shadow">
-            <div class="modal-header" style="background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%); color: white;">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #B91C1C 0%, #DC2626 100%);">
                 <h5 class="modal-title">
                     <i class="fas fa-exclamation-triangle"></i>
                     Permanently Delete
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(1);"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body text-center" style="padding: 2rem;">
-                <p class="fw-semibold text-danger">⚠️ Are you sure you want to permanently delete this project?</p>
-                <p class="text-muted mb-0" style="font-size: 0.9rem;">Once deleted, this project cannot be restored.</p>
+            <div class="modal-body text-center">
+                <div class="confirm-icon danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="confirm-title">Permanently delete this project?</div>
+                <div class="confirm-subtitle">Once deleted, this project cannot be restored.</div>
             </div>
-            <div class="modal-footer justify-content-center" style="border-top: 1px solid rgba(52,78,173,0.1);">
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal">Cancel</button>
                 <form id="permanentDeleteForm" method="post" action="/ArchitectInterface/PermanentlyDeleteProject">
                     <input type="hidden" name="id" id="permanentDeleteProjectId" />
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-trash-alt"></i> Permanently Delete
+                    <button type="submit" class="btn-modal-confirm">
+                        <i class="fas fa-trash-alt"></i> Delete Forever
                     </button>
                 </form>
             </div>
@@ -595,7 +886,6 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Listen for sidebar toggle and adjust main content accordingly
             const sidebar = document.querySelector('.sidebar');
             const sidebarToggler = document.querySelector('.sidebar-toggler');
             const mainContent = document.querySelector('main.container');
@@ -620,7 +910,7 @@
                 });
             }
 
-            // logic for client info
+            // Client profile modal
             const clientProfileModal = new bootstrap.Modal(document.getElementById('clientProfileModal'));
 
             document.querySelectorAll('.client-link').forEach(link => {
@@ -634,44 +924,39 @@
                         .then(data => {
                             if (data.success) {
                                 document.getElementById("clientProfileName").innerText = data.name;
-                                document.getElementById("clientProfileEmail").innerText = data.email || "No email provided";
-                                document.getElementById("clientProfilePhone").innerText = data.phone || "No phone provided";
+                                document.getElementById("clientProfileEmail").querySelector('span').innerText = data.email || "No email provided";
+                                document.getElementById("clientProfilePhone").querySelector('span').innerText = data.phone || "No phone provided";
                                 const profilePhoto = data.profilePhoto || "/images/profile.jpg";
                                 document.getElementById("clientProfilePhoto").src = profilePhoto;
 
                                 clientProfileModal.show();
                             } else {
-                                alert("❌ " + data.message);
+                                alert(data.message);
                             }
                         })
-                        .catch(() => alert("❌ Failed to load client profile."));
+                        .catch(() => alert("Failed to load client profile."));
                 });
             });
         });
 
-        // Open "Move to Bin" modal
         function openMoveToBinModal(projectId) {
             document.getElementById('moveToBinProjectId').value = projectId;
             new bootstrap.Modal(document.getElementById('moveToBinModal')).show();
         }
 
-        // Open "Permanently Delete" modal
         function openPermanentDeleteModal(projectId) {
-            // ✅ Close Bin modal first if it's open
             const binModalEl = document.getElementById('deletedProjectsModal');
             const binModalInstance = bootstrap.Modal.getInstance(binModalEl);
             if (binModalInstance) {
                 binModalInstance.hide();
             }
 
-            // ✅ Wait a moment before showing the delete modal (smooth transition)
             setTimeout(() => {
                 document.getElementById('permanentDeleteProjectId').value = projectId;
                 new bootstrap.Modal(document.getElementById('permanentDeleteModal')).show();
-            }, 400); // small delay ensures fade animation looks clean
+            }, 400);
         }
 
-        // Load deleted projects dynamically when Bin modal opens
         document.addEventListener('DOMContentLoaded', function () {
             const deletedProjectsModal = document.getElementById('deletedProjectsModal');
             const container = document.getElementById('deletedProjectsContainer');
@@ -683,23 +968,36 @@
                     .then(res => res.json())
                     .then(data => {
                         if (data.length === 0) {
-                            container.innerHTML = '<p class="text-muted mt-3">No deleted projects found.</p>';
+                            container.innerHTML = `
+                                <div class="empty-state" style="padding: 2.5rem 1rem; box-shadow: none; border: none;">
+                                    <div class="empty-state-icon">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </div>
+                                    <div class="empty-state-title">Bin is Empty</div>
+                                    <div class="empty-state-subtitle">No deleted projects found.</div>
+                                </div>`;
                             return;
                         }
 
                         container.innerHTML = data.map(p => `
-                            <div class="border rounded-3 p-3 mb-3 text-start" style="background:#F8FAFC;">
-                                <h6 class="fw-bold mb-2">${p.project_Title}</h6>
-                                <p class="mb-1"><strong>Client:</strong> ${p.clientName}</p>
-                                <p class="mb-2"><strong>Deleted On:</strong> ${new Date(p.deletedDate).toLocaleDateString()}</p>
-                                <div class="d-flex gap-2">
+                            <div class="deleted-project-item">
+                                <div class="deleted-project-title">${p.project_Title}</div>
+                                <div class="deleted-project-meta">
+                                    <i class="fas fa-user"></i>
+                                    <strong>Client:</strong> ${p.clientName}
+                                </div>
+                                <div class="deleted-project-meta">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <strong>Deleted On:</strong> ${new Date(p.deletedDate).toLocaleDateString()}
+                                </div>
+                                <div class="deleted-actions">
                                     <form method="post" action="/ArchitectInterface/RestoreProject">
                                         <input type="hidden" name="id" value="${p.project_Id}">
-                                        <button type="submit" class="btn btn-sm btn-success">
+                                        <button type="submit" class="btn-restore">
                                             <i class="fas fa-undo"></i> Restore
                                         </button>
                                     </form>
-                                    <button type="button" class="btn btn-sm btn-danger"
+                                    <button type="button" class="btn-delete-permanent"
                                             onclick="openPermanentDeleteModal('${p.project_Id}')">
                                         <i class="fas fa-trash-alt"></i> Delete
                                     </button>
