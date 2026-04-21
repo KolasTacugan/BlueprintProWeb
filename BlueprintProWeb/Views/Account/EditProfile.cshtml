@@ -1,4 +1,4 @@
-﻿@model BlueprintProWeb.ViewModels.ProfileViewModel
+@model BlueprintProWeb.ViewModels.ProfileViewModel
 @{
     Layout = ViewData["Layout"]?.ToString();
     ViewData["Title"] = "Edit Profile";
@@ -6,386 +6,752 @@
 
 @section Styles {
     <style>
-        @@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-
-        /* Override shared layout background for edit profile page */
         body::before {
             background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
             opacity: 0.1 !important;
         }
 
-        /* Ensure scrollable page */
         body {
             overflow-y: auto !important;
             height: auto !important;
-            font-family: 'Poppins', sans-serif;
-            margin: 0;
-            min-height: 100vh;
+            font-family: 'Raleway', sans-serif;
+            background: #F1F7F9 !important;
         }
 
-        /* Main content positioning that responds to sidebar state - using main.container to match shared layout */
         main.container {
-            margin-left: 300px; 
-            margin-top: 120px; 
-            padding: 2rem;
-            padding-top: 4rem; 
+            margin-left: 300px;
+            padding-top: 5rem;
+            padding-left: 2rem;
+            padding-right: 2rem;
+            padding-bottom: 2rem;
             max-width: calc(100% - 320px);
             transition: margin-left 0.4s ease, max-width 0.4s ease;
         }
 
-        /* When sidebar is collapsed, adjust main content */
         .sidebar.collapsed ~ * main.container,
         body:has(.sidebar.collapsed) main.container {
-            margin-left: 110px; /* Account for collapsed sidebar (85px + margins) */
+            margin-left: 110px;
             max-width: calc(100% - 130px);
         }
 
-        .main-card {
-            background: rgba(255, 255, 255, 0.4);
-            backdrop-filter: blur(12px);
-            border-radius: 24px;
-            padding: 40px;
-            margin: 0 20px 40px 20px;
-            box-shadow: 0 12px 40px rgba(13, 60, 128, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+        /* ── Alert ──────────────────────────────── */
+        .alert {
+            padding: 14px 18px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            border: none;
         }
 
-        .page-header {
+        .alert-success {
+            background: #eff8f1;
+            color: #166534;
+            border-left: 4px solid #22c55e;
+        }
+
+        .alert-danger {
+            background: #fef2f2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+
+        /* ── Wrapper ────────────────────────────── */
+        .edit-profile-wrapper {
+            width: 100%;
+        }
+
+        /* ── Main Card ──────────────────────────── */
+        .profile-card {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid #eef2f7;
+            box-shadow: 0 2px 20px rgba(7, 23, 68, 0.08);
+            overflow: hidden;
+        }
+
+        /* ── Card Header ────────────────────────── */
+        .card-header {
             display: flex;
             align-items: center;
-            margin-bottom: 30px;
+            justify-content: space-between;
+            padding: 20px 28px;
+            border-bottom: 1px solid #eef2f7;
         }
 
-        .back-btn {
-            background: #0D3C80;
-            color: white;
-            border: none;
-            font-size: 1.2rem;
-            cursor: pointer;
-            margin-right: 16px;
-            padding: 8px 12px;
-            border-radius: 8px;
-            text-decoration: none;
-        }
-
-        .back-btn:hover {
-            background: #0A2F66;
-            color: white;
-        }
-
-        .page-header h2 {
-            color: #0D3C80;
+        .card-header-title {
+            font-size: 1rem;
             font-weight: 700;
+            color: #0f172a;
             margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 9px;
         }
 
-        .form-section,
-        .credentials-section {
-            background: rgba(255, 255, 255, 0.85);
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0px 4px 12px rgba(13, 60, 128, 0.08);
-            border: none;
+        .card-header-title i {
+            color: #344EAD;
+            font-size: 0.95rem;
         }
 
-        .edit-form {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
+        .banner-actions {
+            display: flex;
+            gap: 10px;
         }
 
-        .form-section h3,
-        .credentials-section h3 {
-            color: #0D3C80;
+        /* ── Action Buttons ─────────────────────── */
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
             font-weight: 600;
-            margin-top: 0;
-            margin-bottom: 20px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            letter-spacing: 0.2px;
+            border: 1px solid #eef2f7;
+            background: #f8fafc;
+            color: #475569;
         }
 
-        .form-group {
-            margin-bottom: 16px;
+        .action-btn:hover {
+            border-color: rgba(52, 78, 173, 0.2);
+            background: #ffffff;
+            color: #344EAD;
+            text-decoration: none;
+            transform: translateY(-1px);
         }
 
-            .form-group label {
-                display: block;
-                margin-bottom: 6px;
-                font-weight: 600;
-                color: #0D3C80;
-            }
-
-            .form-group input,
-            .form-group textarea {
-                width: 100%;
-                padding: 12px;
-                border: 1px solid #EBF1FD;
-                border-radius: 8px;
-                font-family: 'Poppins', sans-serif;
-                font-size: 0.95rem;
-                background: #fff;
-            }
-
-            .form-group textarea {
-                min-height: 120px;
-                resize: vertical;
-            }
-
-        .avatar-section {
-            text-align: center;
+        .action-btn.save {
+            background: #344EAD;
+            color: #ffffff;
+            border-color: #344EAD;
         }
 
-        .avatar-preview {
-            width: 140px;
-            height: 140px;
+        .action-btn.save:hover {
+            background: #2a3f9a;
+            border-color: #2a3f9a;
+            color: #ffffff;
+        }
+
+        /* ── Profile Body ───────────────────────── */
+        .profile-body {
+            padding: 36px 36px 36px;
+        }
+
+        /* ── Identity Row (Avatar + Name) ───────── */
+        .profile-identity {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+
+        .avatar-wrapper {
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .avatar-container {
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
+            border: 3px solid #eef2f7;
             overflow: hidden;
-            border: 3px solid #EBF1FD;
-            margin: 0 auto 16px;
-            background: #f8f9fa;
+            background: #EBF1FD;
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-            .avatar-preview img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-            }
-
-        .avatar-placeholder {
-            color: #0D3C80;
-            font-size: 48px;
-            font-weight: 600;
-        }
-
-        .upload-btn {
-            background: rgba(255, 255, 255, 0.85);
-            border: 1px solid #0D3C80;
-            color: #0D3C80;
-            padding: 8px 16px;
-            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(7, 23, 68, 0.1);
             cursor: pointer;
+            transition: transform 0.2s ease;
+            position: relative;
+        }
+
+        .avatar-container:hover {
+            transform: scale(1.04);
+        }
+
+        .avatar-container:hover .avatar-overlay {
+            opacity: 1;
+        }
+
+        .avatar-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-initials {
+            font-size: 26px;
+            font-weight: 700;
+            color: #344EAD;
+            line-height: 1;
+        }
+
+        .avatar-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(7, 23, 68, 0.5);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            color: #ffffff;
+            font-size: 0.65rem;
+            font-weight: 700;
+            gap: 4px;
+        }
+
+        .avatar-overlay i {
+            font-size: 1rem;
+        }
+
+        .identity-text {
+            padding-bottom: 0;
+        }
+
+        .profile-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0 0 8px;
+            letter-spacing: -0.3px;
+        }
+
+        .role-badge {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(52, 78, 173, 0.08);
+            color: #344EAD;
+            padding: 4px 13px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            border: 1px solid rgba(52, 78, 173, 0.2);
+        }
+
+        /* ── Form Sections ──────────────────────── */
+        .form-divider {
+            border: none;
+            border-top: 1px solid #f0f4f8;
+            margin: 0 0 28px;
+        }
+
+        .section-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+        }
+
+        .fields-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .field-full {
+            grid-column: 1 / -1;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #eef2f7;
+            border-radius: 8px;
+            font-family: 'Raleway', sans-serif;
+            font-size: 0.925rem;
+            font-weight: 600;
+            color: #1a202c;
+            background: #f8fafc;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: rgba(52, 78, 173, 0.4);
+            box-shadow: 0 0 0 3px rgba(52, 78, 173, 0.06);
+            background: #ffffff;
+        }
+
+        /* hide native select — still submits value */
+        .form-group select.native-select {
+            display: none;
+        }
+
+        /* ── Custom Dropdown ────────────────────── */
+        .custom-select-wrapper {
+            position: relative;
+        }
+
+        .custom-select-trigger {
+            width: 100%;
+            padding: 10px 38px 10px 14px;
+            border: 1px solid #eef2f7;
+            border-radius: 8px;
+            font-family: 'Raleway', sans-serif;
+            font-size: 0.925rem;
+            font-weight: 600;
+            color: #1a202c;
+            background: #f8fafc;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        .custom-select-trigger.placeholder {
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .custom-select-trigger:hover {
+            border-color: rgba(52, 78, 173, 0.3);
+            background: #ffffff;
+        }
+
+        .custom-select-trigger.open {
+            border-color: rgba(52, 78, 173, 0.4);
+            box-shadow: 0 0 0 3px rgba(52, 78, 173, 0.06);
+            background: #ffffff;
+        }
+
+        .custom-select-trigger .chevron {
+            flex-shrink: 0;
+            width: 16px;
+            height: 16px;
+            color: #94a3b8;
+            transition: transform 0.2s ease;
+        }
+
+        .custom-select-trigger.open .chevron {
+            transform: rotate(180deg);
+            color: #344EAD;
+        }
+
+        .custom-select-options {
+            display: none;
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            border: 1px solid #eef2f7;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(7, 23, 68, 0.1);
+            z-index: 100;
+            overflow: hidden;
+            padding: 6px;
+        }
+
+        .custom-select-options.open {
+            display: block;
+        }
+
+        .custom-option {
+            padding: 9px 12px;
+            border-radius: 6px;
+            font-family: 'Raleway', sans-serif;
             font-size: 0.9rem;
             font-weight: 600;
-        }
-
-            .upload-btn:hover {
-                background: #0D3C80;
-                color: white;
-            }
-
-        .form-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-            margin-top: 20px;
-        }
-
-        .btn-primary {
-            background: #0D3C80;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
+            color: #1a202c;
             cursor: pointer;
+            transition: background 0.15s ease, color 0.15s ease;
         }
 
-            .btn-primary:hover {
-                background: #0A2F66;
-            }
+        .custom-option:hover {
+            background: rgba(52, 78, 173, 0.07);
+            color: #344EAD;
+        }
 
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.85);
-            color: #0D3C80;
-            border: 1px solid #0D3C80;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
+        .custom-option.selected {
+            background: rgba(52, 78, 173, 0.1);
+            color: #344EAD;
+        }
+
+        .custom-option.placeholder-opt {
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .form-group textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        .text-danger {
+            font-size: 0.78rem;
+            color: #ef4444;
+            font-weight: 500;
+        }
+
+        /* ── Credentials File Upload ────────────── */
+        .credential-card {
+            background: #f8fafc;
+            border: 1px solid #eef2f7;
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            transition: border-color 0.2s ease;
+        }
+
+        .credential-card:hover {
+            border-color: rgba(52, 78, 173, 0.2);
+        }
+
+        .credential-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 5px;
+        }
+
+        .credentials-file-link {
+            color: #344EAD;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: color 0.2s ease;
+        }
+
+        .credentials-file-link:hover {
+            color: #2563EB;
             text-decoration: none;
         }
 
-            .btn-secondary:hover {
-                background: #0D3C80;
-                color: white;
-            }
+        /* file input override for credentials */
+        .credentials-upload input[type="file"] {
+            background: #f8fafc;
+            border: 1px solid #eef2f7;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-family: 'Raleway', sans-serif;
+            font-size: 0.875rem;
+            width: 100%;
+            color: #475569;
+            cursor: pointer;
+            box-sizing: border-box;
+        }
 
+        .upload-note {
+            font-size: 0.78rem;
+            color: #94a3b8;
+            margin-top: 6px;
+            font-weight: 500;
+        }
+
+        .upload-note a {
+            color: #344EAD;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .upload-note a:hover {
+            color: #2563EB;
+        }
+
+        /* Hidden file input for avatar */
         .file-input {
             display: none;
         }
 
-        .upload-info {
-            font-size: 0.8rem;
-            color: #666;
-            margin-top: 8px;
-        }
+        /* ── Responsive ─────────────────────────── */
+        @@media (max-width: 767.98px) {
+            main.container {
+                margin-left: 0 !important;
+                max-width: 100% !important;
+                padding: 1rem;
+                padding-top: 5rem;
+            }
 
-        /* Responsive adjustments */
-        @@media (max-width: 768px) {
-            .edit-form {
+            .fields-grid {
                 grid-template-columns: 1fr;
             }
 
-            main.container {
-                margin-left: 0 !important;
-                margin-top: 100px;
-                max-width: 100% !important;
-                padding: 1rem;
-                padding-top: 2rem;
+            .profile-identity {
+                flex-direction: column;
+                align-items: flex-start;
             }
 
-            .main-card {
-                padding: 20px !important;
-                margin: 0 10px 20px 10px;
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .profile-body {
+                padding: 36px 20px 24px;
+            }
+        }
+
+        @@media (max-width: 480px) {
+            .profile-body {
+                padding: 44px 16px 20px;
             }
         }
     </style>
 }
 
-<div class="main-card">
-    <div class="page-header">
-        <a asp-action="Profile" class="back-btn">←</a>
-        <h2>Edit Profile</h2>
-    </div>
+<div class="edit-profile-wrapper">
 
     <form asp-action="EditProfile" method="post" enctype="multipart/form-data">
-        <div class="edit-form">
-            <div class="form-section">
-                <h3>Personal Information</h3>
 
-                <div class="form-group">
-                    <label asp-for="FirstName"></label>
-                    <input asp-for="FirstName" />
-                    <span asp-validation-for="FirstName" class="text-danger"></span>
+        <div class="profile-card">
+
+            <!-- Card Header -->
+            <div class="card-header">
+                <h2 class="card-header-title">
+                    <i class="fas fa-user-edit"></i> Edit Profile
+                </h2>
+                <div class="banner-actions">
+                    <a asp-action="Profile" class="action-btn">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </a>
+                    <button type="submit" class="action-btn save">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="profile-body">
+
+                <!-- Identity -->
+                <div class="profile-identity">
+                    <div class="avatar-wrapper">
+                        <div class="avatar-container" onclick="document.getElementById('profilePicture').click()">
+                            <div class="avatar-overlay">
+                                <i class="fas fa-camera"></i>
+                                CHANGE
+                            </div>
+                            @if (!string.IsNullOrEmpty(Model.ProfilePhoto))
+                            {
+                                <img id="avatarImg" src="@Url.Content(Model.ProfilePhoto)" alt="Profile Picture">
+                            }
+                            else
+                            {
+                                <span class="avatar-initials" id="avatarInitials">
+                                    @(Model.FirstName?.Substring(0, 1).ToUpper())@(Model.LastName?.Substring(0, 1).ToUpper())
+                                </span>
+                            }
+                        </div>
+                        <input type="file" id="profilePicture" name="ProfilePicture" class="file-input" accept="image/*" onchange="previewImage(event)">
+                    </div>
+                    <div class="identity-text">
+                        <h3 class="profile-name">@Model.FullName</h3>
+                        <span class="role-badge">@Model.Role</span>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label asp-for="LastName"></label>
-                    <input asp-for="LastName" />
-                    <span asp-validation-for="LastName" class="text-danger"></span>
-                </div>
+                <hr class="form-divider">
 
-                <div class="form-group">
-                    <label asp-for="Email"></label>
-                    <input asp-for="Email" type="email" />
-                    <span asp-validation-for="Email" class="text-danger"></span>
-                </div>
+                <!-- Personal Information -->
+                <div class="section-label">Personal Information</div>
+                <div class="fields-grid">
+                    <div class="form-group">
+                        <label asp-for="FirstName"></label>
+                        <input asp-for="FirstName" />
+                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                    </div>
 
-                <div class="form-group">
-                    <label asp-for="PhoneNumber"></label>
-                    <input asp-for="PhoneNumber" type="tel" 
-                           pattern="[0-9]{11}" 
-                           maxlength="11" 
-                           title="Please enter exactly 11 digits"
-                           placeholder="Enter 11-digit phone number"
-                           onkeypress="return isNumber(event)"
-                           oninput="validatePhoneNumber(this)" />
-                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                    <div class="form-group">
+                        <label asp-for="LastName"></label>
+                        <input asp-for="LastName" />
+                        <span asp-validation-for="LastName" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Email"></label>
+                        <input asp-for="Email" type="email" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="PhoneNumber"></label>
+                        <input asp-for="PhoneNumber" type="tel"
+                               pattern="[0-9]{11}"
+                               maxlength="11"
+                               title="Please enter exactly 11 digits"
+                               placeholder="Enter 11-digit phone number"
+                               onkeypress="return isNumber(event)"
+                               oninput="validatePhoneNumber(this)" />
+                        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                    </div>
                 </div>
 
                 @* Architect-specific fields *@
                 @if (Model.Role == "Architect")
                 {
-                    <div class="form-group">
-                        <label asp-for="LicenseNo">License Number</label>
-                        <input asp-for="LicenseNo" placeholder="Enter your architectural license number" />
-                        <span asp-validation-for="LicenseNo" class="text-danger"></span>
+                    <hr class="form-divider">
+
+                    <div class="section-label">Professional Credentials</div>
+                    <div class="fields-grid">
+                        <div class="form-group">
+                            <label asp-for="LicenseNo">License Number</label>
+                            <input asp-for="LicenseNo" placeholder="Enter your architectural license number" />
+                            <span asp-validation-for="LicenseNo" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Style">Architectural Style</label>
+                            <select asp-for="Style" class="native-select" id="sel-Style">
+                                <option value="">-- Select Style --</option>
+                                <option>Modern</option>
+                                <option>Traditional</option>
+                                <option>Contemporary</option>
+                                <option>Minimalist</option>
+                            </select>
+                            <div class="custom-select-wrapper" data-for="sel-Style">
+                                <div class="custom-select-trigger placeholder">
+                                    <span class="trigger-text">-- Select Style --</span>
+                                    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                                </div>
+                                <div class="custom-select-options">
+                                    <div class="custom-option placeholder-opt" data-value="">-- Select Style --</div>
+                                    <div class="custom-option" data-value="Modern">Modern</div>
+                                    <div class="custom-option" data-value="Traditional">Traditional</div>
+                                    <div class="custom-option" data-value="Contemporary">Contemporary</div>
+                                    <div class="custom-option" data-value="Minimalist">Minimalist</div>
+                                </div>
+                            </div>
+                            <span asp-validation-for="Style" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Specialization">Specialization</label>
+                            <select asp-for="Specialization" class="native-select" id="sel-Specialization">
+                                <option value="">-- Select Specialization --</option>
+                                <option>Residential</option>
+                                <option>Commercial</option>
+                                <option>Industrial</option>
+                            </select>
+                            <div class="custom-select-wrapper" data-for="sel-Specialization">
+                                <div class="custom-select-trigger placeholder">
+                                    <span class="trigger-text">-- Select Specialization --</span>
+                                    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                                </div>
+                                <div class="custom-select-options">
+                                    <div class="custom-option placeholder-opt" data-value="">-- Select Specialization --</div>
+                                    <div class="custom-option" data-value="Residential">Residential</div>
+                                    <div class="custom-option" data-value="Commercial">Commercial</div>
+                                    <div class="custom-option" data-value="Industrial">Industrial</div>
+                                </div>
+                            </div>
+                            <span asp-validation-for="Specialization" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Location">Location</label>
+                            <select asp-for="Location" class="native-select" id="sel-Location">
+                                <option value="">-- Select Location --</option>
+                                <option>Urban</option>
+                                <option>Suburban</option>
+                                <option>Rural</option>
+                            </select>
+                            <div class="custom-select-wrapper" data-for="sel-Location">
+                                <div class="custom-select-trigger placeholder">
+                                    <span class="trigger-text">-- Select Location --</span>
+                                    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                                </div>
+                                <div class="custom-select-options">
+                                    <div class="custom-option placeholder-opt" data-value="">-- Select Location --</div>
+                                    <div class="custom-option" data-value="Urban">Urban</div>
+                                    <div class="custom-option" data-value="Suburban">Suburban</div>
+                                    <div class="custom-option" data-value="Rural">Rural</div>
+                                </div>
+                            </div>
+                            <span asp-validation-for="Location" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group field-full">
+                            <label asp-for="Budget">Budget Range</label>
+                            <select asp-for="Budget" class="native-select" id="sel-Budget">
+                                <option value="">-- Select Budget Range --</option>
+                                <option>Low</option>
+                                <option>Medium</option>
+                                <option>High</option>
+                            </select>
+                            <div class="custom-select-wrapper" data-for="sel-Budget">
+                                <div class="custom-select-trigger placeholder">
+                                    <span class="trigger-text">-- Select Budget Range --</span>
+                                    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                                </div>
+                                <div class="custom-select-options">
+                                    <div class="custom-option placeholder-opt" data-value="">-- Select Budget Range --</div>
+                                    <div class="custom-option" data-value="Low">Low</div>
+                                    <div class="custom-option" data-value="Medium">Medium</div>
+                                    <div class="custom-option" data-value="High">High</div>
+                                </div>
+                            </div>
+                            <span asp-validation-for="Budget" class="text-danger"></span>
+                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <label asp-for="Style">Architectural Style</label>
-                        <input asp-for="Style" placeholder="e.g., Modern, Contemporary, Traditional" />
-                        <span asp-validation-for="Style" class="text-danger"></span>
-                    </div>
+                    <hr class="form-divider">
 
-                    <div class="form-group">
-                        <label asp-for="Specialization">Specialization</label>
-                        <input asp-for="Specialization" placeholder="e.g., Residential, Commercial, Industrial" />
-                        <span asp-validation-for="Specialization" class="text-danger"></span>
-                    </div>
+                    <div class="section-label">Credentials File (PDF)</div>
 
-                    <div class="form-group">
-                        <label asp-for="Location">Location</label>
-                        <input asp-for="Location" placeholder="Your primary work location" />
-                        <span asp-validation-for="Location" class="text-danger"></span>
-                    </div>
+                    @if (!string.IsNullOrEmpty(Model.CredentialsFilePath))
+                    {
+                        <div class="credential-card">
+                            <div class="credential-label">Current File</div>
+                            <a href="@Url.Content($"~/credentials/{Model.CredentialsFilePath}")"
+                               target="_blank"
+                               class="credentials-file-link">
+                                <i class="fas fa-file-pdf"></i> @Model.CredentialsFilePath
+                            </a>
+                        </div>
+                    }
 
-                    <div class="form-group">
-                        <label asp-for="Budget">Budget Range</label>
-                        <input asp-for="Budget" placeholder="e.g., ₱50,000 - ₱500,000" />
-                        <span asp-validation-for="Budget" class="text-danger"></span>
+                    <div class="credentials-upload">
+                        <input type="file" id="credentialsFile" name="CredentialsFile" accept="application/pdf" class="form-control" />
+                        <p class="upload-note">
+                            Upload your architectural credentials, portfolio, or resume in PDF format.
+                            Feel free to use or modify the
+                            <a href="~/credentials/Sample%20Architect%20Credentials.docx" download>SAMPLE</a>
+                            file to add more of your credentials.
+                        </p>
                     </div>
                 }
-            </div>
 
-            <div class="avatar-section form-section">
-                <h3>Profile Picture</h3>
-                <div class="avatar-preview" id="avatarPreview">
-                    @if (!string.IsNullOrEmpty(Model.ProfilePhoto))
-                    {
-                        <img src="@Url.Content(Model.ProfilePhoto)" alt="Profile Picture">
-                    }
-                    else
-                    {
-                        <div class="avatar-placeholder">
-                            @(Model.FirstName?.Substring(0, 1).ToUpper())@(Model.LastName?.Substring(0, 1).ToUpper())
-                        </div>
-                    }
-                </div>
-                <input type="file" id="profilePicture" name="ProfilePicture" class="file-input" accept="image/*" onchange="previewImage(event)">
-                <button type="button" class="upload-btn" onclick="document.getElementById('profilePicture').click()">📷 Change Photo</button>
-                <div class="upload-info">
-                    <small>Max file size: 5MB<br>Supported formats: JPG, PNG, GIF</small>
-                </div>
             </div>
         </div>
 
-        @if (Model.Role == "Architect")
-        {
-            <div class="credentials-section form-section">
-                <h3>Architect Credentials (PDF)</h3>
-                <div class="form-group">
-                    @if (Model.Role == "Architect")
-                    {
-                        @if (!string.IsNullOrEmpty(Model.CredentialsFilePath))
-                        {
-                            <div style="margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #0D3C80;">
-                                <strong>Current file:</strong>
-                                <a href="@Url.Content($"~/credentials/{Model.CredentialsFilePath}")"
-                                   target="_blank"
-                                   style="color: #0D3C80; text-decoration: none; margin-left: 8px;">
-                                    <i class="fas fa-file-pdf"></i> @Model.CredentialsFilePath
-                                </a>
-                            </div>
-                        }
-                        <label for="credentialsFile">Upload New Credentials File (PDF)</label>
-                        <input type="file" id="credentialsFile" name="CredentialsFile" accept="application/pdf" class="form-control" />
-                        <div class="upload-info">
-                            <small>
-                                Upload your architectural credentials, portfolio, or resume in PDF format.
-                                <br />
-                                Feel free to use or modify
-                                <a href="~/credentials/Sample%20Architect%20Credentials.docx"
-                                   download
-                                   style="color: #0D3C80; font-weight: bold;">
-                                    SAMPLE
-                                </a>
-                                file to add more of your credentials.
-                            </small>
-                        </div>
-                    }
-                    else
-                    {
-                        <input type="file" id="credentialsFile" name="CredentialsFile" class="form-control" disabled />
-                        <small class="text-muted">Only architects can upload credentials.</small>
-                    }
-                </div>
-            </div>
-        }
-        
-        <div class="form-actions">
-            <button type="submit" class="btn-primary">Save Changes</button>
-        </div>
     </form>
 </div>
 
@@ -394,8 +760,7 @@
         // Function to allow only numbers (0-9) on keypress
         function isNumber(event) {
             const charCode = (event.which) ? event.which : event.keyCode;
-            // Allow backspace (8), delete (46), tab (9), escape (27), enter (13), and numbers (48-57)
-            if (charCode === 8 || charCode === 9 || charCode === 27 || charCode === 13 || 
+            if (charCode === 8 || charCode === 9 || charCode === 27 || charCode === 13 ||
                 charCode === 46 || (charCode >= 48 && charCode <= 57)) {
                 return true;
             }
@@ -404,29 +769,25 @@
 
         // Function to validate phone number format
         function validatePhoneNumber(input) {
-            // Remove any non-numeric characters
             input.value = input.value.replace(/[^0-9]/g, '');
-            
-            // Limit to 11 digits
             if (input.value.length > 11) {
                 input.value = input.value.substring(0, 11);
             }
-            
-            // Update validation display
-            const isValid = input.value.length === 11;
             if (input.value.length > 0 && input.value.length !== 11) {
                 input.setCustomValidity("Phone number must be exactly 11 digits");
             } else {
                 input.setCustomValidity("");
             }
         }
-        
+
         // Listen for sidebar toggle and adjust main content accordingly
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
+            initCustomSelects();
+
             const sidebar = document.querySelector('.sidebar');
             const sidebarToggler = document.querySelector('.sidebar-toggler');
             const mainContent = document.querySelector('main.container');
-            
+
             function adjustMainContent() {
                 if (sidebar && mainContent) {
                     if (sidebar.classList.contains('collapsed')) {
@@ -438,23 +799,20 @@
                     }
                 }
             }
-            
-            // Adjust on page load
+
             adjustMainContent();
-            
-            // Listen for sidebar toggle
+
             if (sidebarToggler) {
-                sidebarToggler.addEventListener('click', function() {
-                    // Wait for the sidebar transition to start
+                sidebarToggler.addEventListener('click', function () {
                     setTimeout(adjustMainContent, 50);
                 });
             }
-            
+
             // Add form submission validation for phone number
-            $('form').on('submit', function(e) {
+            $('form').on('submit', function (e) {
                 const phoneInput = $('input[name="PhoneNumber"]');
                 const phoneValue = phoneInput.val();
-                
+
                 if (phoneValue && phoneValue.length > 0) {
                     if (phoneValue.length !== 11 || !/^\d{11}$/.test(phoneValue)) {
                         e.preventDefault();
@@ -466,19 +824,76 @@
             });
         });
 
+        // ── Custom Select Dropdowns ──────────────────────────────────
+        function initCustomSelects() {
+            document.querySelectorAll('.custom-select-wrapper').forEach(wrapper => {
+                const nativeId = wrapper.dataset.for;
+                const native = document.getElementById(nativeId);
+                const trigger = wrapper.querySelector('.custom-select-trigger');
+                const triggerText = wrapper.querySelector('.trigger-text');
+                const options = wrapper.querySelector('.custom-select-options');
+
+                // Sync initial value from native select (pre-filled by Razor)
+                const currentVal = native.value;
+                if (currentVal) {
+                    const match = wrapper.querySelector(`.custom-option[data-value="${currentVal}"]`);
+                    if (match) {
+                        triggerText.textContent = match.textContent;
+                        trigger.classList.remove('placeholder');
+                        match.classList.add('selected');
+                    }
+                }
+
+                // Open/close on trigger click
+                trigger.addEventListener('click', e => {
+                    e.stopPropagation();
+                    const isOpen = options.classList.contains('open');
+                    // Close all other open dropdowns
+                    document.querySelectorAll('.custom-select-options.open').forEach(o => {
+                        o.classList.remove('open');
+                        o.previousElementSibling.classList.remove('open');
+                    });
+                    if (!isOpen) {
+                        options.classList.add('open');
+                        trigger.classList.add('open');
+                    }
+                });
+
+                // Option click
+                wrapper.querySelectorAll('.custom-option').forEach(opt => {
+                    opt.addEventListener('click', () => {
+                        const val = opt.dataset.value;
+                        native.value = val;
+                        triggerText.textContent = opt.textContent;
+                        trigger.classList.toggle('placeholder', val === '');
+                        wrapper.querySelectorAll('.custom-option').forEach(o => o.classList.remove('selected'));
+                        if (val !== '') opt.classList.add('selected');
+                        options.classList.remove('open');
+                        trigger.classList.remove('open');
+                    });
+                });
+            });
+
+            // Close on outside click
+            document.addEventListener('click', () => {
+                document.querySelectorAll('.custom-select-options.open').forEach(o => {
+                    o.classList.remove('open');
+                    o.previousElementSibling.classList.remove('open');
+                });
+            });
+        }
+
         function previewImage(event) {
             const file = event.target.files[0];
-            const preview = document.getElementById('avatarPreview');
+            const container = document.querySelector('.avatar-container');
 
             if (file) {
-                // Validate file size (5MB max)
                 if (file.size > 5 * 1024 * 1024) {
                     alert('File size must be less than 5MB');
                     event.target.value = '';
                     return;
                 }
 
-                // Validate file type
                 const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
                 if (!allowedTypes.includes(file.type)) {
                     alert('Please select a valid image file (JPG, PNG, or GIF)');
@@ -488,7 +903,14 @@
 
                 const reader = new FileReader();
                 reader.onload = function (e) {
-                    preview.innerHTML = `<img src="${e.target.result}" alt="Profile Picture">`;
+                    const overlay = container.querySelector('.avatar-overlay');
+                    container.innerHTML = `<img src="${e.target.result}" alt="Profile Picture">`;
+                    container.appendChild(overlay || (() => {
+                        const o = document.createElement('div');
+                        o.className = 'avatar-overlay';
+                        o.innerHTML = '<i class="fas fa-camera"></i>CHANGE';
+                        return o;
+                    })());
                 };
                 reader.readAsDataURL(file);
             }
