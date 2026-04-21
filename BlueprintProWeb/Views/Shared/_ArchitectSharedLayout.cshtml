@@ -207,7 +207,7 @@
             top: 15px;
             left: 15px;
             right: 15px;
-            height: 60px;
+            height: 76px;
             background: #fff;
             z-index: 90;
             display: flex;
@@ -268,19 +268,27 @@
             align-items: center;
             justify-content: center;
             color: #4a5568;
-            margin-right: 20px;
+            margin-right: 10px;
             text-decoration: none;
-            height: 100%;
-            gap: 6px;
-            transition: color 0.2s ease;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            transition: color 0.2s ease, background 0.2s ease;
+        }
+
+        .top-nav-item a .material-symbols-rounded {
+            font-size: 26px;
+            line-height: 1;
+            display: block;
         }
 
         .top-nav-item a:hover {
             color: #344EAD;
+            background: rgba(52, 78, 173, 0.08);
         }
 
         .top-nav-item:last-child a {
-            margin-right: 8px;
+            margin-right: 14px;
         }
 
         .logout-form {
@@ -415,14 +423,14 @@
         <div class="navbar-div">
             <ul class="navbar-list">
                 <li class="top-nav-item position-relative">
-                    <a asp-controller="ArchitectInterface" asp-action="Messages" class="top-nav-link position-relative d-inline-block">
+                    <a asp-controller="ArchitectInterface" asp-action="Messages" class="top-nav-link position-relative">
                         <span class="material-symbols-rounded">chat_bubble</span>
                         <span id="msgBadgeArchitect" class="notif-badge d-none"></span>
                     </a>
                 </li>
                 <li class="top-nav-item">
                     <a asp-controller="ArchitectInterface" asp-action="Notifications"
-                       class="top-nav-link position-relative d-inline-block">
+                       class="top-nav-link position-relative">
                         <span class="material-symbols-rounded">notifications</span>
                         <span id="notifBadge" class="notif-badge d-none"></span>
                     </a>
