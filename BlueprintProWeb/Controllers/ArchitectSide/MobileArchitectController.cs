@@ -1029,5 +1029,28 @@ namespace BlueprintProWeb.Controllers
             });
         }
 
+        [HttpGet("credentialStatus")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetCredentialStatus([FromQuery] string architectId)
+        {
+            if (string.IsNullOrEmpty(architectId))
+                return BadRequest(new { success = false, message = "architectId is required." });
+
+            var user = await userManager.FindByIdAsync(architectId);
+            if (user == null)
+                return NotFound(new { success = false, message = "User not found." });
+
+            return Ok(new { success = true, hasCredentialFile = HasCredentialFile(user.user_CredentialsFile) });
+        }
+
+        private bool HasCredentialFile(string credentialFileName)
+        {
+            if (string.IsNullOrEmpty(credentialFileName))
+                return false;
+
+            var filePath = Path.Combine(env.WebRootPath, "credentials", credentialFileName);
+            return System.IO.File.Exists(filePath);
+        }
+
     }
 }
