@@ -11,6 +11,7 @@ namespace BlueprintProWeb.ViewModels
         public List<BlueprintUpload> RecentUploads { get; set; } = new();
         public ProjectOverview? CurrentProject { get; set; }
         public List<ProjectOverview> AllProjects { get; set; }
+        public string? CredentialsFilePath { get; set; }
 
     }
 
