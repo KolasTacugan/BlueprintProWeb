@@ -903,7 +903,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                     context.Compliances.Add(tracker.Compliance);
                 }
 
-                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "compliance");
+                var uploadsFolder = Path.Combine(WebHostEnvironment.WebRootPath, "uploads", "compliance");
                 if (!Directory.Exists(uploadsFolder))
                     Directory.CreateDirectory(uploadsFolder);
 
