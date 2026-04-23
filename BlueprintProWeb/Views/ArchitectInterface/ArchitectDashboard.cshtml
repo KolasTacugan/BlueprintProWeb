@@ -908,6 +908,23 @@
 
 @section Scripts {
     <script>
+        // Show credential reminder modal on load if no credential file is present
+        document.addEventListener('DOMContentLoaded', function () {
+            var shouldShowCredentialModal = @(string.IsNullOrEmpty(Model.CredentialsFilePath).ToString().ToLower());
+            if (shouldShowCredentialModal) {
+                var el = document.getElementById('credentialReminderModal');
+                if (el) {
+                    var modal = new bootstrap.Modal(el, {
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+                    modal.show();
+                }
+            }
+        });
+    </script>
+
+    <script>
         // Listen for sidebar toggle and adjust main content accordingly
         document.addEventListener('DOMContentLoaded', function() {
             const sidebar = document.querySelector('.sidebar');
@@ -1204,6 +1221,24 @@
         });
     });
 </script>
+
+<!-- Credential Reminder Modal -->
+<div class="modal fade" id="credentialReminderModal" tabindex="-1" aria-labelledby="credentialReminderModalLabel" aria-modal="true" role="dialog">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:14px; border:1px solid #eef2f7; box-shadow:0 8px 40px rgba(7,23,68,0.18);">
+            <div class="modal-header" style="border-bottom:1px solid #f0f4f8; padding:1.25rem 1.5rem;">
+                <h5 class="modal-title" id="credentialReminderModalLabel" style="font-weight:700; font-size:1.05rem; color:#1a202c; letter-spacing:-0.2px;">
+                    <span class="material-symbols-rounded" style="font-size:1.1rem; vertical-align:middle; margin-right:0.4rem; color:#344EAD;">verified_user</span>
+                    Complete Your Architect Profile
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding:1.5rem; color:#4a5568; font-size:0.92rem; line-height:1.65;">
+                You need to complete your architect credentials before you can fully use the platform and appear in the AI-powered matching.
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Uploaded Blueprints Modal -->
 <div class="modal fade" id="uploadedBlueprintsModal" tabindex="-1" aria-hidden="true">
