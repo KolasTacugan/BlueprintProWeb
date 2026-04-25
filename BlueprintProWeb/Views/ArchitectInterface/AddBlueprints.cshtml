@@ -515,7 +515,7 @@
                                 <i class="fas fa-peso-sign"></i>
                                 Price (in Pesos)
                             </label>
-                            <input asp-for="blueprintPrice" class="form-control" placeholder="0" />
+                            <input asp-for="blueprintPrice" type="text" class="form-control price-input" placeholder="0" inputmode="numeric" autocomplete="off" />
                             <span asp-validation-for="blueprintPrice" class="text-danger"></span>
                         </div>
 
@@ -604,7 +604,7 @@
                                 <i class="fas fa-peso-sign"></i>
                                 Budget (in Pesos)
                             </label>
-                            <input asp-for="blueprintPrice" class="form-control" placeholder="0" />
+                            <input asp-for="blueprintPrice" type="text" class="form-control price-input" placeholder="0" inputmode="numeric" autocomplete="off" />
                             <span asp-validation-for="blueprintPrice" class="text-danger"></span>
                         </div>
 
@@ -691,6 +691,29 @@
                         nameEl.textContent = '';
                     }
                 });
+            });
+
+            // Price input — format with commas while typing, strip on submit
+            document.querySelectorAll('.price-input').forEach(function (inp) {
+                var format = function (val) {
+                    var digits = String(val).replace(/\D/g, '');
+                    return digits ? Number(digits).toLocaleString('en-US') : '';
+                };
+                inp.value = format(inp.value);
+                inp.addEventListener('input', function () {
+                    var caret = this.selectionStart;
+                    var before = this.value;
+                    var formatted = format(before);
+                    this.value = formatted;
+                    var diff = formatted.length - before.length;
+                    try { this.setSelectionRange(caret + diff, caret + diff); } catch (e) {}
+                });
+                var form = inp.closest('form');
+                if (form) {
+                    form.addEventListener('submit', function () {
+                        inp.value = inp.value.replace(/,/g, '');
+                    });
+                }
             });
         });
     </script>
