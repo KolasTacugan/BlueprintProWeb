@@ -15,7 +15,7 @@
 	<link rel="icon" type="image/png" href="~/images/BBP Logo.png" />
 	<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
 	<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+	<link rel="stylesheet" href="~/lib/font-awesome/css/all.min.css" />
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -238,7 +238,7 @@
 			width: 100%;
 			border: 1.5px solid #E2E8F0;
 			border-radius: 10px;
-			padding: 0.8rem 1rem 0.8rem 2.75rem;
+			padding: 0.8rem 1rem;
 			font-size: 0.92rem;
 			transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.2s ease;
 			background: #F8FAFC;
@@ -412,7 +412,6 @@
 					<div class="form-group">
 						<label asp-for="Email" class="form-label">Email</label>
 						<div class="input-wrapper">
-							<i class="fas fa-envelope input-icon"></i>
 							<input asp-for="Email" class="form-control" placeholder="Enter your email" />
 						</div>
 						<span asp-validation-for="Email" class="text-danger"></span>
@@ -424,7 +423,6 @@
 							<a asp-controller="Account" asp-action="VerifyEmail" class="forgot-link">Forgot password?</a>
 						</div>
 						<div class="input-wrapper">
-							<i class="fas fa-lock input-icon"></i>
 							<input asp-for="Password" type="password" class="form-control" placeholder="Enter your password" />
 						</div>
 						<span asp-validation-for="Password" class="text-danger"></span>

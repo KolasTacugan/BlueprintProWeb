@@ -228,7 +228,7 @@
             width: 100%;
             border: 1.5px solid #E2E8F0;
             border-radius: 10px;
-            padding: 0.75rem 1rem 0.75rem 2.65rem;
+            padding: 0.75rem 1rem;
             font-size: 0.9rem;
             transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.2s ease;
             background: #F8FAFC;
@@ -495,7 +495,6 @@
                         <div class="mb-3">
                             <label asp-for="FirstName" class="form-label"></label>
                             <div class="input-wrapper">
-                                <i class="fas fa-user input-icon"></i>
                                 <input asp-for="FirstName" class="form-control" placeholder="e.g. Juan" />
                             </div>
                             <span asp-validation-for="FirstName" class="text-danger"></span>
@@ -504,7 +503,6 @@
                         <div class="mb-3">
                             <label asp-for="LastName" class="form-label"></label>
                             <div class="input-wrapper">
-                                <i class="fas fa-user input-icon"></i>
                                 <input asp-for="LastName" class="form-control" placeholder="e.g. Dela Cruz" />
                             </div>
                             <span asp-validation-for="LastName" class="text-danger"></span>
@@ -515,7 +513,6 @@
                         <div class="mb-3">
                             <label asp-for="PhoneNumber" class="form-label"></label>
                             <div class="input-wrapper">
-                                <i class="fas fa-phone input-icon"></i>
                                 <input asp-for="PhoneNumber" class="form-control"
                                        pattern="[0-9]{11}"
                                        maxlength="11"
@@ -530,7 +527,6 @@
                         <div class="mb-3">
                             <label asp-for="Email" class="form-label"></label>
                             <div class="input-wrapper">
-                                <i class="fas fa-envelope input-icon"></i>
                                 <input asp-for="Email" class="form-control" placeholder="e.g. juan@example.com" />
                             </div>
                             <span asp-validation-for="Email" class="text-danger"></span>
@@ -541,7 +537,6 @@
                         <div class="mb-3">
                             <label asp-for="Password" class="form-label"></label>
                             <div class="input-wrapper">
-                                <i class="fas fa-lock input-icon"></i>
                                 <input asp-for="Password" type="password" class="form-control" placeholder="Enter a strong password" />
                             </div>
                             <span asp-validation-for="Password" class="text-danger"></span>
@@ -550,7 +545,6 @@
                         <div class="mb-3">
                             <label asp-for="ConfirmPassword" class="form-label"></label>
                             <div class="input-wrapper">
-                                <i class="fas fa-lock input-icon"></i>
                                 <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Re-enter your password" />
                             </div>
                             <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
@@ -571,7 +565,6 @@
                                 <div class="mb-3">
                                     <label asp-for="LicenseNo" class="form-label"></label>
                                     <div class="input-wrapper">
-                                        <i class="fas fa-id-card input-icon"></i>
                                         <input asp-for="LicenseNo" class="form-control" placeholder="e.g. ARC-2024-12345" />
                                     </div>
                                     <span asp-validation-for="LicenseNo" class="text-danger"></span>
