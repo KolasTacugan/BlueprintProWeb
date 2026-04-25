@@ -304,7 +304,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 user_Id = project.user_clientId,
                 notification_Title = "New Project Created",
                 notification_Message = $"A new project '{project.project_Title}' has been created for you by by architect {user.user_fname}..",
-                notification_Date = DateTime.Now,
+                notification_Date = DateTime.UtcNow,
                 notification_isRead = false
             };
 
@@ -434,25 +434,31 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
         public async Task<IActionResult> RespondMatch([FromBody] MatchResponseDto dto)
         {
             var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null) return Unauthorized();
+            if (currentUser == null)
+                return Json(new { success = false, status = "Unauthorized" });
 
-            var match = await context.Matches.FindAsync(dto.MatchId);
-            if (match == null) return NotFound();
+            // Fix 1: use FirstOrDefaultAsync to avoid silent type-mismatch failures with FindAsync
+            var match = await context.Matches.FirstOrDefaultAsync(m => m.MatchId == dto.MatchId);
+            if (match == null)
+                return Json(new { success = false, status = "NotFound" });
 
-            if (match.ArchitectId != currentUser.Id) return Forbid();
+            if (match.ArchitectId != currentUser.Id)
+                return Json(new { success = false, status = "Forbidden" });
 
             string clientId = match.ClientId;
 
             if (dto.Approve)
             {
                 match.MatchStatus = "Approved";
+                // Fix 2: explicitly mark entity as Modified so EF Core always emits the UPDATE
+                context.Entry(match).State = EntityState.Modified;
 
                 var notif = new Notification
                 {
                     user_Id = clientId,
                     notification_Title = "Match Approved",
                     notification_Message = $"{currentUser.user_fname} {currentUser.user_lname} has approved your match request.",
-                    notification_Date = DateTime.Now,
+                    notification_Date = DateTime.UtcNow,
                     notification_isRead = false
                 };
                 context.Notifications.Add(notif);
@@ -476,7 +482,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                     user_Id = clientId,
                     notification_Title = "Match Declined",
                     notification_Message = $"{currentUser.user_fname} {currentUser.user_lname} has declined your match request.",
-                    notification_Date = DateTime.Now,
+                    notification_Date = DateTime.UtcNow,
                     notification_isRead = false
                 };
 
@@ -753,7 +759,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                     user_Id = tracker.Project.user_clientId,
                     notification_Title = "Project Phase Updated",
                     notification_Message = $"Your project '{tracker.Project.project_Title}' is now in the {status} phase.",
-                    notification_Date = DateTime.Now,
+                    notification_Date = DateTime.UtcNow,
                     notification_isRead = false
                 };
 
@@ -859,7 +865,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 user_Id = project.user_clientId,
                 notification_Title = "New Revision Uploaded",
                 notification_Message = $"A new revision has been uploaded for your project '{project.project_Title}'.",
-                notification_Date = DateTime.Now,
+                notification_Date = DateTime.UtcNow,
                 notification_isRead = false
             };
             context.Notifications.Add(notif);
@@ -932,7 +938,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                         user_Id = tracker.Project.user_clientId,
                         notification_Title = "Compliance File Uploaded",
                         notification_Message = $"A new {fileType} compliance file has been uploaded for your project '{tracker.Project.project_Title}'.",
-                        notification_Date = DateTime.Now,
+                        notification_Date = DateTime.UtcNow,
                         notification_isRead = false
                     };
 
@@ -986,7 +992,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 return Json(new { success = false, message = "Project not found." });
 
             project.project_Status = "Finished";
-            project.project_endDate = DateTime.Now;
+            project.project_endDate = DateTime.UtcNow;
 
             await context.SaveChangesAsync();
 
@@ -998,7 +1004,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                     user_Id = project.user_clientId,
                     notification_Title = "Project Completed",
                     notification_Message = $"Your project '{project.project_Title}' has been marked as finished by architect {project.Architect?.user_fname} {project.Architect?.user_lname}.",
-                    notification_Date = DateTime.Now,
+                    notification_Date = DateTime.UtcNow,
                     notification_isRead = false
                 };
 
@@ -1123,7 +1129,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 user_Id = project.user_clientId,
                 notification_Title = "Project Deleted",
                 notification_Message = $"Your project '{project.project_Title}' has been removed by the architect.",
-                notification_Date = DateTime.Now,
+                notification_Date = DateTime.UtcNow,
                 notification_isRead = false
             };
             context.Notifications.Add(notif);
@@ -1158,7 +1164,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 user_Id = project.user_clientId,
                 notification_Title = "Project Restored",
                 notification_Message = $"Your project '{project.project_Title}' has been restored by the architect.",
-                notification_Date = DateTime.Now,
+                notification_Date = DateTime.UtcNow,
                 notification_isRead = false
             };
             context.Notifications.Add(notif);

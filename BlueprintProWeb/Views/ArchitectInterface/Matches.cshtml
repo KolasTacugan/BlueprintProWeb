@@ -611,37 +611,62 @@
 
             document.querySelectorAll('.respond-btn').forEach(btn => {
                 btn.addEventListener('click', function () {
-                    const matchId = this.dataset.id;
-                    const approve = this.dataset.approve === "true";
-                    const card    = this.closest('.match-card');
+                    const matchId   = this.dataset.id;
+                    const approve   = this.dataset.approve === "true";
+                    const card      = this.closest('.match-card');
+                    const allBtns   = card?.querySelectorAll('.respond-btn');
+
+                    // Fix 6: disable buttons immediately to prevent double-submission
+                    allBtns?.forEach(b => { b.disabled = true; });
 
                     fetch('/ArchitectInterface/RespondMatch', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ matchId, approve })
                     })
-                    .then(res => res.text())
-                    .then(text => {
-                        let data = null;
-                        try { data = JSON.parse(text); } catch {}
-
-                        const succeeded = !data || data.success;
+                    .then(res => res.json())
+                    .then(data => {
+                        const succeeded = data && data.success;
                         const status    = (data && data.status) || (approve ? 'Approved' : 'Declined');
 
                         if (succeeded) {
+                            // Update right-panel card: replace action buttons with status badge
                             const actionsDiv = card?.querySelector('.match-actions');
                             if (actionsDiv) {
                                 actionsDiv.innerHTML = `<span class="match-status ${status.toLowerCase()}">${status}</span>`;
                             }
+
+                            // Fix 4: update the matching status badge in the left "All Matches" panel
+                            const clientId = card?.querySelector('.client-profile-link')?.dataset.clientId;
+                            if (clientId) {
+                                document.querySelectorAll(`.client-profile-link[data-client-id="${clientId}"]`).forEach(link => {
+                                    const leftCard = link.closest('.match-card');
+                                    const badge    = leftCard?.querySelector('.match-status');
+                                    if (badge) {
+                                        badge.className   = `match-status ${status.toLowerCase()}`;
+                                        badge.textContent = status;
+                                    }
+                                });
+                            }
+
                             document.getElementById("matchResultTitle").innerText  = "Match Update";
                             document.getElementById("matchResultMessage").innerText = `Match ${status}`;
+
+                            // Fix 5: reload page after modal closes to confirm true DB state
+                            resultModalEl.addEventListener("hidden.bs.modal", () => {
+                                window.location.reload();
+                            }, { once: true });
                         } else {
+                            // Fix 6: re-enable buttons on failure
+                            allBtns?.forEach(b => { b.disabled = false; });
                             document.getElementById("matchResultTitle").innerText  = "Error";
-                            document.getElementById("matchResultMessage").innerText = "Failed to update match.";
+                            document.getElementById("matchResultMessage").innerText = (data && data.message) || "Failed to update match.";
                         }
                         resultModal.show();
                     })
                     .catch(() => {
+                        // Fix 6: re-enable buttons on network/parse error
+                        allBtns?.forEach(b => { b.disabled = false; });
                         document.getElementById("matchResultTitle").innerText  = "Error";
                         document.getElementById("matchResultMessage").innerText = "Error responding to match.";
                         resultModal.show();
