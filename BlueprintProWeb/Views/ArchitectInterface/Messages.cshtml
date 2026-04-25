@@ -899,7 +899,7 @@
                         <img src="@convoPhoto" class="conversation-avatar" alt="@convo.ClientName" />
                         <div class="conversation-info">
                             <div class="conversation-name">@convo.ClientName</div>
-                            <div class="conversation-preview">Click to start conversation</div>
+                            <div class="conversation-preview">@(convo.LastMessage?.Length > 40 ? convo.LastMessage.Substring(0, 40) + "..." : convo.LastMessage)</div>
                         </div>
                         <div class="conversation-meta">
                             <div class="conversation-time">@convo.LastMessageTime.ToString("HH:mm")</div>

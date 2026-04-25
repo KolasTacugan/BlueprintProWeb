@@ -18,6 +18,7 @@
         public string ArchitectId { get; set; }
         public string ArchitectName { get; set; }
         public DateTime LastMessageTime { get; set; }
+        public string? LastMessage { get; set; }
         public List<MessageViewModel> Messages { get; set; } = new();
         public int UnreadCount { get; set; }
     }

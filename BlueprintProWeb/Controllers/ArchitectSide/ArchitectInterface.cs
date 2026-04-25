@@ -606,6 +606,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                     ClientId = g.Key,
                     ClientName = g.First().Client.user_fname + " " + g.First().Client.user_lname,
                     LastMessageTime = TimeZoneInfo.ConvertTimeFromUtc(g.Max(x => x.MessageDate), phTimeZone),
+                    LastMessage = g.OrderByDescending(x => x.MessageDate).Select(x => x.MessageBody).FirstOrDefault() ?? "No messages yet",
                     Messages = new List<MessageViewModel>(),
                     UnreadCount = g.Count(x => x.SenderId != currentUser.Id && !x.IsRead),
                     ClientProfileUrl = string.IsNullOrEmpty(g.First().Client.user_profilePhoto)

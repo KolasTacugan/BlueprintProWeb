@@ -800,6 +800,7 @@ Respond ONLY with valid JSON (no markdown, no extra text) or the single word SUF
                     ArchitectId = g.Key,
                     ArchitectName = g.First().Architect.user_fname + " " + g.First().Architect.user_lname,
                     LastMessageTime = TimeZoneInfo.ConvertTimeFromUtc(g.Max(x => x.MessageDate), phTimeZone),
+                    LastMessage = g.OrderByDescending(x => x.MessageDate).Select(x => x.MessageBody).FirstOrDefault() ?? "No messages yet",
                     Messages = new List<MessageViewModel>(),
                     UnreadCount = g.Count(x => x.SenderId != currentUser.Id && !x.IsRead),
                     ArchitectProfileUrl = string.IsNullOrEmpty(g.First().Architect.user_profilePhoto)
