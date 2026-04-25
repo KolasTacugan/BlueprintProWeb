@@ -1918,12 +1918,7 @@
 
         modalAddToCartBtn.addEventListener('click', () => {
             if (currentModalBlueprint) {
-                addToCart(
-                    currentModalBlueprint.id,
-                    currentModalBlueprint.name,
-                    currentModalBlueprint.price,
-                    currentModalBlueprint.image
-                );
+                addToCart(currentModalBlueprint.id, 1);
                 hideBlueprintDetails();
             }
         });
@@ -2268,12 +2263,17 @@
                 });
                 const data = await response.json();
                 if (data.success) {
+                    blueprintIds.forEach(id => {
+                        const card = document.querySelector(`.blueprint-card[data-id="${id}"]`);
+                        if (card) {
+                            const item = card.closest('.blueprint-item');
+                            if (item) item.remove();
+                        }
+                    });
                     localStorage.removeItem(`blueprintCart_${userId}`);
                     cart = [];
                     updateCartDisplay();
                     showNotification("Purchase completed! Cart cleared.", 'success');
-
-                           await fetchBlueprints();
                 }
             }
         });
