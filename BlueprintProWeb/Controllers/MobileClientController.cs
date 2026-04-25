@@ -92,10 +92,9 @@ namespace BlueprintProWeb.Controllers
                         bp.blueprintIsForSale,
                         bp.blueprintStyle,
 
-                        // ⭐ If image is stored in /images/filename.jpg:
                         blueprintImage = string.IsNullOrEmpty(bp.blueprintImage)
                             ? null
-                            : $"{baseUrl}/images/{Path.GetFileName(bp.blueprintImage)}"
+                            : $"{baseUrl}/images/{Path.GetFileName(bp.blueprintImage.Replace('\\', '/').TrimStart('~').TrimStart('/'))}"
                     })
                     .ToList();
 

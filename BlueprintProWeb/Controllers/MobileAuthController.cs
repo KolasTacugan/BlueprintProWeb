@@ -145,19 +145,28 @@ namespace BlueprintProWeb.Controllers
         }
 
 
+        [HttpPost("verify-email")]
+        public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailRequest model)
+        {
+            if (string.IsNullOrEmpty(model.Email))
+                return BadRequest(new { message = "Email is required", success = false, statusCode = 400 });
+
+            var user = await _userManager.FindByNameAsync(model.Email);
+            if (user == null)
+                return NotFound(new { message = "Email not found", success = false, statusCode = 404 });
+
+            return Ok(new { message = "Email verified", success = true, statusCode = 200 });
+        }
+
         [HttpPost("change-password")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest model)
         {
             if (model == null || string.IsNullOrEmpty(model.Email) || string.IsNullOrEmpty(model.NewPassword))
                 return BadRequest(new { message = "Invalid request data", success = false, statusCode = 400 });
 
-            var user = await _userManager.FindByEmailAsync(model.Email);
+            var user = await _userManager.FindByNameAsync(model.Email);
             if (user == null)
                 return NotFound(new { message = "Email not found", success = false, statusCode = 404 });
-
-            // ✅ Verify if email is confirmed
-            if (!user.EmailConfirmed)
-                return BadRequest(new { message = "Email not verified. Please verify your email before changing the password.", success = false, statusCode = 400 });
 
             var removeResult = await _userManager.RemovePasswordAsync(user);
             if (!removeResult.Succeeded)
@@ -693,5 +702,10 @@ namespace BlueprintProWeb.Controllers
     {
         public string Email { get; set; }
         public string NewPassword { get; set; }
+    }
+
+    public class VerifyEmailRequest
+    {
+        public string Email { get; set; } = "";
     }
 }
