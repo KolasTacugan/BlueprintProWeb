@@ -75,28 +75,6 @@ namespace BlueprintProWeb.Controllers
                 SubscriptionEndDate = null
             };
 
-            // ✅ Only generate embedding for Architects
-            if (user.user_role == "Architect")
-            {
-                try
-                {
-                    user.PortfolioText =
-                        $"Architect specializing in {user.user_Specialization ?? "various fields"}, " +
-                        $"style: {user.user_Style ?? "adaptive"}, " +
-                        $"based in {user.user_Location ?? "unspecified location"}, " +
-                        $"budget preference: {user.user_Budget ?? "flexible"}, " +
-                        $"rating: {user.user_Rating?.ToString() ?? "unrated"}.";
-
-                    var embeddingVector = await GenerateEmbedding(user.PortfolioText);
-                    user.PortfolioEmbedding = string.Join(",",
-                        embeddingVector.Select(v => v.ToString(CultureInfo.InvariantCulture)));
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"⚠️ Embedding generation failed: {ex.Message}");
-                }
-            }
-
             var result = await _userManager.CreateAsync(user, model.Password);
 
             if (result.Succeeded)
@@ -388,25 +366,6 @@ namespace BlueprintProWeb.Controllers
                     catch (Exception ex)
                     {
                         Console.WriteLine($"⚠️ Embedding generation failed: {ex.Message}");
-                    }
-                }
-                else
-                {
-                    // ✅ No portfolio uploaded → fallback to profile-based embedding
-                    try
-                    {
-                        string profileText =
-                            $"Architect specializing in {user.user_Specialization}, style: {user.user_Style}, " +
-                            $"based in {user.user_Location}, budget preference: {user.user_Budget}, rating: {user.user_Rating}.";
-
-                        user.PortfolioText = profileText;
-
-                        var embeddingVector = await GenerateEmbedding(profileText);
-                        user.PortfolioEmbedding = string.Join(",", embeddingVector.Select(v => v.ToString(CultureInfo.InvariantCulture)));
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"⚠️ Profile-based embedding failed: {ex.Message}");
                     }
                 }
             }
