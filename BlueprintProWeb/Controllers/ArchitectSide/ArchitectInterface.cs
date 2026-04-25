@@ -136,7 +136,8 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 RecentMatches = recentMatches,
                 RecentUploads = recentUploads,
                 CurrentProject = currentProject,
-                AllProjects = allProjects
+                AllProjects = allProjects,
+                CredentialsFilePath = currentUser.user_CredentialsFile
             };
 
             return View(dashboardViewModel);
