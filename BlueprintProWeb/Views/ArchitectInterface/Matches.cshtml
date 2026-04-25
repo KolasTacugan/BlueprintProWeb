@@ -613,34 +613,36 @@
                 btn.addEventListener('click', function () {
                     const matchId = this.dataset.id;
                     const approve = this.dataset.approve === "true";
+                    const card    = this.closest('.match-card');
 
                     fetch('/ArchitectInterface/RespondMatch', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ matchId, approve })
                     })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            document.getElementById("matchResultTitle").innerText = "Match Update";
-                            document.getElementById("matchResultMessage").innerText = `Match ${data.status}`;
+                    .then(res => res.text())
+                    .then(text => {
+                        let data = null;
+                        try { data = JSON.parse(text); } catch {}
+
+                        const succeeded = !data || data.success;
+                        const status    = (data && data.status) || (approve ? 'Approved' : 'Declined');
+
+                        if (succeeded) {
+                            const actionsDiv = card?.querySelector('.match-actions');
+                            if (actionsDiv) {
+                                actionsDiv.innerHTML = `<span class="match-status ${status.toLowerCase()}">${status}</span>`;
+                            }
+                            document.getElementById("matchResultTitle").innerText  = "Match Update";
+                            document.getElementById("matchResultMessage").innerText = `Match ${status}`;
                         } else {
-                            document.getElementById("matchResultTitle").innerText = "? Error";
+                            document.getElementById("matchResultTitle").innerText  = "Error";
                             document.getElementById("matchResultMessage").innerText = "Failed to update match.";
                         }
-
                         resultModal.show();
-                        if (data.success) {
-                            resultModalEl.addEventListener("hidden.bs.modal", () => {
-                                location.reload();
-                            }, { once: true });
-                        }
                     })
                     .catch(() => {
-                        document.getElementById("matchResultTitle").innerText = "? Error";
+                        document.getElementById("matchResultTitle").innerText  = "Error";
                         document.getElementById("matchResultMessage").innerText = "Error responding to match.";
                         resultModal.show();
                     });
