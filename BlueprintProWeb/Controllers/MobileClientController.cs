@@ -485,13 +485,13 @@ namespace BlueprintProWeb.Controllers
                 {
                     new SystemChatMessage(
                         @"You are classifying client messages for an architecture matching system.
-                Classify the message into ONE of the following categories:
-                - ARCHITECTURE_RELATED
-                - NOT_ARCHITECTURE_RELATED
-                Rules:
-                - Vague architectural requests are still ARCHITECTURE_RELATED
-                - Missing details does NOT make it out of scope
-                Respond ONLY with the category."),
+                        Classify the message into ONE of the following categories:
+                        - ARCHITECTURE_RELATED
+                        - NOT_ARCHITECTURE_RELATED
+                        Rules:
+                        - Vague architectural requests are still ARCHITECTURE_RELATED
+                        - Missing details does NOT make it out of scope
+                        Respond ONLY with the category."),
                     new UserChatMessage(query)
                 };
 
@@ -507,10 +507,10 @@ namespace BlueprintProWeb.Controllers
                     {
                         new SystemChatMessage(
                             @"You evaluate whether an architecture client's query needs clarifying questions before architect matching.
-First, identify every architectural detail already mentioned in the query — style, building type, features, intended use, scale, structural elements, aesthetics, or construction intent.
-A query is SUFFICIENT if it provides enough context to identify a clear architectural direction. It does not need to cover every dimension — if the client has already stated 2 or more specific architectural details, lean toward SUFFICIENT.
-A query is NEEDS_CLARIFICATION only if it is genuinely vague or missing critical architectural context that would meaningfully affect matching.
-Respond ONLY with: SUFFICIENT or NEEDS_CLARIFICATION"),
+                            First, identify every architectural detail already mentioned in the query — style, building type, features, intended use, scale, structural elements, aesthetics, or construction intent.
+                            A query is SUFFICIENT if it provides enough context to identify a clear architectural direction. It does not need to cover every dimension — if the client has already stated 2 or more specific architectural details, lean toward SUFFICIENT.
+                            A query is NEEDS_CLARIFICATION only if it is genuinely vague or missing critical architectural context that would meaningfully affect matching.
+                            Respond ONLY with: SUFFICIENT or NEEDS_CLARIFICATION"),
                         new UserChatMessage(query)
                     };
 
@@ -526,31 +526,31 @@ Respond ONLY with: SUFFICIENT or NEEDS_CLARIFICATION"),
                             new SystemChatMessage(
                                 @"You generate architecture-specific clarifying questions to help match clients with architects.
 
-Step 1 — Read the client's query carefully and determine which of these FIVE architectural dimensions are already stated (explicitly or implicitly):
-  1. Design style (e.g. modern, minimalist, brutalist, tropical, classical, industrial)
-  2. Building type (e.g. house, office, school, apartment, clinic, retail, warehouse)
-  3. Spatial or structural features (e.g. open plan, high ceilings, passive ventilation, mezzanine, courtyard)
-  4. Intended use or purpose (e.g. family home, co-working space, community center, worship space)
-  5. Scale or size (e.g. small, large, compact, multi-storey, single-storey, 200 sqm)
+                                    Step 1 — Read the client's query carefully and determine which of these FIVE architectural dimensions are already stated (explicitly or implicitly):
+                                      1. Design style (e.g. modern, minimalist, brutalist, tropical, classical, industrial)
+                                      2. Building type (e.g. house, office, school, apartment, clinic, retail, warehouse)
+                                      3. Spatial or structural features (e.g. open plan, high ceilings, passive ventilation, mezzanine, courtyard)
+                                      4. Intended use or purpose (e.g. family home, co-working space, community center, worship space)
+                                      5. Scale or size (e.g. small, large, compact, multi-storey, single-storey, 200 sqm)
 
-Step 2 — Identify only the dimensions that are completely absent from the query. A dimension is present even if mentioned briefly or loosely — do not ask about it.
+                                    Step 2 — Identify only the dimensions that are completely absent from the query. A dimension is present even if mentioned briefly or loosely — do not ask about it.
 
-Step 3 — Generate questions using these rules:
-  - If 1 dimension is missing: generate exactly 1 question
-  - If 2 dimensions are missing: generate exactly 2 questions
-  - If 3 or more dimensions are missing: generate exactly 3 questions (maximum)
-  - If 0 dimensions are missing or the query is detailed enough: respond with exactly the word SUFFICIENT and nothing else
+                                    Step 3 — Generate questions using these rules:
+                                      - If 1 dimension is missing: generate exactly 1 question
+                                      - If 2 dimensions are missing: generate exactly 2 questions
+                                      - If 3 or more dimensions are missing: generate exactly 3 questions (maximum)
+                                      - If 0 dimensions are missing or the query is detailed enough: respond with exactly the word SUFFICIENT and nothing else
 
-Each question must:
-  - Be about one of the five dimensions listed above that is absent from the query
-  - Feel like a natural, specific follow-up to the client's exact words — not a generic checklist item
-  - Have exactly 3 to 4 short option labels drawn from real architectural concepts relevant to what the client described
+                                    Each question must:
+                                      - Be about one of the five dimensions listed above that is absent from the query
+                                      - Feel like a natural, specific follow-up to the client's exact words — not a generic checklist item
+                                      - Have exactly 3 to 4 short option labels drawn from real architectural concepts relevant to what the client described
 
-NEVER ask about: budget, cost, price, timeline, schedule, deadlines, location, city, country, or anything non-architectural.
-NEVER generate a question for a dimension already present in the query.
+                                    NEVER ask about: budget, cost, price, timeline, schedule, deadlines, location, city, country, or anything non-architectural.
+                                    NEVER generate a question for a dimension already present in the query.
 
-Respond ONLY with valid JSON (no markdown, no extra text) or the single word SUFFICIENT. JSON format:
-[{""question"":""..."",""options"":[""..."",""..."",""...""]},...]"),
+                                    Respond ONLY with valid JSON (no markdown, no extra text) or the single word SUFFICIENT. JSON format:
+                                    [{""question"":""..."",""options"":[""..."",""..."",""...""]},...]"),
                             new UserChatMessage(query)
                         };
 
