@@ -10,12 +10,12 @@
         /* Override shared layout background for matches page */
         body::before {
             background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
-            opacity: 0.1 !important;
+            opacity: 0.08 !important;
         }
 
         /* Ensure scrollable page with consistent background */
         body {
-            background: #F1F7F9 !important;
+            background: linear-gradient(135deg, #e8edf5 0%, #d4dce9 100%) !important;
             overflow-y: auto !important;
             height: auto !important;
             font-family: 'Raleway', sans-serif !important;
@@ -36,6 +36,52 @@
         body:has(.sidebar.collapsed) main.container {
             margin-left: 110px;
             max-width: calc(100% - 130px);
+        }
+
+        /* ── PAGE HEADER (unified) ── */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.75rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 1px solid #f0f4f8;
+        }
+
+        .page-header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.95rem;
+        }
+
+        .page-header-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 13px;
+            background: rgba(13, 60, 128, 0.08);
+            color: #0D3C80;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            flex-shrink: 0;
+        }
+
+        .page-title {
+            font-weight: 800;
+            font-size: 1.75rem;
+            letter-spacing: -0.5px;
+            color: #091635;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .page-subtitle {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #8b97a8;
+            margin-top: 0.2rem;
         }
 
         /* Two-column layout */
@@ -410,7 +456,20 @@
     </style>
 }
 
-<div class="matches-layout">
+<div>
+    <div class="page-header">
+        <div class="page-header-left">
+            <div class="page-header-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div>
+                <h1 class="page-title">My Matches</h1>
+                <div class="page-subtitle">View and manage your client matches</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="matches-layout">
     <!-- Left Panel - All Matches -->
     <div class="matches-panel">
         <div class="panel-header">
@@ -525,6 +584,7 @@
                 </div>
             }
         </div>
+    </div>
     </div>
 </div>
 

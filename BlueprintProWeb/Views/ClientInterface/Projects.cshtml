@@ -34,31 +34,54 @@
             max-width: calc(100% - 130px);
         }
 
-        /* ── Page Header (matches dashboard-greeting) ─────────── */
+        /* ── Page Header (unified) ─────────── */
         .page-header {
-            color: #1a202c;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.75rem;
             padding-bottom: 1.25rem;
-            border-bottom: 1px solid #e8edf5;
+            border-bottom: 1px solid #f0f4f8;
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 1rem;
         }
 
+        .page-header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.95rem;
+        }
+
+        .page-header-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 13px;
+            background: rgba(13, 60, 128, 0.08);
+            color: #0D3C80;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            flex-shrink: 0;
+        }
+
         .page-title {
-            font-weight: 700;
-            font-size: 1.75rem;
+            font-weight: 600;
+            font-size: 1.6rem;
             letter-spacing: -0.3px;
-            color: #1a202c;
+            color: #091635;
             margin: 0;
+            line-height: 1.2;
+        }
+
+        .page-header-icon .material-symbols-rounded {
+            font-size: 1.5rem;
         }
 
         .page-subtitle {
-            font-size: 0.9rem;
-            font-weight: 400;
-            color: #94a3b8;
-            margin-top: 0.3rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #8b97a8;
+            margin-top: 0.2rem;
         }
 
         .purchased-btn {
@@ -582,9 +605,14 @@
 
 <div>
     <div class="page-header">
-        <div>
-            <h1 class="page-title">My Projects</h1>
-            <div class="page-subtitle">Track your active construction projects</div>
+        <div class="page-header-left">
+            <div class="page-header-icon">
+                <span class="material-symbols-rounded">note_stack</span>
+            </div>
+            <div>
+                <h1 class="page-title">My Projects</h1>
+                <div class="page-subtitle">Track your active construction projects</div>
+            </div>
         </div>
         <button type="button" class="purchased-btn" id="purchasedBtn">
             <i class="fas fa-folder-open"></i>

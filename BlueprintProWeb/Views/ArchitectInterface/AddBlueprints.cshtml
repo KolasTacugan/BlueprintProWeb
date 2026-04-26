@@ -9,11 +9,11 @@
     <style>
         body::before {
             background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
-            opacity: 0.1 !important;
+            opacity: 0.08 !important;
         }
 
         body {
-            background: #F1F7F9 !important;
+            background: linear-gradient(135deg, #e8edf5 0%, #d4dce9 100%) !important;
             overflow-y: auto !important;
             height: auto !important;
             font-family: 'Raleway', sans-serif !important;
@@ -36,27 +36,43 @@
             width: calc(100% - 130px);
         }
 
-        /* ── Page Header (matches dashboard-greeting) ─────────── */
+        /* ── Page Header (unified) ─────────── */
         .page-header {
-            color: #1a202c;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.75rem;
             padding-bottom: 1.25rem;
-            border-bottom: 1px solid #e8edf5;
+            border-bottom: 1px solid #f0f4f8;
+            display: flex;
+            align-items: center;
+            gap: 0.95rem;
+        }
+
+        .page-header-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 13px;
+            background: rgba(13, 60, 128, 0.08);
+            color: #0D3C80;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            flex-shrink: 0;
         }
 
         .page-title {
-            font-weight: 700;
+            font-weight: 800;
             font-size: 1.75rem;
-            letter-spacing: -0.3px;
-            color: #1a202c;
+            letter-spacing: -0.5px;
+            color: #091635;
             margin: 0;
+            line-height: 1.2;
         }
 
         .page-subtitle {
-            font-size: 0.9rem;
-            font-weight: 400;
-            color: #94a3b8;
-            margin-top: 0.3rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #8b97a8;
+            margin-top: 0.2rem;
         }
 
         /* ── Category Tabs ────────────────────────────────────── */
@@ -424,8 +440,13 @@
 
 <div>
     <div class="page-header">
-        <h1 class="page-title">Add Blueprints</h1>
-        <div class="page-subtitle">Upload new blueprints to expand your portfolio</div>
+        <div class="page-header-icon">
+            <i class="fas fa-cloud-upload-alt"></i>
+        </div>
+        <div>
+            <h1 class="page-title">Add Blueprints</h1>
+            <div class="page-subtitle">Upload new blueprints to expand your portfolio</div>
+        </div>
     </div>
 
     <div class="category-tabs-container">

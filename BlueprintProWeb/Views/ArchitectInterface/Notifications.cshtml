@@ -7,266 +7,300 @@
 
 @section Styles {
     <style>
-        /* Override shared layout background for notifications page */
         body::before {
             background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
-            opacity: 0.1 !important;
+            opacity: 0.08 !important;
         }
 
-        /* Ensure scrollable page with consistent background */
         body {
-            background: #F1F7F9 !important;
+            background: linear-gradient(135deg, #e8edf5 0%, #d4dce9 100%) !important;
             overflow-y: auto !important;
             height: auto !important;
             font-family: 'Raleway', sans-serif !important;
         }
 
-        /* Main content positioning that responds to sidebar state */
         main.container {
             margin-left: 300px;
             margin-top: 120px;
-            padding: 1.5rem;
-            padding-top: 4rem;
+            padding: 1.5rem 2rem 3rem;
+            padding-top: 3rem;
             max-width: calc(100% - 320px);
             transition: margin-left 0.4s ease, max-width 0.4s ease;
         }
 
-        /* When sidebar is collapsed, adjust main content */
         .sidebar.collapsed ~ * main.container,
         body:has(.sidebar.collapsed) main.container {
             margin-left: 110px;
             max-width: calc(100% - 130px);
         }
 
-        /* Page Header Styling */
+        /* ── PAGE HEADER (unified) ── */
         .notifications-page-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid rgba(52, 78, 173, 0.1);
+            gap: 1rem;
+            margin-bottom: 1.75rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 1px solid #f0f4f8;
+        }
+
+        .page-header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.95rem;
+        }
+
+        .page-header-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 13px;
+            background: rgba(13, 60, 128, 0.08);
+            color: #0D3C80;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            flex-shrink: 0;
         }
 
         .notifications-page-title {
             font-size: 1.75rem;
-            font-weight: 600;
-            color: #1a202c;
+            font-weight: 800;
+            color: #091635;
             margin: 0;
-            font-family: 'Raleway', sans-serif;
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
         }
 
-        .notifications-page-title i {
-            color: #344EAD;
-            font-size: 1.5rem;
-            width: 28px;
-            height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .page-subtitle {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #8b97a8;
+            margin-top: 0.2rem;
         }
 
-        /* Notifications Container */
+        /* ── MAIN CARD ── */
         .notifications-main-container {
             background: #FFFFFF;
-            border-radius: 16px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(52, 78, 173, 0.05);
+            border-radius: 18px;
+            box-shadow: 0 12px 36px rgba(9, 22, 53, 0.08);
+            border: 1px solid #eef2f7;
             min-height: 500px;
             overflow: hidden;
         }
 
         .notifications-container-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid rgba(52, 78, 173, 0.1);
-            background: linear-gradient(135deg, rgba(52, 78, 173, 0.05) 0%, rgba(37, 99, 235, 0.02) 100%);
+            padding: 1.4rem 1.75rem;
+            border-bottom: 1px solid #f0f4f8;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
         .notifications-container-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #1a202c;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #3d4f65;
             margin: 0;
-            font-family: 'Raleway', sans-serif;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
         }
 
         .notifications-list {
-            padding: 1.5rem;
-            max-height: 600px;
+            padding: 1.25rem 1.75rem 1.75rem;
+            max-height: 640px;
             overflow-y: auto;
         }
 
-        /* Enhanced Notification Card */
+        /* ── NOTIFICATION CARD ── */
         .notification-card {
             background: #FFFFFF;
             border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(52, 78, 173, 0.05);
+            padding: 1.1rem 1.25rem;
+            margin-bottom: 0.75rem;
+            transition: border-color 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
+            border: 1.5px solid #eef2f7;
             cursor: pointer;
             position: relative;
-            overflow: hidden;
-        }
-
-        .notification-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
-            opacity: 0;
-            transition: opacity 0.3s ease;
         }
 
         .notification-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(52, 78, 173, 0.15);
-            border-color: rgba(52, 78, 173, 0.1);
-        }
-
-        .notification-card:hover::before {
-            opacity: 1;
+            border-color: rgba(13, 60, 128, 0.28);
+            background: #F8FAFC;
+            box-shadow: 0 6px 18px rgba(13, 60, 128, 0.06);
         }
 
         .notification-card.notification-read {
-            opacity: 0.7;
-            background: #F8FAFC;
+            background: #FAFBFD;
+            border-color: #f0f3f7;
         }
 
         .notification-card.notification-read .notification-title {
-            color: #64748B;
+            color: #6b7689;
+            font-weight: 600;
         }
 
-        /* Notification Content */
+        .notification-card.notification-read:hover {
+            border-color: #e2e8f0;
+            background: #F4F6FA;
+        }
+
+        /* ── CARD CONTENT ── */
         .notification-header {
             display: flex;
             align-items: flex-start;
-            gap: 1rem;
-            margin-bottom: 0.75rem;
+            gap: 0.9rem;
+            margin-bottom: 0;
         }
 
-        /* Blue circle indicator for unread notifications */
         .notification-indicator {
-            width: 10px;
-            height: 10px;
+            width: 9px;
+            height: 9px;
             border-radius: 50%;
-            background: #344EAD;
+            background: #0D3C80;
             flex-shrink: 0;
             margin-top: 0.5rem;
+            box-shadow: 0 0 0 3px rgba(13, 60, 128, 0.12);
         }
 
-        /* Hide indicator for read notifications */
         .notification-card.notification-read .notification-indicator {
             visibility: hidden;
         }
 
         .notification-content {
             flex: 1;
+            min-width: 0;
         }
 
         .notification-title {
             font-weight: 700;
-            color: #1a202c;
-            margin-bottom: 0.5rem;
-            font-size: 1rem;
-            font-family: 'Raleway', sans-serif;
-            line-height: 1.3;
+            color: #091635;
+            margin-bottom: 0.4rem;
+            font-size: 0.95rem;
+            line-height: 1.35;
+            letter-spacing: -0.1px;
         }
 
         .notification-preview {
-            color: #64748B;
-            font-size: 0.9rem;
-            line-height: 1.4;
-            margin-bottom: 0.5rem;
+            color: #5a6478;
+            font-size: 0.88rem;
+            line-height: 1.5;
+            margin-bottom: 0.4rem;
         }
 
         .notification-meta {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-top: 0.75rem;
+            margin-top: 0.4rem;
         }
 
         .notification-date {
-            font-size: 0.85rem;
+            font-size: 0.78rem;
             color: #94A3B8;
             font-weight: 500;
+            letter-spacing: 0.1px;
         }
 
-        /* Enhanced Modal Styling */
+        /* ── MODAL ── */
         .modal-content {
-            border-radius: 16px;
-            border: none;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border-radius: 18px;
+            border: 1px solid #e8edf5;
+            box-shadow: 0 24px 64px rgba(9, 22, 53, 0.22);
+            overflow: hidden;
+        }
+
+        .modal-content::before {
+            content: '';
+            display: block;
+            height: 4px;
+            background: linear-gradient(90deg, #0D3C80 0%, #071744 100%);
         }
 
         .modal-header {
-            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
-            color: white;
-            border-radius: 16px 16px 0 0;
-            border-bottom: none;
-            padding: 1.5rem;
+            background: #ffffff;
+            color: #091635;
+            border-bottom: 1px solid #f0f4f8;
+            padding: 1.25rem 1.75rem;
+            border-radius: 0;
         }
 
         .modal-title {
-            font-weight: 600;
-            font-family: 'Raleway', sans-serif;
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: #091635;
+            letter-spacing: -0.2px;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.6rem;
         }
 
         .modal-title::before {
-            content: "🔔";
-            font-size: 1.2rem;
+            content: '';
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: rgba(13, 60, 128, 0.08) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='%230D3C80'><path d='M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z'/></svg>") center/18px no-repeat;
+            display: inline-block;
+            flex-shrink: 0;
         }
 
         .btn-close {
-            filter: invert(1);
+            filter: none;
+            opacity: 0.55;
+            transition: opacity 0.2s ease;
         }
+
+        .btn-close:hover { opacity: 1; }
 
         .modal-body {
-            padding: 2rem;
+            padding: 1.75rem;
             font-family: 'Raleway', sans-serif;
-            line-height: 1.6;
-            color: #374151;
+            line-height: 1.65;
+            color: #4a5468;
+            font-size: 0.93rem;
+            background: #ffffff;
         }
 
-        /* Empty State Styling */
+        /* ── EMPTY STATE ── */
         .empty-state {
             text-align: center;
-            padding: 4rem 2rem;
+            padding: 4.5rem 2rem;
             color: #64748B;
         }
 
         .empty-state-icon {
-            font-size: 4rem;
-            color: #CBD5E1;
-            margin-bottom: 1rem;
+            font-size: 2rem;
+            color: #0D3C80;
+            margin: 0 auto 1.25rem;
+            width: 72px;
+            height: 72px;
+            border-radius: 18px;
+            background: rgba(13, 60, 128, 0.07);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .empty-state-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #475569;
-            margin-bottom: 0.5rem;
-            font-family: 'Raleway', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #091635;
+            margin-bottom: 0.45rem;
+            letter-spacing: -0.2px;
         }
 
         .empty-state-subtitle {
-            font-size: 0.9rem;
-            color: #64748B;
-            line-height: 1.5;
+            font-size: 0.88rem;
+            color: #6b7689;
+            line-height: 1.6;
+            max-width: 440px;
+            margin: 0 auto;
         }
 
-        /* Responsive Design */
+        /* ── RESPONSIVE ── */
         @@media (max-width: 768px) {
             main.container {
                 margin-left: 0 !important;
@@ -283,7 +317,7 @@
             }
 
             .notifications-page-title {
-                font-size: 1.4rem;
+                font-size: 1.5rem;
             }
 
             .notifications-main-container {
@@ -310,7 +344,7 @@
 
         @@media (max-width: 576px) {
             .notifications-page-title {
-                font-size: 1.25rem;
+                font-size: 1.3rem;
             }
 
             .notification-meta {
@@ -320,7 +354,7 @@
             }
         }
 
-        /* Custom scrollbar for notifications list */
+        /* Scrollbar */
         .notifications-list::-webkit-scrollbar {
             width: 6px;
         }
@@ -330,22 +364,27 @@
         }
 
         .notifications-list::-webkit-scrollbar-thumb {
-            background: #CBD5E1;
+            background: #d6dde6;
             border-radius: 3px;
         }
 
         .notifications-list::-webkit-scrollbar-thumb:hover {
-            background: #94A3B8;
+            background: #b3c2d8;
         }
     </style>
 }
 
 <div>
     <div class="notifications-page-header">
-        <h2 class="notifications-page-title">
-            <i class="fas fa-bell"></i>
-            Notifications
-        </h2>
+        <div class="page-header-left">
+            <div class="page-header-icon">
+                <i class="fas fa-bell"></i>
+            </div>
+            <div>
+                <h2 class="notifications-page-title">Notifications</h2>
+                <div class="page-subtitle">Stay updated on your projects and activities</div>
+            </div>
+        </div>
     </div>
 
     <!-- Main Notifications Container -->
