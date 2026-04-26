@@ -26,10 +26,10 @@
 
         body {
             min-height: 100vh;
-            background-color: #D6D9E0; /* base color */
+            background-color: #D6D9E0;
             margin: 0;
             position: relative;
-            overflow: hidden; /* just in case */
+            overflow: hidden;
         }
 
         body::before {
@@ -227,6 +227,29 @@
             left: 85px;
         }
 
+        /* =====================================================
+           MAIN CONTENT AREA — fixes the header overlap bug.
+           The navbar is 70px tall and fixed; we need at least
+           70px top margin plus a little breathing room (90px).
+           Left margin matches the collapsed sidebar (85px) by
+           default; the :has() rule below expands it when the
+           sidebar is open.
+           ===================================================== */
+        main.container {
+            margin-top: 90px;
+            margin-left: 85px;
+            max-width: calc(100% - 85px);
+            padding: 1.5rem;
+            transition: margin-left 0.4s ease, max-width 0.4s ease;
+            overflow-y: auto;
+        }
+
+        /* Sidebar expanded → push content further right */
+        body:has(.sidebar:not(.collapsed)) main.container {
+            margin-left: 270px;
+            max-width: calc(100% - 270px);
+        }
+
         /* Pro indicator in header */
         .header-pro-indicator {
             background: linear-gradient(135deg, #0D3C80, #1a5bb8);
@@ -242,16 +265,8 @@
         }
 
         @@keyframes headerProGlow {
-            0%
-
-        {
-            box-shadow: 0 4px 15px rgba(13, 60, 128, 0.3);
-        }
-
-        100% {
-            box-shadow: 0 4px 20px rgba(13, 60, 128, 0.5);
-        }
-
+            0%  { box-shadow: 0 4px 15px rgba(13, 60, 128, 0.3); }
+            100% { box-shadow: 0 4px 20px rgba(13, 60, 128, 0.5); }
         }
 
         .navbar-div {
@@ -311,7 +326,7 @@
             padding: 12px;
             border: none;
             border-radius: 8px;
-            background: #e63946; /* red */
+            background: #e63946;
             color: #fff;
             font-weight: 600;
             display: flex;
@@ -373,14 +388,44 @@
             transition: opacity 0.3s ease, visibility 0.3s ease;
         }
 
-
         .notif-badge.d-none {
             opacity: 0;
             visibility: hidden;
         }
 
-        #page-loader { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:#ffffff; z-index:10000; transition:opacity .3s ease; }
-        .spinner { width:56px; height:56px; border:6px solid #e2e8f0; border-top-color:#344EAD; border-radius:50%; animation: pageLoaderSpin 1s linear infinite; }
+        #page-loader {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #ffffff;
+            z-index: 10000;
+            transition: opacity .3s ease;
+        }
+
+        .spinner {
+            width: 56px;
+            height: 56px;
+            border: 6px solid #e2e8f0;
+            border-top-color: #344EAD;
+            border-radius: 50%;
+            animation: pageLoaderSpin 1s linear infinite;
+        }
+
+        @@keyframes pageLoaderSpin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Mobile: hide sidebar, full-width content */
+        @@media (max-width: 768px) {
+            main.container {
+                margin-left: 0 !important;
+                margin-top: 75px;
+                max-width: 100% !important;
+                padding: 1rem;
+            }
+        }
     </style>
     @RenderSection("Styles", required: false)
 </head>
@@ -425,7 +470,12 @@
                 </li>
             </ul>
         </nav>
-        <form asp-controller="Account" asp-action="Logout" method="post" class="logout-form"><button type="submit" class="logout-btn nav-link"><span class="material-symbols-rounded">logout</span><span class="nav-label">Log out</span></button></form>
+        <form asp-controller="Account" asp-action="Logout" method="post" class="logout-form">
+            <button type="submit" class="logout-btn nav-link">
+                <span class="material-symbols-rounded">logout</span>
+                <span class="nav-label">Log out</span>
+            </button>
+        </form>
     </aside>
     <nav class="navbar">
         <div>@if (isPro){ <span class="header-pro-indicator">PRO</span> }</div>
@@ -438,8 +488,7 @@
                     </a>
                 </li>
                 <li class="top-nav-item">
-                    <a asp-controller="ArchitectInterface" asp-action="Notifications"
-                       class="top-nav-link position-relative">
+                    <a asp-controller="ArchitectInterface" asp-action="Notifications" class="top-nav-link position-relative">
                         <span class="material-symbols-rounded">notifications</span>
                         <span id="notifBadge" class="notif-badge d-none"></span>
                     </a>
@@ -452,10 +501,9 @@
             </ul>
         </div>
     </nav>
-    <main class="container mt-4">@RenderBody()</main>
+    <main class="container">@RenderBody()</main>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Lottie Player (for .json/.lottie animations) -->
     <script src="https://unpkg.com/@@lottiefiles/lottie-player@2/dist/lottie-player.js" crossorigin="anonymous"></script>
     <script src="~/js/modal.js" asp-append-version="true"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
@@ -478,7 +526,6 @@
                 .withAutomaticReconnect()
                 .build();
 
-            // NotificationHub EVENTS
             connection.on("ReceiveNotification", () => {
                 console.log("Notification received!");
                 loadArchitectNotifications();
@@ -488,7 +535,6 @@
                 .then(() => console.log("NotificationHub connected"))
                 .catch(err => console.error("NotificationHub error:", err));
 
-
             // -----------------------------
             // 2. CHAT HUB
             // -----------------------------
@@ -497,7 +543,6 @@
                 .withAutomaticReconnect()
                 .build();
 
-            // ChatHub EVENTS
             chatConnection.on("ReceiveMessage", () => {
                 console.log("Chat message received!");
                 loadArchitectUnreadMessages();
@@ -595,4 +640,4 @@
         });
     </script>
 </body>
-</html></html>
+</html>
