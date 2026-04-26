@@ -1670,19 +1670,38 @@
 
         // ── Match button ─────────────────────────────────────────────────
         $(document).on("click", ".match-btn", function () {
-            const status      = $(this).data("status");
-            const architectId = $(this).data("architect-id");
-            const token       = $('input[name="__RequestVerificationToken"]').val();
+            const btn         = this;
+            const status      = btn.dataset.status;
+            const architectId = btn.dataset.architectId;
+            const token       = document.querySelector('input[name="__RequestVerificationToken"]').value;
 
-            if (status === "Pending")   { showNotification("Already Pending",  "You've already sent a match request to this architect."); return; }
-            if (status === "Approved")  { showNotification("Already Matched",   "You are already matched with this architect."); return; }
+            if (status === "Pending")  { showNotification("Already Pending", "You've already sent a match request to this architect."); return; }
+            if (status === "Approved") { showNotification("Already Matched",  "You are already matched with this architect."); return; }
 
-            $.post("/ClientInterface/RequestMatch", { architectId, __RequestVerificationToken: token })
-                .done(res => {
-                    showNotification("Success ✅", res.message || "Match request sent!");
-                    if (res.success) location.reload();
-                })
-                .fail(() => showNotification("Error ❌", "Failed to send match request."));
+            const body = new URLSearchParams();
+            body.append('architectId', architectId);
+            body.append('__RequestVerificationToken', token);
+
+            fetch('/ClientInterface/RequestMatch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body.toString()
+            })
+            .then(res => res.text())
+            .then(text => {
+                let data = null;
+                try { data = JSON.parse(text); } catch {}
+
+                if (data && !data.success) {
+                    showNotification('Request Failed', data.message || 'Unable to send match request.');
+                } else {
+                    btn.textContent    = 'Pending…';
+                    btn.disabled       = true;
+                    btn.dataset.status = 'Pending';
+                    showNotification('Match Request Sent ✅', (data && data.message) || 'Match request sent!');
+                }
+            })
+            .catch(() => showNotification('Error ❌', 'Failed to send match request.'));
         });
 
         // ── Notification helper ──────────────────────────────────────────
