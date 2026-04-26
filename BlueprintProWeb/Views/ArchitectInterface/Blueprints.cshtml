@@ -612,10 +612,13 @@
                 <div class="page-subtitle">Manage your uploaded blueprint portfolio</div>
             </div>
         </div>
-        <a class="add-blueprint-button" asp-controller="ArchitectInterface" asp-action="AddBlueprints">
-            <i class="fas fa-plus"></i>
-            Add Blueprint
-        </a>
+        @if (Model.Any())
+        {
+            <a class="add-blueprint-button" asp-controller="ArchitectInterface" asp-action="AddBlueprints">
+                <i class="fas fa-plus"></i>
+                Add Blueprint
+            </a>
+        }
     </div>
 
     @if (Model.Any())
