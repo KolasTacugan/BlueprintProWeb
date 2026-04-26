@@ -48,10 +48,12 @@
         .sidebar {
             width: 270px;
             position: fixed;
-            margin: -8px 8px 16px 16px;
-            border-radius: 10px;
+            top: 0;
+            left: 0;
+            margin: 0;
+            border-radius: 0;
             background: #071744;
-            height: calc(100vh - 32px);
+            height: 100vh;
             transition: 0.4s ease;
             z-index: 1000;
         }
@@ -204,19 +206,25 @@
 
         .navbar {
             position: fixed;
-            top: 15px;
-            left: 15px;
-            right: 15px;
-            height: 76px;
+            top: 0;
+            left: 270px;
+            right: 0;
+            height: 70px;
             background: #fff;
             z-index: 90;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-radius: 12px;
+            border-radius: 0;
             padding: 0 25px;
-            box-shadow: 0 2px 16px rgba(7, 23, 68, 0.08);
-            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 1px 4px rgba(7, 23, 68, 0.06);
+            border: none;
+            border-bottom: 1px solid #eef2f7;
+            transition: left 0.4s ease;
+        }
+
+        body:has(.sidebar.collapsed) .navbar {
+            left: 85px;
         }
 
         /* Pro indicator in header */
@@ -353,14 +361,15 @@
 
         .notif-badge {
             position: absolute;
-            top: 0px;
-            right: 0px;
-            width: 10px;
-            height: 10px;
+            top: 8px;
+            right: 8px;
+            width: 9px;
+            height: 9px;
             background-color: #e63946;
             border-radius: 50%;
             display: inline-block;
             box-shadow: 0 0 0 2px #fff;
+            pointer-events: none;
             transition: opacity 0.3s ease, visibility 0.3s ease;
         }
 

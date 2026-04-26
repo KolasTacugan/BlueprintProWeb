@@ -20,18 +20,18 @@
         }
 
         main.container {
-            margin-left: 300px;
-            margin-top: 120px;
+            margin-left: 270px;
+            margin-top: 70px;
             padding: 1.5rem 2rem 3rem;
-            padding-top: 3rem;
-            max-width: calc(100% - 320px);
+            padding-top: 2rem;
+            max-width: calc(100% - 270px);
             transition: margin-left 0.4s ease, max-width 0.4s ease;
         }
 
         .sidebar.collapsed ~ * main.container,
         body:has(.sidebar.collapsed) main.container {
-            margin-left: 110px;
-            max-width: calc(100% - 130px);
+            margin-left: 85px;
+            max-width: calc(100% - 85px);
         }
 
         /* ── PAGE HEADER (unified) ── */
@@ -65,12 +65,16 @@
         }
 
         .notifications-page-title {
-            font-size: 1.75rem;
-            font-weight: 800;
+            font-size: 1.6rem;
+            font-weight: 600;
             color: #091635;
             margin: 0;
-            letter-spacing: -0.5px;
+            letter-spacing: -0.3px;
             line-height: 1.2;
+        }
+
+        .page-header-icon .material-symbols-rounded {
+            font-size: 1.5rem;
         }
 
         .page-subtitle {
@@ -378,7 +382,7 @@
     <div class="notifications-page-header">
         <div class="page-header-left">
             <div class="page-header-icon">
-                <i class="fas fa-bell"></i>
+                <span class="material-symbols-rounded">notifications</span>
             </div>
             <div>
                 <h2 class="notifications-page-title">Notifications</h2>
@@ -469,11 +473,11 @@
             function adjustMainContent() {
                 if (sidebar && mainContent) {
                     if (sidebar.classList.contains('collapsed')) {
-                        mainContent.style.marginLeft = '110px';
-                        mainContent.style.maxWidth = 'calc(100% - 130px)';
+                        mainContent.style.marginLeft = '85px';
+                        mainContent.style.maxWidth = 'calc(100% - 85px)';
                     } else {
-                        mainContent.style.marginLeft = '300px';
-                        mainContent.style.maxWidth = 'calc(100% - 320px)';
+                        mainContent.style.marginLeft = '270px';
+                        mainContent.style.maxWidth = 'calc(100% - 270px)';
                     }
                 }
             }
