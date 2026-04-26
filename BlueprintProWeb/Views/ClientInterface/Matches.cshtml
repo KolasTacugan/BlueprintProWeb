@@ -37,6 +37,52 @@
             max-width: calc(100% - 130px);
         }
 
+        /* ── Page Header (unified) ─────────── */
+        .page-header {
+            margin-bottom: 1.75rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 1px solid #f0f4f8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .page-header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.95rem;
+        }
+
+        .page-header-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 13px;
+            background: rgba(13, 60, 128, 0.08);
+            color: #0D3C80;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            flex-shrink: 0;
+        }
+
+        .page-title {
+            font-weight: 800;
+            font-size: 1.75rem;
+            letter-spacing: -0.5px;
+            color: #091635;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .page-subtitle {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #8b97a8;
+            margin-top: 0.2rem;
+        }
+
         /* ── Match Button ───────────────────────────────── */
         .match-btn {
             background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
@@ -934,6 +980,18 @@
         }
     </style>
 }
+
+<div class="page-header">
+    <div class="page-header-left">
+        <div class="page-header-icon">
+            <i class="fas fa-handshake"></i>
+        </div>
+        <div>
+            <h1 class="page-title">Find an Architect</h1>
+            <div class="page-subtitle">Discover architects matched to your project needs</div>
+        </div>
+    </div>
+</div>
 
 <div class="row" style="height: 85vh;">
 

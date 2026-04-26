@@ -104,6 +104,56 @@
             color: #344EAD !important;
         }
 
+        /* ── Page Header (unified) ─────────── */
+        .page-header {
+            margin-bottom: 1.75rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 1px solid #f0f4f8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .page-header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.95rem;
+        }
+
+        .page-header-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 13px;
+            background: rgba(13, 60, 128, 0.08);
+            color: #0D3C80;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            flex-shrink: 0;
+        }
+
+        .page-title {
+            font-weight: 800;
+            font-size: 1.75rem;
+            letter-spacing: -0.5px;
+            color: #091635;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .page-title .text-primary {
+            color: #344EAD !important;
+        }
+
+        .page-subtitle {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #8b97a8;
+            margin-top: 0.2rem;
+        }
+
         /* First row - just stats cards */
         .dashboard-stats-row {
             display: flex;
@@ -660,11 +710,19 @@
 </script>
 }
 
-<div class="dashboard-greeting mb-4">
-    <div class="greeting-text">
-        Welcome, <span class="text-primary">@ViewData["UserFirstName"]</span>!
+<div class="page-header">
+    <div class="page-header-left">
+        <div class="page-header-icon">
+            <i class="fas fa-th-large"></i>
+        </div>
+        <div>
+            <h1 class="page-title">Welcome, <span class="text-primary">@ViewData["UserFirstName"]</span>!</h1>
+            <div class="page-subtitle">Your overview - stay on top of things.</div>
+        </div>
     </div>
-    <div class="greeting-subtitle">
+</div>
+
+<div style="display:none;" class="legacy-greeting-stub" data-removed="true"><div>
         Your overview - stay on top of things.
     </div>
 </div>

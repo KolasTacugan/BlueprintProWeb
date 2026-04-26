@@ -10,12 +10,12 @@
         /* Override shared layout background for project tracker page */
         body::before {
             background: url("/images/BPP_Dashboard_BG.png") center/cover no-repeat !important;
-            opacity: 0.1 !important;
+            opacity: 0.08 !important;
         }
 
         /* Ensure scrollable page with consistent background */
         body {
-            background: #F1F7F9 !important;
+            background: linear-gradient(135deg, #e8edf5 0%, #d4dce9 100%) !important;
             overflow-y: auto !important;
             height: auto !important;
             font-family: 'Raleway', sans-serif !important;
@@ -39,34 +39,50 @@
         }
 
         /* Page Header Styling */
+        /* ── PAGE HEADER (unified) ── */
         .project-tracker-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid rgba(52, 78, 173, 0.1);
+            gap: 1rem;
+            margin-bottom: 1.75rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 1px solid #f0f4f8;
+        }
+
+        .page-header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.95rem;
+        }
+
+        .page-header-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 13px;
+            background: rgba(13, 60, 128, 0.08);
+            color: #0D3C80;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            flex-shrink: 0;
         }
 
         .project-tracker-title {
             font-size: 1.75rem;
-            font-weight: 600;
-            color: #1a202c;
+            font-weight: 800;
+            color: #091635;
             margin: 0;
-            font-family: 'Raleway', sans-serif;
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
         }
 
-        .project-tracker-title i {
-            color: #344EAD;
-            font-size: 1.5rem;
-            width: 28px;
-            height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .page-subtitle {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #8b97a8;
+            margin-top: 0.2rem;
         }
 
         /* Enhanced Stepper Container */
@@ -458,10 +474,15 @@
 
 <div>
     <div class="project-tracker-header">
-        <h2 class="project-tracker-title">
-            <i class="fas fa-tasks"></i>
-            Project Tracker
-        </h2>
+        <div class="page-header-left">
+            <div class="page-header-icon">
+                <i class="fas fa-tasks"></i>
+            </div>
+            <div>
+                <h2 class="project-tracker-title">Project Tracker</h2>
+                <div class="page-subtitle">Track the progress of your active project</div>
+            </div>
+        </div>
     </div>
 
     <div class="stepper-container">
