@@ -402,9 +402,132 @@
 
         /** Profile Card in Modal **/
         .profile-main-card {
-            background: #F8FAFC;
-            border-radius: 12px;
+            background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
+            border-radius: 14px;
             border: 1px solid rgba(52, 78, 173, 0.1);
+            padding: 1.25rem !important;
+        }
+
+        .profile-main-card .client-name {
+            font-size: 1.15rem;
+            color: #091635;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .profile-main-card .text-muted {
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            margin-top: 0.15rem;
+        }
+
+        .profile-main-card .text-muted i {
+            color: #344EAD;
+            font-size: 0.8rem;
+            width: 14px;
+            text-align: center;
+        }
+
+        .profile-avatar-ring {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            padding: 3px;
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            flex-shrink: 0;
+        }
+
+        .profile-avatar-ring img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #fff;
+            border: 2px solid #fff;
+        }
+
+        /* Request Summary Section */
+        .request-summary-section {
+            margin-top: 1.5rem;
+        }
+
+        .request-summary-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #344EAD;
+            margin-bottom: 0.65rem;
+        }
+
+        .request-summary-label i {
+            font-size: 0.85rem;
+        }
+
+        .request-summary-card {
+            position: relative;
+            background: linear-gradient(135deg, rgba(52, 78, 173, 0.04) 0%, rgba(37, 99, 235, 0.02) 100%);
+            border: 1px solid rgba(52, 78, 173, 0.12);
+            border-left: 4px solid #344EAD;
+            border-radius: 12px;
+            padding: 1.1rem 1.25rem 1.1rem 1.4rem;
+            color: #1a202c;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .request-summary-card .quote-mark {
+            position: absolute;
+            top: 0.4rem;
+            right: 0.85rem;
+            font-size: 2.4rem;
+            font-family: Georgia, serif;
+            color: rgba(52, 78, 173, 0.18);
+            line-height: 1;
+            font-weight: 700;
+        }
+
+        .request-summary-text {
+            font-size: 0.95rem;
+            line-height: 1.55;
+            color: #1f2a44;
+            margin: 0;
+            font-style: italic;
+        }
+
+        .request-summary-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem;
+            margin-top: 0.85rem;
+        }
+
+        .summary-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.3rem 0.7rem;
+            background: #FFFFFF;
+            border: 1px solid rgba(52, 78, 173, 0.18);
+            border-radius: 999px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            color: #344EAD;
+        }
+
+        .summary-tag i {
+            font-size: 0.7rem;
+            opacity: 0.8;
+        }
+
+        .request-summary-empty {
+            font-style: italic;
+            color: #64748B;
+            font-size: 0.88rem;
+            margin: 0;
         }
 
         /* Responsive Design */
@@ -491,7 +614,7 @@
                                  class="client-avatar">
                             <div class="client-info">
                                 <div class="client-name">
-                                    <a href="#" class="client-profile-link" data-client-id="@match.ClientId">
+                                    <a href="#" class="client-profile-link" data-client-id="@match.ClientId" data-match-id="@match.MatchId">
                                         @match.ClientName
                                     </a>
                                 </div>
@@ -545,7 +668,7 @@
                                  class="client-avatar">
                             <div class="client-info">
                                 <div class="client-name">
-                                    <a href="#" class="client-profile-link" data-client-id="@pending.ClientId">
+                                    <a href="#" class="client-profile-link" data-client-id="@pending.ClientId" data-match-id="@pending.MatchId">
                                         @pending.ClientName
                                     </a>
                                 </div>
@@ -617,16 +740,32 @@
             </div>
             <div class="modal-body">
                 <div class="profile-container">
-                    <div class="profile-main-card p-3">
-                        <div class="profile-info d-flex align-items-center gap-3 mb-3">
-                            <div class="avatar">
-                                <img src="~/images/profile.jpg" alt="Avatar" style="width:64px;height:64px;border-radius:50%;">
+                    <div class="profile-main-card">
+                        <div class="profile-info d-flex align-items-center gap-3">
+                            <div class="profile-avatar-ring">
+                                <img id="clientProfileAvatar" src="~/images/profile.jpg" alt="Avatar">
                             </div>
-                            <div class="user-details">
+                            <div class="user-details flex-grow-1">
                                 <h3 id="clientProfileName" class="client-name mb-1 fw-bold"></h3>
-                                <div id="clientProfileEmail" class="text-muted"></div>
-                                <div id="clientProfilePhone" class="text-muted"></div>
+                                <div id="clientProfileEmail" class="text-muted">
+                                    <i class="fas fa-envelope"></i><span></span>
+                                </div>
+                                <div id="clientProfilePhone" class="text-muted">
+                                    <i class="fas fa-phone"></i><span></span>
+                                </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="request-summary-section">
+                        <div class="request-summary-label">
+                            <i class="fas fa-comment-dots"></i>
+                            Client Request Summary
+                        </div>
+                        <div id="clientRequestSummary" class="request-summary-card">
+                            <span class="quote-mark">&ldquo;</span>
+                            <p id="clientRequestSummaryText" class="request-summary-text"></p>
+                            <div id="clientRequestSummaryTags" class="request-summary-tags"></div>
                         </div>
                     </div>
                 </div>
@@ -636,7 +775,6 @@
 </div>
 
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // Listen for sidebar toggle and adjust main content accordingly
@@ -734,19 +872,103 @@
 
             const clientProfileModal = new bootstrap.Modal(document.getElementById('clientProfileModal'));
 
+            function escapeHtml(str) {
+                return String(str)
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#39;");
+            }
+
+            function buildRequestSummary(data) {
+                const firstName = (data.name || "The client").split(" ")[0];
+                const clientQuery = (data.clientQuery || "").trim();
+                if (clientQuery) {
+                    return `<strong>${escapeHtml(firstName)}</strong> requested for &ldquo;${escapeHtml(clientQuery)}&rdquo;`;
+                }
+
+                const style = (data.style || "").trim();
+                const location = (data.location || "").trim();
+                const budget = (data.budget || "").trim();
+                const portfolioText = (data.portfolioText || "").trim();
+
+                if (portfolioText) {
+                    return `<strong>${escapeHtml(firstName)}</strong> requested for &ldquo;${escapeHtml(portfolioText)}&rdquo;`;
+                }
+
+                const parts = [];
+                if (style) parts.push(`is looking for a <strong>${escapeHtml(style)}</strong> style`);
+                if (location) parts.push(`in <strong>${escapeHtml(location)}</strong>`);
+                if (budget) parts.push(`with a budget of <strong>${escapeHtml(budget)}</strong>`);
+
+                if (parts.length === 0) return "";
+
+                return `${escapeHtml(firstName)} ${parts.join(", ")}.`;
+            }
+
+            function renderSummaryTags(data) {
+                const tagsContainer = document.getElementById("clientRequestSummaryTags");
+                tagsContainer.innerHTML = "";
+
+                const tags = [
+                    { icon: "fa-palette", value: data.style },
+                    { icon: "fa-location-dot", value: data.location },
+                    { icon: "fa-coins", value: data.budget }
+                ];
+
+                tags.forEach(t => {
+                    if (t.value && t.value.trim()) {
+                        const el = document.createElement("span");
+                        el.className = "summary-tag";
+                        el.innerHTML = `<i class="fas ${t.icon}"></i>${t.value}`;
+                        tagsContainer.appendChild(el);
+                    }
+                });
+            }
+
             document.querySelectorAll('.client-profile-link').forEach(link => {
                 link.addEventListener('click', function (e) {
                     e.preventDefault();
 
                     const clientId = this.dataset.clientId;
+                    const matchId = this.dataset.matchId || "";
+                    const url = `/ArchitectInterface/GetClientProfile?clientId=${encodeURIComponent(clientId)}`
+                        + (matchId ? `&matchId=${encodeURIComponent(matchId)}` : "");
 
-                    fetch(`/ArchitectInterface/GetClientProfile?clientId=${clientId}`)
+                    fetch(url)
                         .then(res => res.json())
                         .then(data => {
                             if (data.success) {
                                 document.getElementById("clientProfileName").innerText = data.name;
-                                document.getElementById("clientProfileEmail").innerText = data.email || "No email provided";
-                                document.getElementById("clientProfilePhone").innerText = data.phone || "No phone provided";
+                                document.getElementById("clientProfileEmail").querySelector("span").innerText = data.email || "No email provided";
+                                document.getElementById("clientProfilePhone").querySelector("span").innerText = data.phone || "No phone provided";
+
+                                if (data.profilePhoto) {
+                                    document.getElementById("clientProfileAvatar").src = data.profilePhoto;
+                                }
+
+                                const summaryHtml = buildRequestSummary(data);
+                                const summaryTextEl = document.getElementById("clientRequestSummaryText");
+                                const summaryCard = document.getElementById("clientRequestSummary");
+
+                                if (summaryHtml) {
+                                    summaryTextEl.innerHTML = summaryHtml;
+                                    summaryCard.classList.remove("is-empty");
+                                    summaryCard.querySelector(".quote-mark").style.display = "";
+                                } else {
+                                    summaryTextEl.innerHTML = `<span class="request-summary-empty">No request details were captured for this match.</span>`;
+                                    summaryCard.querySelector(".quote-mark").style.display = "none";
+                                }
+
+                                // Only show derived tags when we're showing the derived summary,
+                                // not when displaying the client's verbatim query.
+                                const tagsContainer = document.getElementById("clientRequestSummaryTags");
+                                if ((data.clientQuery || "").trim()) {
+                                    tagsContainer.innerHTML = "";
+                                } else {
+                                    renderSummaryTags(data);
+                                }
 
                                 clientProfileModal.show();
                             } else {

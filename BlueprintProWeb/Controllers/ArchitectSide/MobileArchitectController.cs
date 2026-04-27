@@ -1,4 +1,4 @@
-﻿using BlueprintProWeb.Data;
+﻿ using BlueprintProWeb.Data;
 using BlueprintProWeb.Hubs;
 using BlueprintProWeb.Models;
 using BlueprintProWeb.ViewModels;

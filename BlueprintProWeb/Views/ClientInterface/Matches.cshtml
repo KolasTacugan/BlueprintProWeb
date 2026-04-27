@@ -1685,6 +1685,9 @@
             const body = new URLSearchParams();
             body.append('architectId', architectId);
             body.append('__RequestVerificationToken', token);
+            if (typeof lastQuery !== 'undefined' && lastQuery) {
+                body.append('clientQuery', lastQuery);
+            }
 
             fetch('/ClientInterface/RequestMatch', {
                 method: 'POST',
