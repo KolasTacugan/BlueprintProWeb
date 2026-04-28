@@ -292,9 +292,9 @@
     /* Blueprint Cards Container - Matching Matches Page */
     .blueprints-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 1.5rem;
-        padding: 1rem 0;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 2rem;
+        padding: 1.5rem 0;
     }
 
     /* Enhanced Card Styling - Matching Matches Page */
@@ -345,7 +345,7 @@
     }
 
     .card-body {
-        padding: 1.5rem;
+        padding: 1.75rem 1.75rem 1.5rem;
         flex: 1;
         display: flex;
         flex-direction: column;
@@ -376,8 +376,30 @@
         font-size: 0.8rem;
         color: #64748B;
         line-height: 1.4;
-        margin-bottom: 1rem;
+        margin-bottom: 0.25rem;
         flex-grow: 1;
+    }
+
+    .description-truncated {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .see-more-btn {
+        background: none;
+        border: none;
+        color: #2563EB;
+        font-size: 0.75rem;
+        padding: 0;
+        cursor: pointer;
+        margin-bottom: 0.75rem;
+        display: inline-block;
+    }
+
+    .see-more-btn:hover {
+        text-decoration: underline;
     }
 
     /* Add to Cart Button - Matching Matches Page */
@@ -1558,8 +1580,14 @@
     </div>
 
     <div class="blueprints-grid" id="blueprintContainer">
+        @{
+            var architectNames = ViewBag.ArchitectNames as Dictionary<string, string> ?? new Dictionary<string, string>();
+        }
         @foreach (var item in Model)
         {
+            var architectName = (!string.IsNullOrEmpty(item.architectId) && architectNames.TryGetValue(item.architectId, out var name) && !string.IsNullOrWhiteSpace(name))
+                ? name
+                : "Unknown";
             <div class="blueprint-item" data-category="@item.blueprintStyle">
                 <div class="blueprint-card card shadow-sm"
                      data-id="@item.blueprintId"
@@ -1567,6 +1595,7 @@
                      data-price="@item.blueprintPrice"
                      data-description="@item.blueprintDescription"
                      data-style="@item.blueprintStyle"
+                     data-architect="@architectName"
                      data-image="@(string.IsNullOrEmpty(item.blueprintImage) ? "placeholder-blueprint.png" : item.blueprintImage)">
                     @if (!string.IsNullOrEmpty(item.blueprintImage))
                     {
@@ -1586,7 +1615,20 @@
                     <div class="card-body">
                         <div class="blueprint-price">₱<span class="price-value">@item.blueprintPrice.ToString("N0")</span></div>
                         <h5 class="blueprint-title">@item.blueprintName</h5>
-                        <p class="blueprint-description">@item.blueprintDescription</p>
+                        <p class="blueprint-description description-truncated">@item.blueprintDescription</p>
+                        @if (!string.IsNullOrEmpty(item.blueprintDescription) && item.blueprintDescription.Length > 120)
+                        {
+                            <button class="see-more-btn open-details"
+                                    data-id="@item.blueprintId"
+                                    data-name="@item.blueprintName"
+                                    data-price="@item.blueprintPrice"
+                                    data-description="@item.blueprintDescription"
+                                    data-style="@item.blueprintStyle"
+                                    data-architect="@architectName"
+                                    data-image="@(string.IsNullOrEmpty(item.blueprintImage) ? "placeholder-blueprint.png" : item.blueprintImage)">
+                                See more
+                            </button>
+                        }
 
                         <button class="add-to-cart-btn add-to-cart"
                                 data-id="@item.blueprintId"
@@ -1648,10 +1690,10 @@
                     </div>
                     <div class="blueprint-detail-item">
                         <div class="blueprint-detail-label">
-                            <i class="fas fa-download"></i>
-                            Format
+                            <i class="fas fa-user"></i>
+                            Uploaded By
                         </div>
-                        <div class="blueprint-detail-value">Digital Download</div>
+                        <div class="blueprint-detail-value" id="modalBlueprintArchitect">-</div>
                     </div>
                 </div>
 
@@ -1950,6 +1992,7 @@
             document.getElementById('modalBlueprintPrice').textContent = formatNumber(parseFloat(blueprintData.price).toFixed(0));
             document.getElementById('modalBlueprintStyle').textContent = blueprintData.style;
             document.getElementById('modalBlueprintId').textContent = `BP-${blueprintData.id.toString().padStart(4, '0')}`;
+            document.getElementById('modalBlueprintArchitect').textContent = blueprintData.architect || 'Unknown';
             document.getElementById('modalBlueprintDescription').textContent = blueprintData.description;
 
             // Show modal
@@ -1996,6 +2039,7 @@
                         price: this.dataset.price,
                         description: this.dataset.description,
                         style: this.dataset.style,
+                        architect: this.dataset.architect,
                         image: this.dataset.image
                     };
                     showBlueprintDetails(blueprintData);

@@ -180,6 +180,16 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 .Where(bp => bp.blueprintIsForSale)
                 .ToList();
 
+            var architectIds = availableBlueprints
+                .Select(bp => bp.architectId)
+                .Where(id => !string.IsNullOrEmpty(id))
+                .Distinct()
+                .ToList();
+
+            ViewBag.ArchitectNames = context.Users
+                .Where(u => architectIds.Contains(u.Id))
+                .ToDictionary(u => u.Id, u => $"{u.user_fname} {u.user_lname}".Trim());
+
             return View("BlueprintMarketplace", availableBlueprints);
         }
 
