@@ -1144,7 +1144,7 @@ namespace BlueprintProWeb.Controllers
                 {
                     FileName = f.projectFile_fileName,
                     Version = f.projectFile_Version,
-                    UploadedDate = f.projectFile_uploadedDate,
+                    UploadedDate = DateTime.SpecifyKind(f.projectFile_uploadedDate, DateTimeKind.Utc), // ✅ fix
                     FilePath = f.projectFile_Path
                 }).ToList(),
 
