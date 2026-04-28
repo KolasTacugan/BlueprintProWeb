@@ -347,6 +347,14 @@ namespace BlueprintProWeb.Controllers
                     })
                     .ToListAsync();
 
+                // ✅ FIXED: only show conversations where an approved match exists
+                rawConversations = rawConversations
+                    .Where(c => context.Matches.Any(m =>
+                        m.ArchitectId == architectId &&
+                        m.ClientId == c.ClientId &&
+                        m.MatchStatus == "Approved"))
+                    .ToList();
+
                 var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
 
                 var conversations = rawConversations
@@ -496,6 +504,14 @@ namespace BlueprintProWeb.Controllers
                 {
                     return BadRequest(new { success = false, message = "ClientId, ArchitectId, and MessageBody are required." });
                 }
+
+                // ✅ FIXED: block send if no approved match exists
+                var approvedMatch = await context.Matches.FirstOrDefaultAsync(m =>
+                    m.ArchitectId == request.ArchitectId &&
+                    m.ClientId == request.ClientId &&
+                    m.MatchStatus == "Approved");
+                if (approvedMatch == null)
+                    return StatusCode(403, new { success = false, message = "You are not allowed to message this client." }); // ✅ FIXED
 
                 // 🔍 Fetch architect user so we can get name + profile photo like the web version
                 var architect = await userManager.FindByIdAsync(request.ArchitectId);
