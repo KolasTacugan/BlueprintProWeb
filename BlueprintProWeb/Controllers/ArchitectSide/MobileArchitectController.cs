@@ -405,7 +405,7 @@ namespace BlueprintProWeb.Controllers
                             ? null
                             : $"{baseUrl}/images/profiles/{Path.GetFileName(m.Client.user_profilePhoto)}",
 
-                        MatchStatus = "Matched"
+                        MatchStatus = m.MatchStatus
                     })
                     .ToListAsync();
 
