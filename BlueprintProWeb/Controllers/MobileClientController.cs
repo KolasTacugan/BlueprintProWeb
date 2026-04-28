@@ -763,7 +763,7 @@ namespace BlueprintProWeb.Controllers
                     user_Id = architect.Id,
                     notification_Title = "New Match Request",
                     notification_Message = $"{client.user_fname} {client.user_lname} wants to match with you.",
-                    notification_Date = DateTime.Now,
+                    notification_Date = DateTime.UtcNow,
                     notification_isRead = false
                 };
 
@@ -820,6 +820,14 @@ namespace BlueprintProWeb.Controllers
                         UnreadCount = g.Count(x => x.ArchitectId == g.Key && !x.IsRead)
                     })
                     .ToListAsync();
+
+                // ✅ FIXED: only show conversations where an approved match exists
+                conversationsRaw = conversationsRaw
+                    .Where(c => context.Matches.Any(m =>
+                        m.ClientId == clientId &&
+                        m.ArchitectId == c.ArchitectId &&
+                        m.MatchStatus == "Approved"))
+                    .ToList();
 
                 // Step 2: Convert profile URLs and Philippine Time
                 var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
@@ -933,7 +941,7 @@ namespace BlueprintProWeb.Controllers
                         ArchitectPhoto = string.IsNullOrEmpty(m.Architect.user_profilePhoto)
                             ? null
                             : $"{baseUrl}/images/profiles/{Path.GetFileName(m.Architect.user_profilePhoto)}",
-                        MatchStatus = "Matched"
+                        MatchStatus = m.MatchStatus // ✅ FIXED
                     })
                     .ToListAsync();
 
@@ -959,6 +967,14 @@ namespace BlueprintProWeb.Controllers
                 {
                     return BadRequest(new { success = false, message = "ClientId, ArchitectId, and MessageBody are required." });
                 }
+
+                // ✅ FIXED: block send if no approved match exists
+                var approvedMatch = await context.Matches.FirstOrDefaultAsync(m =>
+                    m.ClientId == request.ClientId &&
+                    m.ArchitectId == request.ArchitectId &&
+                    m.MatchStatus == "Approved");
+                if (approvedMatch == null)
+                    return StatusCode(403, new { success = false, message = "You are not allowed to message this architect." }); // ✅ FIXED
 
                 // 🔍 Fetch client user (for name + profile photo like Web)
                 var clientUser = await userManager.FindByIdAsync(request.ClientId);
@@ -1128,7 +1144,7 @@ namespace BlueprintProWeb.Controllers
                 {
                     FileName = f.projectFile_fileName,
                     Version = f.projectFile_Version,
-                    UploadedDate = f.projectFile_uploadedDate,
+                    UploadedDate = DateTime.SpecifyKind(f.projectFile_uploadedDate, DateTimeKind.Utc), // ✅ fix
                     FilePath = f.projectFile_Path
                 }).ToList(),
 

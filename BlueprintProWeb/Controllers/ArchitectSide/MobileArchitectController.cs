@@ -209,7 +209,7 @@ namespace BlueprintProWeb.Controllers
             if (BlueprintImage == null || BlueprintImage.Length == 0)
                 return BadRequest(new { message = "No blueprint image uploaded" });
 
-            string fileName = UploadProjectFile(BlueprintImage);
+            string fileName = await UploadProjectFile(BlueprintImage);
 
             var blueprint = new Blueprint
             {
@@ -242,7 +242,7 @@ namespace BlueprintProWeb.Controllers
                 project_Id = project.project_Id,
                 project_Title = project.project_Title,
                 blueprint_Description = blueprintDescription,
-                projectTrack_dueDate = projectTrack_dueDate,
+                projectTrack_dueDate = DateTime.SpecifyKind(projectTrack_dueDate, DateTimeKind.Utc),
                 projectTrack_currentFileName = BlueprintImage.FileName,
                 projectTrack_currentFilePath = "/images/" + fileName,
                 projectTrack_currentRevision = 1
@@ -254,7 +254,7 @@ namespace BlueprintProWeb.Controllers
             return Ok(new { message = "Project blueprint uploaded successfully" });
         }
 
-        private string UploadProjectFile(IFormFile file)
+        private async Task<string> UploadProjectFile(IFormFile file)
         {
             string fileName = null;
             if (file != null)
@@ -273,7 +273,7 @@ namespace BlueprintProWeb.Controllers
 
                 using (var fileStream = new FileStream(filePath, FileMode.Create))
                 {
-                    file.CopyTo(fileStream);
+                    await file.CopyToAsync(fileStream);
                 }
             }
             return fileName;
@@ -347,6 +347,14 @@ namespace BlueprintProWeb.Controllers
                     })
                     .ToListAsync();
 
+                // ✅ FIXED: only show conversations where an approved match exists
+                rawConversations = rawConversations
+                    .Where(c => context.Matches.Any(m =>
+                        m.ArchitectId == architectId &&
+                        m.ClientId == c.ClientId &&
+                        m.MatchStatus == "Approved"))
+                    .ToList();
+
                 var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
 
                 var conversations = rawConversations
@@ -405,6 +413,45 @@ namespace BlueprintProWeb.Controllers
                             ? null
                             : $"{baseUrl}/images/profiles/{Path.GetFileName(m.Client.user_profilePhoto)}",
 
+                        MatchStatus = m.MatchStatus
+                    })
+                    .ToListAsync();
+
+                return Ok(new { success = true, matches });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+
+        [HttpGet("ApprovedMatches")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetApprovedMatchesForArchitect([FromQuery] string architectId)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(architectId))
+                    return BadRequest(new { success = false, message = "ArchitectId is required." });
+
+                var baseUrl = $"{Request.Scheme}://{Request.Host}";
+
+                var matches = await context.Matches
+                    .Where(m => m.ArchitectId == architectId
+                             && m.MatchStatus == "Approved")
+                    .Include(m => m.Client)
+                    .Select(m => new
+                    {
+                        MatchId = m.MatchId,
+                        ClientId = m.Client.Id,
+                        ClientName = m.Client.user_fname + " " + m.Client.user_lname,
+                        ClientLocation = m.Client.user_Location,
+                        ClientStyle = m.Client.user_Style,
+                        ClientBudget = m.Client.user_Budget,
+                        ClientPhoto = string.IsNullOrEmpty(m.Client.user_profilePhoto)
+                            ? null
+                            : $"{baseUrl}/images/profiles/{Path.GetFileName(m.Client.user_profilePhoto)}",
                         MatchStatus = m.MatchStatus
                     })
                     .ToListAsync();
@@ -496,6 +543,14 @@ namespace BlueprintProWeb.Controllers
                 {
                     return BadRequest(new { success = false, message = "ClientId, ArchitectId, and MessageBody are required." });
                 }
+
+                // ✅ FIXED: block send if no approved match exists
+                var approvedMatch = await context.Matches.FirstOrDefaultAsync(m =>
+                    m.ArchitectId == request.ArchitectId &&
+                    m.ClientId == request.ClientId &&
+                    m.MatchStatus == "Approved");
+                if (approvedMatch == null)
+                    return StatusCode(403, new { success = false, message = "You are not allowed to message this client." }); // ✅ FIXED
 
                 // 🔍 Fetch architect user so we can get name + profile photo like the web version
                 var architect = await userManager.FindByIdAsync(request.ArchitectId);
@@ -618,61 +673,71 @@ namespace BlueprintProWeb.Controllers
             if (file == null || file.Length == 0)
                 return BadRequest(new { success = false, message = "No file uploaded." });
 
-            var project = await context.Projects.FindAsync(projectId);
-            if (project == null)
-                return NotFound(new { success = false, message = "Project not found." });
-
-            var tracker = await context.ProjectTrackers.FirstOrDefaultAsync(t => t.project_Id == projectId);
-            if (tracker == null)
-                return NotFound(new { success = false, message = "Project tracker not found." });
-
-            // Save uploaded file
-            var uploadsFolder = Path.Combine(env.WebRootPath, "uploads");
-            if (!Directory.Exists(uploadsFolder))
-                Directory.CreateDirectory(uploadsFolder);
-
-            var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            try
             {
-                await file.CopyToAsync(stream);
-            }
+                var project = await context.Projects
+                    .Include(p => p.Blueprint)
+                    .FirstOrDefaultAsync(p => p.project_Id == projectId);
+                if (project == null)
+                    return NotFound(new { success = false, message = "Project not found." });
 
-            // Archive current file
-            if (!string.IsNullOrEmpty(tracker.projectTrack_currentFilePath))
-            {
-                var oldFile = new ProjectFile
+                var tracker = await context.ProjectTrackers.FirstOrDefaultAsync(t => t.project_Id == projectId);
+                if (tracker == null)
+                    return NotFound(new { success = false, message = "Project tracker not found." });
+
+                // Save uploaded file
+                var uploadsFolder = Path.Combine(env.WebRootPath, "uploads");
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
                 {
-                    project_Id = projectId,
-                    projectFile_fileName = tracker.projectTrack_currentFileName,
-                    projectFile_Path = tracker.projectTrack_currentFilePath,
-                    projectFile_Version = tracker.projectTrack_currentRevision,
-                    projectFile_uploadedDate = DateTime.UtcNow
+                    await file.CopyToAsync(stream);
+                }
+
+                // Archive current file
+                if (!string.IsNullOrEmpty(tracker.projectTrack_currentFilePath))
+                {
+                    var oldFile = new ProjectFile
+                    {
+                        project_Id = projectId,
+                        projectFile_fileName = tracker.projectTrack_currentFileName,
+                        projectFile_Path = tracker.projectTrack_currentFilePath,
+                        projectFile_Version = tracker.projectTrack_currentRevision,
+                        projectFile_uploadedDate = DateTime.UtcNow
+                    };
+                    context.ProjectFiles.Add(oldFile);
+                }
+
+                // Update tracker to new file
+                tracker.projectTrack_currentFileName = file.FileName;
+                tracker.projectTrack_currentFilePath = "/uploads/" + uniqueFileName;
+                tracker.projectTrack_currentRevision += 1;
+                if (project.Blueprint != null)
+                    project.Blueprint.blueprintImage = tracker.projectTrack_currentFilePath;
+
+                await context.SaveChangesAsync();
+
+                // Send client notification
+                var notif = new Notification
+                {
+                    user_Id = project.user_clientId,
+                    notification_Title = "New Revision Uploaded",
+                    notification_Message = $"A new revision has been uploaded for your project '{project.project_Title}'.",
+                    notification_Date = DateTime.UtcNow,
+                    notification_isRead = false
                 };
-                context.ProjectFiles.Add(oldFile);
+                context.Notifications.Add(notif);
+                await context.SaveChangesAsync();
+
+                return Ok(new { success = true, message = "New revision uploaded successfully." });
             }
-
-            // Update tracker to new file
-            tracker.projectTrack_currentFileName = file.FileName;
-            tracker.projectTrack_currentFilePath = "/uploads/" + uniqueFileName;
-            tracker.projectTrack_currentRevision += 1;
-            project.Blueprint.blueprintImage = tracker.projectTrack_currentFilePath;
-
-            await context.SaveChangesAsync();
-
-            // Send client notification
-            var notif = new Notification
+            catch (Exception ex)
             {
-                user_Id = project.user_clientId,
-                notification_Title = "New Revision Uploaded",
-                notification_Message = $"A new revision has been uploaded for your project '{project.project_Title}'.",
-                notification_Date = DateTime.Now,
-                notification_isRead = false
-            };
-            context.Notifications.Add(notif);
-            await context.SaveChangesAsync();
-
-            return Ok(new { success = true, message = "New revision uploaded successfully." });
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
         }
 
         [HttpPost("UploadComplianceFile")]
@@ -733,7 +798,7 @@ namespace BlueprintProWeb.Controllers
                         user_Id = tracker.Project.user_clientId,
                         notification_Title = "Compliance File Uploaded",
                         notification_Message = $"A new {fileType} compliance file has been uploaded for your project '{tracker.Project.project_Title}'.",
-                        notification_Date = DateTime.Now,
+                        notification_Date = DateTime.UtcNow,
                         notification_isRead = false
                     };
 
@@ -777,7 +842,7 @@ namespace BlueprintProWeb.Controllers
                 return Ok(new { success = false, message = "Project not found." });
 
             project.project_Status = "Finished";
-            project.project_endDate = DateTime.Now;
+            project.project_endDate = DateTime.UtcNow;
             await context.SaveChangesAsync();
 
             if (!string.IsNullOrEmpty(project.user_clientId))
@@ -787,7 +852,7 @@ namespace BlueprintProWeb.Controllers
                     user_Id = project.user_clientId,
                     notification_Title = "Project Completed",
                     notification_Message = $"Your project '{project.project_Title}' has been marked as finished by architect {project.Architect?.user_fname} {project.Architect?.user_lname}.",
-                    notification_Date = DateTime.Now,
+                    notification_Date = DateTime.UtcNow,
                     notification_isRead = false
                 };
                 context.Notifications.Add(notif);
@@ -824,7 +889,7 @@ namespace BlueprintProWeb.Controllers
                     user_Id = tracker.Project.user_clientId,
                     notification_Title = "Project Phase Updated",
                     notification_Message = $"Your project '{tracker.Project.project_Title}' is now in the {status} phase.",
-                    notification_Date = DateTime.Now,
+                    notification_Date = DateTime.UtcNow,
                     notification_isRead = false
                 };
 
@@ -926,7 +991,7 @@ namespace BlueprintProWeb.Controllers
                 user_Id = project.user_clientId,
                 notification_Title = "Project Deleted",
                 notification_Message = $"Your project '{project.project_Title}' has been removed by the architect.",
-                notification_Date = DateTime.Now,
+                notification_Date = DateTime.UtcNow,
                 notification_isRead = false
             };
 
@@ -953,7 +1018,7 @@ namespace BlueprintProWeb.Controllers
                 user_Id = project.user_clientId,
                 notification_Title = "Project Restored",
                 notification_Message = $"Your project '{project.project_Title}' has been restored.",
-                notification_Date = DateTime.Now,
+                notification_Date = DateTime.UtcNow,
                 notification_isRead = false
             };
 
