@@ -657,61 +657,71 @@ namespace BlueprintProWeb.Controllers
             if (file == null || file.Length == 0)
                 return BadRequest(new { success = false, message = "No file uploaded." });
 
-            var project = await context.Projects.FindAsync(projectId);
-            if (project == null)
-                return NotFound(new { success = false, message = "Project not found." });
-
-            var tracker = await context.ProjectTrackers.FirstOrDefaultAsync(t => t.project_Id == projectId);
-            if (tracker == null)
-                return NotFound(new { success = false, message = "Project tracker not found." });
-
-            // Save uploaded file
-            var uploadsFolder = Path.Combine(env.WebRootPath, "uploads");
-            if (!Directory.Exists(uploadsFolder))
-                Directory.CreateDirectory(uploadsFolder);
-
-            var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            try
             {
-                await file.CopyToAsync(stream);
-            }
+                var project = await context.Projects
+                    .Include(p => p.Blueprint)
+                    .FirstOrDefaultAsync(p => p.project_Id == projectId);
+                if (project == null)
+                    return NotFound(new { success = false, message = "Project not found." });
 
-            // Archive current file
-            if (!string.IsNullOrEmpty(tracker.projectTrack_currentFilePath))
-            {
-                var oldFile = new ProjectFile
+                var tracker = await context.ProjectTrackers.FirstOrDefaultAsync(t => t.project_Id == projectId);
+                if (tracker == null)
+                    return NotFound(new { success = false, message = "Project tracker not found." });
+
+                // Save uploaded file
+                var uploadsFolder = Path.Combine(env.WebRootPath, "uploads");
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
                 {
-                    project_Id = projectId,
-                    projectFile_fileName = tracker.projectTrack_currentFileName,
-                    projectFile_Path = tracker.projectTrack_currentFilePath,
-                    projectFile_Version = tracker.projectTrack_currentRevision,
-                    projectFile_uploadedDate = DateTime.UtcNow
+                    await file.CopyToAsync(stream);
+                }
+
+                // Archive current file
+                if (!string.IsNullOrEmpty(tracker.projectTrack_currentFilePath))
+                {
+                    var oldFile = new ProjectFile
+                    {
+                        project_Id = projectId,
+                        projectFile_fileName = tracker.projectTrack_currentFileName,
+                        projectFile_Path = tracker.projectTrack_currentFilePath,
+                        projectFile_Version = tracker.projectTrack_currentRevision,
+                        projectFile_uploadedDate = DateTime.UtcNow
+                    };
+                    context.ProjectFiles.Add(oldFile);
+                }
+
+                // Update tracker to new file
+                tracker.projectTrack_currentFileName = file.FileName;
+                tracker.projectTrack_currentFilePath = "/uploads/" + uniqueFileName;
+                tracker.projectTrack_currentRevision += 1;
+                if (project.Blueprint != null)
+                    project.Blueprint.blueprintImage = tracker.projectTrack_currentFilePath;
+
+                await context.SaveChangesAsync();
+
+                // Send client notification
+                var notif = new Notification
+                {
+                    user_Id = project.user_clientId,
+                    notification_Title = "New Revision Uploaded",
+                    notification_Message = $"A new revision has been uploaded for your project '{project.project_Title}'.",
+                    notification_Date = DateTime.UtcNow,
+                    notification_isRead = false
                 };
-                context.ProjectFiles.Add(oldFile);
+                context.Notifications.Add(notif);
+                await context.SaveChangesAsync();
+
+                return Ok(new { success = true, message = "New revision uploaded successfully." });
             }
-
-            // Update tracker to new file
-            tracker.projectTrack_currentFileName = file.FileName;
-            tracker.projectTrack_currentFilePath = "/uploads/" + uniqueFileName;
-            tracker.projectTrack_currentRevision += 1;
-            project.Blueprint.blueprintImage = tracker.projectTrack_currentFilePath;
-
-            await context.SaveChangesAsync();
-
-            // Send client notification
-            var notif = new Notification
+            catch (Exception ex)
             {
-                user_Id = project.user_clientId,
-                notification_Title = "New Revision Uploaded",
-                notification_Message = $"A new revision has been uploaded for your project '{project.project_Title}'.",
-                notification_Date = DateTime.UtcNow,
-                notification_isRead = false
-            };
-            context.Notifications.Add(notif);
-            await context.SaveChangesAsync();
-
-            return Ok(new { success = true, message = "New revision uploaded successfully." });
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
         }
 
         [HttpPost("UploadComplianceFile")]
