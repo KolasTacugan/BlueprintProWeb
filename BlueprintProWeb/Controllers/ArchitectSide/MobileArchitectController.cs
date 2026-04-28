@@ -418,6 +418,45 @@ namespace BlueprintProWeb.Controllers
         }
 
 
+        [HttpGet("ApprovedMatches")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetApprovedMatchesForArchitect([FromQuery] string architectId)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(architectId))
+                    return BadRequest(new { success = false, message = "ArchitectId is required." });
+
+                var baseUrl = $"{Request.Scheme}://{Request.Host}";
+
+                var matches = await context.Matches
+                    .Where(m => m.ArchitectId == architectId
+                             && m.MatchStatus == "Approved")
+                    .Include(m => m.Client)
+                    .Select(m => new
+                    {
+                        MatchId = m.MatchId,
+                        ClientId = m.Client.Id,
+                        ClientName = m.Client.user_fname + " " + m.Client.user_lname,
+                        ClientLocation = m.Client.user_Location,
+                        ClientStyle = m.Client.user_Style,
+                        ClientBudget = m.Client.user_Budget,
+                        ClientPhoto = string.IsNullOrEmpty(m.Client.user_profilePhoto)
+                            ? null
+                            : $"{baseUrl}/images/profiles/{Path.GetFileName(m.Client.user_profilePhoto)}",
+                        MatchStatus = m.MatchStatus
+                    })
+                    .ToListAsync();
+
+                return Ok(new { success = true, matches });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+
         [HttpGet("Architect/Messages")]
         [AllowAnonymous] // or [Authorize] if you add token auth later
         public async Task<IActionResult> GetMessagesForArchitect([FromQuery] string architectId, [FromQuery] string clientId)
