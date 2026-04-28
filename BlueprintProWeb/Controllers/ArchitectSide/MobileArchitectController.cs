@@ -46,6 +46,7 @@ namespace BlueprintProWeb.Controllers
                     bp.blueprintName,
                     bp.blueprintPrice,
                     bp.blueprintStyle,
+                    bp.blueprintDescription,
                     blueprintImage = $"{Request.Scheme}://{Request.Host}/images/{bp.blueprintImage}"
                 })
                 .ToList();
