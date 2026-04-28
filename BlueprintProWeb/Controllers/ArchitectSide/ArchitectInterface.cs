@@ -257,7 +257,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
         [HttpPost]
         public async Task<IActionResult> AddProjectBlueprints(BlueprintViewModel vm)
         {
-            string stringFileName = UploadProjectFile(vm);
+            string stringFileName = await UploadProjectFile(vm);
             var user = await _userManager.GetUserAsync(User);
             var userId = user.Id;
 
@@ -291,7 +291,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 project_Id = project.project_Id,
                 project_Title = project.project_Title,
                 blueprint_Description = vm.blueprintDescription,
-                projectTrack_dueDate = vm.projectTrack_dueDate,
+                projectTrack_dueDate = DateTime.SpecifyKind(vm.projectTrack_dueDate, DateTimeKind.Utc), // ✅ fix
                 projectTrack_currentFileName = vm.BlueprintImage?.FileName,
                 projectTrack_currentFilePath = "/images/" + stringFileName,
                 projectTrack_currentRevision = 1
@@ -321,7 +321,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
             return RedirectToAction("Projects");
         }
 
-        private string UploadProjectFile(BlueprintViewModel vm)
+        private async Task<string> UploadProjectFile(BlueprintViewModel vm)
         {
             string fileName = null;
             if (vm.BlueprintImage != null)
@@ -331,7 +331,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 string filePath = Path.Combine(uploadDir, fileName);
                 using (var fileStream = new FileStream(filePath, FileMode.Create))
                 {
-                    vm.BlueprintImage.CopyTo(fileStream);
+                    await vm.BlueprintImage.CopyToAsync(fileStream); // ✅ was CopyTo
                 }
             }
             return fileName;

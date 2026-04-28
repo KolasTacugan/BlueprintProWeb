@@ -73,7 +73,7 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
 
-// CORS — required for Android mobile app + Azure
+// CORS ï¿½ required for Android mobile app + Azure
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAndroidApp", policy =>
@@ -116,8 +116,15 @@ builder.Services.AddSingleton(sp =>
 // 2. BUILD APP
 // ======================================================
 
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-builder.WebHost.UseUrls($"http://*:{port}");
+//var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+//builder.WebHost.UseUrls($"http://*:{port}");
+if (!builder.Environment.IsDevelopment())
+{
+    var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+    builder.WebHost.UseUrls($"http://*:{port}");
+}
+
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", false);
 
 var app = builder.Build();
 

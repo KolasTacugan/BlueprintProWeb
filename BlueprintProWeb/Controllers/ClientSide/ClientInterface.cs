@@ -1132,7 +1132,7 @@ Respond ONLY with valid JSON (no markdown, no extra text) or the single word SUF
                     user_Id = architect.Id,
                     notification_Title = "New Match Request",
                     notification_Message = $"{currentUser.user_fname} {currentUser.user_lname} wants to match with you.",
-                    notification_Date = DateTime.Now,
+                    notification_Date = DateTime.UtcNow,
                     notification_isRead = false
                 };
 
