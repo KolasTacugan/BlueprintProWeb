@@ -64,19 +64,19 @@
 
         /* Main content positioning that responds to sidebar state */
         main.container {
-            margin-left: 300px; /* Default for expanded sidebar */
-            margin-top: 120px; /* Account for navbar */
-            padding: 1.5rem; /* Reduced from 2rem for tighter packing */
-            padding-top: 4rem; /* Maintain top padding */
-            max-width: calc(100% - 320px);
-            transition: margin-left 0.4s ease, max-width 0.4s ease; /* Smooth transition */
+            margin-left: 270px;
+            margin-top: 90px;
+            padding: 1.5rem;
+            padding-top: 2rem;
+            max-width: calc(100% - 270px);
+            transition: margin-left 0.4s ease, max-width 0.4s ease;
         }
 
         /* When sidebar is collapsed, adjust main content */
         .sidebar.collapsed ~ * main.container,
         body:has(.sidebar.collapsed) main.container {
-            margin-left: 110px; /* Account for collapsed sidebar (85px + margins) */
-            max-width: calc(100% - 130px);
+            margin-left: 85px;
+            max-width: calc(100% - 85px);
         }
 
         .dashboard-greeting {
@@ -643,11 +643,11 @@
             function adjustMainContent() {
                 if (sidebar && mainContent) {
                     if (sidebar.classList.contains('collapsed')) {
-                        mainContent.style.marginLeft = '110px';
-                        mainContent.style.maxWidth = 'calc(100% - 130px)';
+                        mainContent.style.marginLeft = '85px';
+                        mainContent.style.maxWidth = 'calc(100% - 85px)';
                     } else {
-                        mainContent.style.marginLeft = '300px';
-                        mainContent.style.maxWidth = 'calc(100% - 320px)';
+                        mainContent.style.marginLeft = '270px';
+                        mainContent.style.maxWidth = 'calc(100% - 270px)';
                     }
                 }
             }

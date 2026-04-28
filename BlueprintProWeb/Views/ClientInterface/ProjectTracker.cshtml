@@ -23,19 +23,19 @@
 
         /* Main content positioning that responds to sidebar state */
         main.container {
-            margin-left: 300px;
-            margin-top: 120px;
+            margin-left: 270px;
+            margin-top: 90px;
             padding: 1.5rem;
-            padding-top: 4rem;
-            max-width: calc(100% - 320px);
+            padding-top: 2rem;
+            max-width: calc(100% - 270px);
             transition: margin-left 0.4s ease, max-width 0.4s ease;
         }
 
         /* When sidebar is collapsed, adjust main content */
         .sidebar.collapsed ~ * main.container,
         body:has(.sidebar.collapsed) main.container {
-            margin-left: 110px;
-            max-width: calc(100% - 130px);
+            margin-left: 85px;
+            max-width: calc(100% - 85px);
         }
 
         /* Page Header Styling */
@@ -100,12 +100,16 @@
         }
 
         .page-title {
-            font-weight: 800;
-            font-size: 1.75rem;
-            letter-spacing: -0.5px;
+            font-weight: 600;
+            font-size: 1.6rem;
+            letter-spacing: -0.3px;
             color: #091635;
             margin: 0;
             line-height: 1.2;
+        }
+
+        .page-header-icon .material-symbols-rounded {
+            font-size: 1.5rem;
         }
 
         .page-subtitle {
@@ -555,7 +559,7 @@
     <div class="page-header">
         <div class="page-header-left">
             <div class="page-header-icon">
-                <i class="fas fa-tasks"></i>
+                <span class="material-symbols-rounded">note_stack</span>
             </div>
             <div>
                 <h1 class="page-title">Project Tracker</h1>
@@ -783,11 +787,11 @@
             function adjustMainContent() {
                 if (sidebar && mainContent) {
                     if (sidebar.classList.contains('collapsed')) {
-                        mainContent.style.marginLeft = '110px';
-                        mainContent.style.maxWidth = 'calc(100% - 130px)';
+                        mainContent.style.marginLeft = '85px';
+                        mainContent.style.maxWidth = 'calc(100% - 85px)';
                     } else {
-                        mainContent.style.marginLeft = '300px';
-                        mainContent.style.maxWidth = 'calc(100% - 320px)';
+                        mainContent.style.marginLeft = '270px';
+                        mainContent.style.maxWidth = 'calc(100% - 270px)';
                     }
                 }
             }

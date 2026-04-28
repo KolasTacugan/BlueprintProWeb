@@ -538,7 +538,7 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetClientProfile(string clientId)
+        public async Task<IActionResult> GetClientProfile(string clientId, string? matchId = null)
         {
             if (string.IsNullOrEmpty(clientId))
                 return BadRequest(new { success = false, message = "ClientId required" });
@@ -553,13 +553,50 @@ namespace BlueprintProWeb.Controllers.ArchitectSide
                 ? "/images/profile.jpg"
                 : Url.Content(client.user_profilePhoto);
 
+            var currentUserId = _userManager.GetUserId(User);
+
+            // Prefer the query from the specific match if matchId is provided;
+            // otherwise fall back to the latest match this architect has with the client.
+            string? clientQuery = null;
+            if (!string.IsNullOrEmpty(matchId))
+            {
+                clientQuery = await context.Matches
+                    .Where(m => m.MatchId == matchId && m.ArchitectId == currentUserId)
+                    .Select(m => m.ClientQuery)
+                    .FirstOrDefaultAsync();
+            }
+
+            if (string.IsNullOrWhiteSpace(clientQuery))
+            {
+                clientQuery = await context.Matches
+                    .Where(m => m.ClientId == clientId && m.ArchitectId == currentUserId && m.ClientQuery != null)
+                    .OrderByDescending(m => m.MatchDate)
+                    .Select(m => m.ClientQuery)
+                    .FirstOrDefaultAsync();
+            }
+
+            // Last fallback: any recent query the client used for matching (across architects).
+            if (string.IsNullOrWhiteSpace(clientQuery))
+            {
+                clientQuery = await context.Matches
+                    .Where(m => m.ClientId == clientId && m.ClientQuery != null)
+                    .OrderByDescending(m => m.MatchDate)
+                    .Select(m => m.ClientQuery)
+                    .FirstOrDefaultAsync();
+            }
+
             return Json(new
             {
                 success = true,
                 name = $"{client.user_fname} {client.user_lname}",
                 email = client.Email,
                 phone = client.PhoneNumber,
-                profilePhoto = profilePhoto
+                profilePhoto = profilePhoto,
+                style = client.user_Style,
+                location = client.user_Location,
+                budget = client.user_Budget,
+                portfolioText = client.PortfolioText,
+                clientQuery = clientQuery
             });
         }
 

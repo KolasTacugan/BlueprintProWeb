@@ -17,24 +17,42 @@
         }
 
         body {
-            background: #F1F7F9 !important;
+            background: linear-gradient(135deg, #e8edf5 0%, #d4dce9 100%) !important;
             overflow-y: auto !important;
             height: auto !important;
             font-family: 'Raleway', sans-serif !important;
         }
 
         main.container {
-            margin-left: 300px;
-            margin-top: 120px;
+            margin-left: 270px;
+            margin-top: 90px;
             padding: 1.5rem;
-            padding-top: 4rem;
-            max-width: calc(100% - 320px);
+            padding-top: 2rem;
+            max-width: calc(100% - 270px);
             transition: margin-left 0.4s ease, max-width 0.4s ease;
         }
 
         body:has(.sidebar.collapsed) main.container {
-            margin-left: 110px;
-            max-width: calc(100% - 130px);
+            margin-left: 85px;
+            max-width: calc(100% - 85px);
+        }
+
+        /* ── Two-column layout (matches architect Matches page) ───────── */
+        .matches-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            height: 78vh;
+        }
+
+        .chat-panel-wrapper {
+            min-width: 0;
+            display: flex;
+            height: 100%;
+        }
+
+        .chat-panel-wrapper .chat-panel {
+            width: 100%;
         }
 
         /* ── Page Header (unified) ─────────── */
@@ -149,41 +167,19 @@
         }
 
         .results-header {
-            padding: 1.5rem;
+            padding: 1.25rem 1.5rem;
             border-bottom: 1px solid rgba(52,78,173,0.1);
             background: linear-gradient(135deg, rgba(52,78,173,0.05) 0%, rgba(37,99,235,0.02) 100%);
             border-radius: 16px 16px 0 0;
         }
 
         .results-title {
-            font-size: 1.75rem;
+            font-size: 1.25rem;
             font-weight: 600;
             color: #1a202c;
             margin: 0;
             font-family: 'Raleway', sans-serif;
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-        }
-
-        .results-title-icon {
-            color: #344EAD;
-            font-size: 1.5rem;
-            width: 28px;
-            height: 28px;
-            background: rgba(52,78,173,0.1);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .results-subtitle {
-            font-size: 1rem;
-            font-weight: 400;
-            color: #718096;
-            margin-top: 0.5rem;
-            margin-left: 2.2rem;
+            line-height: 1.2;
         }
 
         .results-content {
@@ -196,20 +192,19 @@
         /* ── Architect Cards ────────────────────────────── */
         .card {
             background: #FFFFFF;
-            border-radius: 16px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
             border: 1px solid rgba(52,78,173,0.05);
             overflow: hidden;
             transition: all 0.3s ease;
             height: 100%;
             display: flex;
             flex-direction: column;
-            cursor: pointer;
             position: relative;
         }
 
             .card:hover {
-                transform: translateY(-4px);
+                transform: translateY(-2px);
                 box-shadow: 0 8px 25px rgba(52,78,173,0.15);
                 border-color: rgba(52,78,173,0.1);
             }
@@ -219,8 +214,8 @@
                 position: absolute;
                 top: 0;
                 left: 0;
-                right: 0;
-                height: 3px;
+                width: 4px;
+                height: 100%;
                 background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
                 opacity: 0;
                 transition: opacity 0.3s ease;
@@ -231,7 +226,7 @@
             }
 
         .card-body {
-            padding: 1.5rem;
+            padding: 1.25rem;
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -241,12 +236,13 @@
             .card-body img {
                 transition: all 0.3s ease;
                 border-radius: 50%;
-                border: 3px solid rgba(52,78,173,0.1);
+                border: 2px solid rgba(52,78,173,0.1);
+                object-fit: cover;
             }
 
         .card:hover .card-body img {
-            transform: scale(1.05);
-            border-color: rgba(52,78,173,0.2);
+            transform: scale(1.04);
+            border-color: rgba(52,78,173,0.25);
         }
 
         .architect-link {
@@ -303,6 +299,33 @@
             padding: 0.2rem 0.6rem;
             border-radius: 999px;
             letter-spacing: 0.02em;
+        }
+
+        /* Empty state (matches architect-side .empty-state) */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: #64748B;
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            color: #CBD5E1;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 0.5rem;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .empty-state-subtitle {
+            font-size: 0.9rem;
+            color: #64748B;
+            line-height: 1.5;
         }
 
         .alert-warning {
@@ -953,14 +976,14 @@
                 padding-top: 2rem;
             }
 
-            .row {
-                flex-direction: column;
-                height: auto !important;
+            .matches-layout {
+                grid-template-columns: 1fr;
+                height: auto;
             }
 
-            .col-md-8, .col-md-4 {
+            .architect-results-panel,
+            .chat-panel-wrapper {
                 width: 100%;
-                max-width: 100%;
             }
 
             .chat-panel {
@@ -974,12 +997,6 @@
 
             .detail-grid {
                 grid-template-columns: 1fr;
-            }
-        }
-
-        @@media (max-width: 991.98px) {
-            .col-md-8 {
-                margin-bottom: 1rem;
             }
         }
     </style>
@@ -997,83 +1014,84 @@
     </div>
 </div>
 
-<div class="row" style="height: 85vh;">
+<div class="matches-layout">
 
     <!-- LEFT: Architect Matches -->
-    <div class="col-md-8" style="height:100%;">
-        <div class="architect-results-panel">
-            <div class="results-header">
-                <h4 class="results-title">
-                    <div class="results-title-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    Available Architects
-                </h4>
-                <div class="results-subtitle">Find architects that match your requirements</div>
-            </div>
+    <div class="architect-results-panel">
+        <div class="results-header">
+            <h3 class="results-title">Recommended Architects</h3>
+        </div>
 
-            <div class="results-content" id="architectResults">
-                <div id="resultsContainer" class="row g-3">
-                    @if (Model != null && Model.Any())
+        <div class="results-content" id="architectResults">
+            <div id="resultsContainer" class="row g-3">
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var match in Model)
                     {
-                        foreach (var match in Model)
-                        {
-                            <div class="col-lg-6 col-md-12 mb-3">
-                                <div class="card shadow-sm h-100">
-                                    <div class="card-body d-flex flex-column">
-                                        <div class="d-flex align-items-center mb-3">
-                                            <img src="@match.ProfilePhoto"
-                                                 class="rounded-circle me-3 border"
-                                                 width="50" height="50"
-                                                 alt="@match.ArchitectName" />
-                                            <div>
-                                                <h6 class="fw-bold mb-0">
-                                                    <a href="#"
-                                                       class="architect-link"
-                                                       data-architect-id="@match.ArchitectId"
-                                                       data-explanation="@match.MatchExplanation">
-                                                        @match.ArchitectName
-                                                    </a>
-                                                </h6>
-                                                <div class="d-flex align-items-center gap-2 mt-1 mb-1">
-                                                    <span class="match-pct-badge">@match.SimilarityPercentage% Match</span>
-                                                </div>
-                                                <div class="rating-wrapper mt-1" style="max-width:140px;">
-                                                    <div class="rating-bar">
-                                                        <div class="rating-fill" style="width:@(match.AverageRating * 20)%;"></div>
-                                                    </div>
-                                                    <span class="rating-text">@match.AverageRating.ToString("0.0")</span>
-                                                </div>
-                                                <small class="text-muted">(@match.RatingCount @(match.RatingCount == 1 ? "rating" : "ratings"))</small>
+                        <div class="col-lg-6 col-md-12 mb-3">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body d-flex flex-column">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <img src="@match.ProfilePhoto"
+                                             class="rounded-circle me-3 border"
+                                             width="50" height="50"
+                                             alt="@match.ArchitectName" />
+                                        <div>
+                                            <h6 class="fw-bold mb-0">
+                                                <a href="#"
+                                                   class="architect-link"
+                                                   data-architect-id="@match.ArchitectId"
+                                                   data-explanation="@match.MatchExplanation">
+                                                    @match.ArchitectName
+                                                </a>
+                                            </h6>
+                                            <div class="d-flex align-items-center gap-2 mt-1 mb-1">
+                                                <span class="match-pct-badge">@match.SimilarityPercentage% Match</span>
                                             </div>
+                                            <div class="rating-wrapper mt-1" style="max-width:140px;">
+                                                <div class="rating-bar">
+                                                    <div class="rating-fill" style="width:@(match.AverageRating * 20)%;"></div>
+                                                </div>
+                                                <span class="rating-text">@match.AverageRating.ToString("0.0")</span>
+                                            </div>
+                                            <small class="text-muted">(@match.RatingCount @(match.RatingCount == 1 ? "rating" : "ratings"))</small>
                                         </div>
-                                        @{
-                                            string real = match.RealMatchStatus;
-                                        }
-                                        <button class="btn w-100 mt-auto match-btn"
-                                                data-architect-id="@match.ArchitectId"
-                                                data-status="@real"
-                                                style="@((real == "Pending") ? "background:#fbbf24;color:#000;border:none;pointer-events:none;" : (real == "Approved") ? "background:#22c55e;color:#fff;border:none;pointer-events:none;" : "")">
-                                            @(real == null ? "Match" : (real == "Pending" ? "Pending…" : "Matched ✓"))
-                                        </button>
                                     </div>
+                                    @{
+                                        string real = match.RealMatchStatus;
+                                    }
+                                    <button class="btn w-100 mt-auto match-btn"
+                                            data-architect-id="@match.ArchitectId"
+                                            data-status="@real"
+                                            style="@((real == "Pending") ? "background:#fbbf24;color:#000;border:none;pointer-events:none;" : (real == "Approved") ? "background:#22c55e;color:#fff;border:none;pointer-events:none;" : "")">
+                                        @(real == null ? "Match" : (real == "Pending" ? "Pending…" : "Matched ✓"))
+                                    </button>
                                 </div>
                             </div>
-                        }
-                    }
-                    else
-                    {
-                        <div class="col-12">
-                            <div class="alert alert-warning">No matches found yet. Use the chat to search.</div>
                         </div>
                     }
-                </div>
+                }
+                else
+                {
+                    <div class="col-12">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-compass-drafting"></i>
+                            </div>
+                            <div class="empty-state-title">No matches yet</div>
+                            <div class="empty-state-subtitle">
+                                Describe your project in the chat on the right.<br>
+                                We'll find architects whose work fits your vision.
+                            </div>
+                        </div>
+                    </div>
+                }
             </div>
         </div>
     </div>
 
     <!-- RIGHT: Chat -->
-    <div class="col-md-4" style="height:100%;">
+    <div class="chat-panel-wrapper">
         <div class="chat-panel">
 
             <!-- Header -->
@@ -1081,7 +1099,7 @@
                 <div class="chat-header-avatar">🤖</div>
                 <div class="chat-header-info">
                     <p class="chat-title">Blueprint AI</p>
-                    <p class="chat-subtitle">Architect matching assistant</p>
+                    <p class="chat-subtitle">Tell me what you need</p>
                 </div>
                 <div class="chat-status-dot" title="Online"></div>
             </div>
@@ -1256,11 +1274,11 @@
             function adjustMainContent() {
                 if (!sidebar || !mainContent) return;
                 if (sidebar.classList.contains('collapsed')) {
-                    mainContent.style.marginLeft = '110px';
-                    mainContent.style.maxWidth   = 'calc(100% - 130px)';
+                    mainContent.style.marginLeft = '85px';
+                    mainContent.style.maxWidth   = 'calc(100% - 85px)';
                 } else {
-                    mainContent.style.marginLeft = '300px';
-                    mainContent.style.maxWidth   = 'calc(100% - 320px)';
+                    mainContent.style.marginLeft = '270px';
+                    mainContent.style.maxWidth   = 'calc(100% - 270px)';
                 }
             }
             adjustMainContent();
@@ -1685,6 +1703,9 @@
             const body = new URLSearchParams();
             body.append('architectId', architectId);
             body.append('__RequestVerificationToken', token);
+            if (typeof lastQuery !== 'undefined' && lastQuery) {
+                body.append('clientQuery', lastQuery);
+            }
 
             fetch('/ClientInterface/RequestMatch', {
                 method: 'POST',

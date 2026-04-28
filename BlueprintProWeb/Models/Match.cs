@@ -21,6 +21,8 @@ namespace BlueprintProWeb.Models
         [Required]
         public DateTime MatchDate { get; set; } = DateTime.UtcNow;
 
+        public string? ClientQuery { get; set; }
+
         // Navigation properties
         [ForeignKey(nameof(ClientId))]
         public User Client { get; set; }

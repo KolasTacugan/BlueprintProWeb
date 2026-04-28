@@ -23,19 +23,19 @@
 
         /* Main content positioning that responds to sidebar state */
         main.container {
-            margin-left: 300px;
-            margin-top: 120px;
+            margin-left: 270px;
+            margin-top: 90px;
             padding: 1.5rem;
-            padding-top: 4rem;
-            max-width: calc(100% - 320px);
+            padding-top: 2rem;
+            max-width: calc(100% - 270px);
             transition: margin-left 0.4s ease, max-width 0.4s ease;
         }
 
         /* When sidebar is collapsed, adjust main content */
         .sidebar.collapsed ~ * main.container,
         body:has(.sidebar.collapsed) main.container {
-            margin-left: 110px;
-            max-width: calc(100% - 130px);
+            margin-left: 85px;
+            max-width: calc(100% - 85px);
         }
 
         /* ── PAGE HEADER (unified) ── */
@@ -69,12 +69,16 @@
         }
 
         .page-title {
-            font-weight: 800;
-            font-size: 1.75rem;
-            letter-spacing: -0.5px;
+            font-weight: 600;
+            font-size: 1.6rem;
+            letter-spacing: -0.3px;
             color: #091635;
             margin: 0;
             line-height: 1.2;
+        }
+
+        .page-header-icon .material-symbols-rounded {
+            font-size: 1.5rem;
         }
 
         .page-subtitle {
@@ -109,10 +113,47 @@
             background: linear-gradient(135deg, rgba(52, 78, 173, 0.05) 0%, rgba(37, 99, 235, 0.02) 100%);
         }
 
+        .approved-panel-header {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.07) 0%, rgba(5, 150, 105, 0.02) 100%);
+            border-bottom: 1px solid rgba(16, 185, 129, 0.15);
+        }
+
+        .approved-panel-header .panel-title i {
+            color: #10B981;
+        }
+
         .pending-panel-header {
             padding: 1.5rem;
-            border-bottom: 1px solid rgba(52, 78, 173, 0.1);
-            background: linear-gradient(135deg, rgba(255, 171, 0, 0.05) 0%, rgba(245, 158, 11, 0.02) 100%);
+            border-bottom: 1px solid rgba(245, 158, 11, 0.18);
+            background: linear-gradient(135deg, rgba(255, 171, 0, 0.07) 0%, rgba(245, 158, 11, 0.02) 100%);
+        }
+
+        .panel-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 26px;
+            height: 24px;
+            padding: 0 0.55rem;
+            border-radius: 999px;
+            background: rgba(16, 185, 129, 0.12);
+            color: #059669;
+            font-size: 0.78rem;
+            font-weight: 700;
+            margin-left: 0.35rem;
+            letter-spacing: 0;
+        }
+
+        .panel-count.pending-count {
+            background: rgba(245, 158, 11, 0.15);
+            color: #D97706;
+        }
+
+        .panel-subtitle-sm {
+            margin: 0.35rem 0 0;
+            font-size: 0.82rem;
+            color: #64748B;
+            font-weight: 400;
         }
 
         .panel-title {
@@ -162,12 +203,12 @@
         /* Match Card Styling */
         .match-card {
             background: #FFFFFF;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-            padding: 1.25rem;
-            margin-bottom: 1rem;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(52, 78, 173, 0.05);
+            border-radius: 14px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            padding: 1.15rem 1.25rem;
+            margin-bottom: 0.9rem;
+            transition: all 0.25s ease;
+            border: 1px solid rgba(52, 78, 173, 0.06);
             position: relative;
             overflow: hidden;
         }
@@ -184,10 +225,30 @@
             transition: opacity 0.3s ease;
         }
 
+        .match-card.approved-card::before {
+            background: linear-gradient(180deg, #10B981 0%, #059669 100%);
+            opacity: 1;
+        }
+
+        .match-card.pending-card::before {
+            background: linear-gradient(180deg, #F59E0B 0%, #D97706 100%);
+            opacity: 1;
+        }
+
         .match-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(52, 78, 173, 0.15);
+            box-shadow: 0 10px 28px rgba(52, 78, 173, 0.12);
             border-color: rgba(52, 78, 173, 0.1);
+        }
+
+        .match-card.pending-card:hover {
+            box-shadow: 0 10px 28px rgba(245, 158, 11, 0.18);
+            border-color: rgba(245, 158, 11, 0.18);
+        }
+
+        .match-card.approved-card:hover {
+            box-shadow: 0 10px 28px rgba(16, 185, 129, 0.18);
+            border-color: rgba(16, 185, 129, 0.18);
         }
 
         .match-card:hover::before {
@@ -197,16 +258,51 @@
         .match-header {
             display: flex;
             align-items: center;
-            gap: 1rem;
-            margin-bottom: 1rem;
+            gap: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .avatar-wrap {
+            position: relative;
+            flex-shrink: 0;
         }
 
         .client-avatar {
-            width: 45px;
-            height: 45px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
-            border: 2px solid rgba(52, 78, 173, 0.1);
+            border: 2px solid #FFFFFF;
+            box-shadow: 0 2px 8px rgba(52, 78, 173, 0.12);
             object-fit: cover;
+            background: #F1F5F9;
+        }
+
+        .avatar-status-dot {
+            position: absolute;
+            bottom: -1px;
+            right: -1px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid #FFFFFF;
+        }
+
+        .avatar-status-dot.approved {
+            background: #10B981;
+        }
+
+        .avatar-status-dot.pending {
+            background: #F59E0B;
+            animation: pulse-amber 2s ease-in-out infinite;
+        }
+
+        @@keyframes pulse-amber {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 0 5px rgba(245, 158, 11, 0);
+            }
         }
 
         .client-info {
@@ -233,19 +329,33 @@
 
         .match-details {
             color: #64748B;
-            font-size: 0.85rem;
-            margin-bottom: 0.75rem;
+            font-size: 0.82rem;
+            margin-bottom: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .match-details i {
+            font-size: 0.75rem;
+            color: #94A3B8;
         }
 
         .match-status {
             display: inline-flex;
             align-items: center;
-            padding: 0.4rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
+            gap: 0.3rem;
+            padding: 0.38rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .match-status i {
+            font-size: 0.7rem;
         }
 
         .match-status.pending {
@@ -269,48 +379,60 @@
         /* Action Buttons for Pending Matches */
         .match-actions {
             display: flex;
-            gap: 0.5rem;
-            margin-top: 0.75rem;
+            gap: 0.55rem;
+            margin-top: 0.9rem;
+            padding-top: 0.9rem;
+            border-top: 1px dashed rgba(245, 158, 11, 0.18);
         }
 
-        .btn-accept {
-            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        .btn-accept,
+        .btn-decline {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
             color: white;
             border: none;
-            border-radius: 8px;
-            padding: 0.5rem 0.75rem;
-            font-weight: 600;
+            border-radius: 10px;
+            padding: 0.55rem 0.9rem;
+            font-weight: 700;
             font-family: 'Raleway', sans-serif;
-            font-size: 0.8rem;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
             transition: all 0.2s ease;
             flex: 1;
             cursor: pointer;
         }
 
+        .btn-accept {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+        }
+
         .btn-accept:hover {
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            box-shadow: 0 6px 14px rgba(16, 185, 129, 0.35);
             color: white;
         }
 
         .btn-decline {
             background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 0.5rem 0.75rem;
-            font-weight: 600;
-            font-family: 'Raleway', sans-serif;
-            font-size: 0.8rem;
-            transition: all 0.2s ease;
-            flex: 1;
-            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.22);
         }
 
         .btn-decline:hover {
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+            box-shadow: 0 6px 14px rgba(239, 68, 68, 0.35);
             color: white;
+        }
+
+        .btn-accept:disabled,
+        .btn-decline:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
 
         /* Empty State */
@@ -398,9 +520,132 @@
 
         /** Profile Card in Modal **/
         .profile-main-card {
-            background: #F8FAFC;
-            border-radius: 12px;
+            background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
+            border-radius: 14px;
             border: 1px solid rgba(52, 78, 173, 0.1);
+            padding: 1.25rem !important;
+        }
+
+        .profile-main-card .client-name {
+            font-size: 1.15rem;
+            color: #091635;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .profile-main-card .text-muted {
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            margin-top: 0.15rem;
+        }
+
+        .profile-main-card .text-muted i {
+            color: #344EAD;
+            font-size: 0.8rem;
+            width: 14px;
+            text-align: center;
+        }
+
+        .profile-avatar-ring {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            padding: 3px;
+            background: linear-gradient(135deg, #344EAD 0%, #2563EB 100%);
+            flex-shrink: 0;
+        }
+
+        .profile-avatar-ring img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #fff;
+            border: 2px solid #fff;
+        }
+
+        /* Request Summary Section */
+        .request-summary-section {
+            margin-top: 1.5rem;
+        }
+
+        .request-summary-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #344EAD;
+            margin-bottom: 0.65rem;
+        }
+
+        .request-summary-label i {
+            font-size: 0.85rem;
+        }
+
+        .request-summary-card {
+            position: relative;
+            background: linear-gradient(135deg, rgba(52, 78, 173, 0.04) 0%, rgba(37, 99, 235, 0.02) 100%);
+            border: 1px solid rgba(52, 78, 173, 0.12);
+            border-left: 4px solid #344EAD;
+            border-radius: 12px;
+            padding: 1.1rem 1.25rem 1.1rem 1.4rem;
+            color: #1a202c;
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .request-summary-card .quote-mark {
+            position: absolute;
+            top: 0.4rem;
+            right: 0.85rem;
+            font-size: 2.4rem;
+            font-family: Georgia, serif;
+            color: rgba(52, 78, 173, 0.18);
+            line-height: 1;
+            font-weight: 700;
+        }
+
+        .request-summary-text {
+            font-size: 0.95rem;
+            line-height: 1.55;
+            color: #1f2a44;
+            margin: 0;
+            font-style: italic;
+        }
+
+        .request-summary-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem;
+            margin-top: 0.85rem;
+        }
+
+        .summary-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.3rem 0.7rem;
+            background: #FFFFFF;
+            border: 1px solid rgba(52, 78, 173, 0.18);
+            border-radius: 999px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            color: #344EAD;
+        }
+
+        .summary-tag i {
+            font-size: 0.7rem;
+            opacity: 0.8;
+        }
+
+        .request-summary-empty {
+            font-style: italic;
+            color: #64748B;
+            font-size: 0.88rem;
+            margin: 0;
         }
 
         /* Responsive Design */
@@ -460,7 +705,7 @@
     <div class="page-header">
         <div class="page-header-left">
             <div class="page-header-icon">
-                <i class="fas fa-users"></i>
+                <span class="material-symbols-rounded">handshake</span>
             </div>
             <div>
                 <h1 class="page-title">My Matches</h1>
@@ -470,38 +715,45 @@
     </div>
 
     <div class="matches-layout">
-    <!-- Left Panel - All Matches -->
+    <!-- Left Panel - Approved Matches -->
+    @{
+        var approvedMatches = Model?.Where(m => m.MatchStatus == "Approved").ToList() ?? new List<BlueprintProWeb.ViewModels.MatchViewModel>();
+    }
     <div class="matches-panel">
-        <div class="panel-header">
+        <div class="panel-header approved-panel-header">
             <h3 class="panel-title">
-                <i class="fas fa-users"></i>
-                All Matches
+                <i class="fas fa-circle-check"></i>
+                Approved Matches
+                <span class="panel-count">@approvedMatches.Count</span>
             </h3>
-            <div class="panel-subtitle">
-                View and manage your client matches
-            </div>
+            <p class="panel-subtitle-sm">Clients you've connected with</p>
         </div>
         <div class="panel-content">
-            @if (Model != null && Model.Any())
+            @if (approvedMatches.Any())
             {
-                @foreach (var match in Model.OrderByDescending(m => m.MatchDate))
+                @foreach (var match in approvedMatches.OrderByDescending(m => m.MatchDate))
                 {
-                    <div class="match-card">
+                    <div class="match-card approved-card">
                         <div class="match-header">
-                            <img src="@(string.IsNullOrEmpty(match.ClientProfileUrl) ? "/images/profile.jpg" : match.ClientProfileUrl.Replace("~", "").Replace("wwwroot", ""))"
-                                 alt="@match.ClientName"
-                                 class="client-avatar">
+                            <div class="avatar-wrap">
+                                <img src="@(string.IsNullOrEmpty(match.ClientProfileUrl) ? "/images/profile.jpg" : match.ClientProfileUrl.Replace("~", "").Replace("wwwroot", ""))"
+                                     alt="@match.ClientName"
+                                     class="client-avatar">
+                                <span class="avatar-status-dot approved" title="Approved"></span>
+                            </div>
                             <div class="client-info">
                                 <div class="client-name">
-                                    <a href="#" class="client-profile-link" data-client-id="@match.ClientId">
+                                    <a href="#" class="client-profile-link" data-client-id="@match.ClientId" data-match-id="@match.MatchId">
                                         @match.ClientName
                                     </a>
                                 </div>
                                 <div class="match-details">
-                                    Requested: @match.MatchDate.ToString("MMM dd, yyyy")
+                                    <i class="far fa-calendar"></i>
+                                    Matched on @match.MatchDate.ToString("MMM dd, yyyy")
                                 </div>
                             </div>
-                            <div class="match-status @match.MatchStatus.ToLower()">
+                            <div class="match-status approved">
+                                <i class="fas fa-check"></i>
                                 @match.MatchStatus
                             </div>
                         </div>
@@ -514,10 +766,10 @@
                     <div class="empty-state-icon">
                         <i class="fas fa-handshake"></i>
                     </div>
-                    <div class="empty-state-title">No Matches Yet</div>
+                    <div class="empty-state-title">No Approved Matches Yet</div>
                     <div class="empty-state-subtitle">
-                        You haven't received any match requests yet.<br>
-                        When clients find your profile and request to match, they will appear here.
+                        Once you approve a match request from the right panel,<br>
+                        the client will appear here.
                     </div>
                 </div>
             }
@@ -525,34 +777,40 @@
     </div>
 
     <!-- Right Panel - Pending Matches -->
+    @{
+        var pendingMatches = Model?.Where(m => m.MatchStatus == "Pending").ToList() ?? new List<BlueprintProWeb.ViewModels.MatchViewModel>();
+    }
     <div class="matches-panel">
         <div class="pending-panel-header">
             <h3 class="pending-panel-title">
                 <i class="fas fa-clock"></i>
-                Pending Matches
+                Pending Requests
+                <span class="panel-count pending-count">@pendingMatches.Count</span>
             </h3>
+            <p class="panel-subtitle-sm">New requests awaiting your response</p>
         </div>
         <div class="panel-content">
-            @{
-                var pendingMatches = Model?.Where(m => m.MatchStatus == "Pending").ToList() ?? new List<BlueprintProWeb.ViewModels.MatchViewModel>();
-            }
             @if (pendingMatches.Any())
             {
                 @foreach (var pending in pendingMatches.OrderByDescending(m => m.MatchDate))
                 {
-                    <div class="match-card">
+                    <div class="match-card pending-card">
                         <div class="match-header">
-                            <img src="@(string.IsNullOrEmpty(pending.ClientProfileUrl) ? "/images/profile.jpg" : pending.ClientProfileUrl.Replace("~", "").Replace("wwwroot", ""))"
-                                 alt="@pending.ClientName"
-                                 class="client-avatar">
+                            <div class="avatar-wrap">
+                                <img src="@(string.IsNullOrEmpty(pending.ClientProfileUrl) ? "/images/profile.jpg" : pending.ClientProfileUrl.Replace("~", "").Replace("wwwroot", ""))"
+                                     alt="@pending.ClientName"
+                                     class="client-avatar">
+                                <span class="avatar-status-dot pending" title="Pending"></span>
+                            </div>
                             <div class="client-info">
                                 <div class="client-name">
-                                    <a href="#" class="client-profile-link" data-client-id="@pending.ClientId">
+                                    <a href="#" class="client-profile-link" data-client-id="@pending.ClientId" data-match-id="@pending.MatchId">
                                         @pending.ClientName
                                     </a>
                                 </div>
                                 <div class="match-details">
-                                    Requested: @pending.MatchDate.ToString("MMM dd, yyyy")
+                                    <i class="far fa-calendar"></i>
+                                    Requested @pending.MatchDate.ToString("MMM dd, yyyy")
                                 </div>
                             </div>
                         </div>
@@ -560,12 +818,14 @@
                             <button class="btn-accept respond-btn"
                                     data-id="@pending.MatchId"
                                     data-approve="true">
-                                APPROVE
+                                <i class="fas fa-check"></i>
+                                Approve
                             </button>
                             <button class="btn-decline respond-btn"
                                     data-id="@pending.MatchId"
                                     data-approve="false">
-                                DECLINE
+                                <i class="fas fa-xmark"></i>
+                                Decline
                             </button>
                         </div>
                     </div>
@@ -575,11 +835,12 @@
             {
                 <div class="empty-state">
                     <div class="empty-state-icon">
-                        <i class="fas fa-clock"></i>
+                        <i class="fas fa-inbox"></i>
                     </div>
-                    <div class="empty-state-title">No Pending Matches</div>
+                    <div class="empty-state-title">All caught up!</div>
                     <div class="empty-state-subtitle">
-                        All match requests have been responded to.
+                        You have no pending requests right now.<br>
+                        New match requests will appear here.
                     </div>
                 </div>
             }
@@ -619,16 +880,32 @@
             </div>
             <div class="modal-body">
                 <div class="profile-container">
-                    <div class="profile-main-card p-3">
-                        <div class="profile-info d-flex align-items-center gap-3 mb-3">
-                            <div class="avatar">
-                                <img src="~/images/profile.jpg" alt="Avatar" style="width:64px;height:64px;border-radius:50%;">
+                    <div class="profile-main-card">
+                        <div class="profile-info d-flex align-items-center gap-3">
+                            <div class="profile-avatar-ring">
+                                <img id="clientProfileAvatar" src="~/images/profile.jpg" alt="Avatar">
                             </div>
-                            <div class="user-details">
+                            <div class="user-details flex-grow-1">
                                 <h3 id="clientProfileName" class="client-name mb-1 fw-bold"></h3>
-                                <div id="clientProfileEmail" class="text-muted"></div>
-                                <div id="clientProfilePhone" class="text-muted"></div>
+                                <div id="clientProfileEmail" class="text-muted">
+                                    <i class="fas fa-envelope"></i><span></span>
+                                </div>
+                                <div id="clientProfilePhone" class="text-muted">
+                                    <i class="fas fa-phone"></i><span></span>
+                                </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="request-summary-section">
+                        <div class="request-summary-label">
+                            <i class="fas fa-comment-dots"></i>
+                            Client Request Summary
+                        </div>
+                        <div id="clientRequestSummary" class="request-summary-card">
+                            <span class="quote-mark">&ldquo;</span>
+                            <p id="clientRequestSummaryText" class="request-summary-text"></p>
+                            <div id="clientRequestSummaryTags" class="request-summary-tags"></div>
                         </div>
                     </div>
                 </div>
@@ -638,7 +915,6 @@
 </div>
 
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // Listen for sidebar toggle and adjust main content accordingly
@@ -649,11 +925,11 @@
             function adjustMainContent() {
                 if (sidebar && mainContent) {
                     if (sidebar.classList.contains('collapsed')) {
-                        mainContent.style.marginLeft = '110px';
-                        mainContent.style.maxWidth = 'calc(100% - 130px)';
+                        mainContent.style.marginLeft = '85px';
+                        mainContent.style.maxWidth = 'calc(100% - 85px)';
                     } else {
-                        mainContent.style.marginLeft = '300px';
-                        mainContent.style.maxWidth = 'calc(100% - 320px)';
+                        mainContent.style.marginLeft = '270px';
+                        mainContent.style.maxWidth = 'calc(100% - 270px)';
                     }
                 }
             }
@@ -709,8 +985,45 @@
                                 });
                             }
 
-                            document.getElementById("matchResultTitle").innerText  = "Match Update";
-                            document.getElementById("matchResultMessage").innerText = `Match ${status}`;
+                            const clientName = card?.querySelector('.client-profile-link')?.textContent?.trim() || "the client";
+                            document.getElementById("matchResultTitle").innerText = "Match Update";
+
+                            if (status === "Approved") {
+                                document.getElementById("matchResultMessage").innerHTML = `
+                                    <div style="display:flex;align-items:flex-start;gap:0.85rem;">
+                                        <div style="flex-shrink:0;width:42px;height:42px;border-radius:50%;background:rgba(34,197,94,0.12);display:flex;align-items:center;justify-content:center;color:#16a34a;font-size:1.3rem;">
+                                            <i class="fas fa-circle-check"></i>
+                                        </div>
+                                        <div style="flex:1;">
+                                            <div style="font-weight:600;font-size:1rem;color:#1a202c;margin-bottom:0.35rem;">
+                                                Match approved
+                                            </div>
+                                            <p style="margin:0 0 0.6rem;font-size:0.9rem;color:#475569;line-height:1.5;">
+                                                You're now connected with <strong>${escapeHtml(clientName)}</strong>. You can start messaging each other to discuss the project, share details, and plan next steps.
+                                            </p>
+                                            <p style="margin:0;font-size:0.82rem;color:#64748B;line-height:1.5;">
+                                                Head over to the <strong>Messages</strong> tab to begin the conversation.
+                                            </p>
+                                        </div>
+                                    </div>`;
+                            } else if (status === "Declined") {
+                                document.getElementById("matchResultMessage").innerHTML = `
+                                    <div style="display:flex;align-items:flex-start;gap:0.85rem;">
+                                        <div style="flex-shrink:0;width:42px;height:42px;border-radius:50%;background:rgba(239,68,68,0.12);display:flex;align-items:center;justify-content:center;color:#dc2626;font-size:1.3rem;">
+                                            <i class="fas fa-circle-xmark"></i>
+                                        </div>
+                                        <div style="flex:1;">
+                                            <div style="font-weight:600;font-size:1rem;color:#1a202c;margin-bottom:0.35rem;">
+                                                Match declined
+                                            </div>
+                                            <p style="margin:0;font-size:0.9rem;color:#475569;line-height:1.5;">
+                                                You declined the match request from <strong>${escapeHtml(clientName)}</strong>. They won't be notified directly, and this request will be removed from your pending list.
+                                            </p>
+                                        </div>
+                                    </div>`;
+                            } else {
+                                document.getElementById("matchResultMessage").innerText = `Match ${status}`;
+                            }
 
                             // Fix 5: reload page after modal closes to confirm true DB state
                             resultModalEl.addEventListener("hidden.bs.modal", () => {
@@ -736,19 +1049,103 @@
 
             const clientProfileModal = new bootstrap.Modal(document.getElementById('clientProfileModal'));
 
+            function escapeHtml(str) {
+                return String(str)
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#39;");
+            }
+
+            function buildRequestSummary(data) {
+                const firstName = (data.name || "The client").split(" ")[0];
+                const clientQuery = (data.clientQuery || "").trim();
+                if (clientQuery) {
+                    return `<strong>${escapeHtml(firstName)}</strong> requested for &ldquo;${escapeHtml(clientQuery)}&rdquo;`;
+                }
+
+                const style = (data.style || "").trim();
+                const location = (data.location || "").trim();
+                const budget = (data.budget || "").trim();
+                const portfolioText = (data.portfolioText || "").trim();
+
+                if (portfolioText) {
+                    return `<strong>${escapeHtml(firstName)}</strong> requested for &ldquo;${escapeHtml(portfolioText)}&rdquo;`;
+                }
+
+                const parts = [];
+                if (style) parts.push(`is looking for a <strong>${escapeHtml(style)}</strong> style`);
+                if (location) parts.push(`in <strong>${escapeHtml(location)}</strong>`);
+                if (budget) parts.push(`with a budget of <strong>${escapeHtml(budget)}</strong>`);
+
+                if (parts.length === 0) return "";
+
+                return `${escapeHtml(firstName)} ${parts.join(", ")}.`;
+            }
+
+            function renderSummaryTags(data) {
+                const tagsContainer = document.getElementById("clientRequestSummaryTags");
+                tagsContainer.innerHTML = "";
+
+                const tags = [
+                    { icon: "fa-palette", value: data.style },
+                    { icon: "fa-location-dot", value: data.location },
+                    { icon: "fa-coins", value: data.budget }
+                ];
+
+                tags.forEach(t => {
+                    if (t.value && t.value.trim()) {
+                        const el = document.createElement("span");
+                        el.className = "summary-tag";
+                        el.innerHTML = `<i class="fas ${t.icon}"></i>${t.value}`;
+                        tagsContainer.appendChild(el);
+                    }
+                });
+            }
+
             document.querySelectorAll('.client-profile-link').forEach(link => {
                 link.addEventListener('click', function (e) {
                     e.preventDefault();
 
                     const clientId = this.dataset.clientId;
+                    const matchId = this.dataset.matchId || "";
+                    const url = `/ArchitectInterface/GetClientProfile?clientId=${encodeURIComponent(clientId)}`
+                        + (matchId ? `&matchId=${encodeURIComponent(matchId)}` : "");
 
-                    fetch(`/ArchitectInterface/GetClientProfile?clientId=${clientId}`)
+                    fetch(url)
                         .then(res => res.json())
                         .then(data => {
                             if (data.success) {
                                 document.getElementById("clientProfileName").innerText = data.name;
-                                document.getElementById("clientProfileEmail").innerText = data.email || "No email provided";
-                                document.getElementById("clientProfilePhone").innerText = data.phone || "No phone provided";
+                                document.getElementById("clientProfileEmail").querySelector("span").innerText = data.email || "No email provided";
+                                document.getElementById("clientProfilePhone").querySelector("span").innerText = data.phone || "No phone provided";
+
+                                if (data.profilePhoto) {
+                                    document.getElementById("clientProfileAvatar").src = data.profilePhoto;
+                                }
+
+                                const summaryHtml = buildRequestSummary(data);
+                                const summaryTextEl = document.getElementById("clientRequestSummaryText");
+                                const summaryCard = document.getElementById("clientRequestSummary");
+
+                                if (summaryHtml) {
+                                    summaryTextEl.innerHTML = summaryHtml;
+                                    summaryCard.classList.remove("is-empty");
+                                    summaryCard.querySelector(".quote-mark").style.display = "";
+                                } else {
+                                    summaryTextEl.innerHTML = `<span class="request-summary-empty">No request details were captured for this match.</span>`;
+                                    summaryCard.querySelector(".quote-mark").style.display = "none";
+                                }
+
+                                // Only show derived tags when we're showing the derived summary,
+                                // not when displaying the client's verbatim query.
+                                const tagsContainer = document.getElementById("clientRequestSummaryTags");
+                                if ((data.clientQuery || "").trim()) {
+                                    tagsContainer.innerHTML = "";
+                                } else {
+                                    renderSummaryTags(data);
+                                }
 
                                 clientProfileModal.show();
                             } else {

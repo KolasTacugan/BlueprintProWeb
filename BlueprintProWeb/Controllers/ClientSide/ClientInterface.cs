@@ -1075,7 +1075,7 @@ namespace BlueprintProWeb.Controllers.ClientSide
         }
 
         [HttpPost]
-        public async Task<IActionResult> RequestMatch(string architectId)
+        public async Task<IActionResult> RequestMatch(string architectId, string? clientQuery)
         {
             var currentUser = await userManager.GetUserAsync(User);
             if (currentUser == null)
@@ -1093,7 +1093,8 @@ namespace BlueprintProWeb.Controllers.ClientSide
                 ClientId = currentUser.Id,
                 ArchitectId = architectId,
                 MatchStatus = "Pending",
-                MatchDate = DateTime.UtcNow
+                MatchDate = DateTime.UtcNow,
+                ClientQuery = string.IsNullOrWhiteSpace(clientQuery) ? null : clientQuery.Trim()
             };
 
             context.Matches.Add(match);
