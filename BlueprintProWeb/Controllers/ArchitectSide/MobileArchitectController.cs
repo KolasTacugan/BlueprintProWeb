@@ -209,7 +209,7 @@ namespace BlueprintProWeb.Controllers
             if (BlueprintImage == null || BlueprintImage.Length == 0)
                 return BadRequest(new { message = "No blueprint image uploaded" });
 
-            string fileName = UploadProjectFile(BlueprintImage);
+            string fileName = await UploadProjectFile(BlueprintImage);
 
             var blueprint = new Blueprint
             {
@@ -242,7 +242,7 @@ namespace BlueprintProWeb.Controllers
                 project_Id = project.project_Id,
                 project_Title = project.project_Title,
                 blueprint_Description = blueprintDescription,
-                projectTrack_dueDate = projectTrack_dueDate,
+                projectTrack_dueDate = DateTime.SpecifyKind(projectTrack_dueDate, DateTimeKind.Utc),
                 projectTrack_currentFileName = BlueprintImage.FileName,
                 projectTrack_currentFilePath = "/images/" + fileName,
                 projectTrack_currentRevision = 1
@@ -254,7 +254,7 @@ namespace BlueprintProWeb.Controllers
             return Ok(new { message = "Project blueprint uploaded successfully" });
         }
 
-        private string UploadProjectFile(IFormFile file)
+        private async Task<string> UploadProjectFile(IFormFile file)
         {
             string fileName = null;
             if (file != null)
@@ -273,7 +273,7 @@ namespace BlueprintProWeb.Controllers
 
                 using (var fileStream = new FileStream(filePath, FileMode.Create))
                 {
-                    file.CopyTo(fileStream);
+                    await file.CopyToAsync(fileStream);
                 }
             }
             return fileName;
@@ -721,7 +721,7 @@ namespace BlueprintProWeb.Controllers
                 user_Id = project.user_clientId,
                 notification_Title = "New Revision Uploaded",
                 notification_Message = $"A new revision has been uploaded for your project '{project.project_Title}'.",
-                notification_Date = DateTime.Now,
+                notification_Date = DateTime.UtcNow,
                 notification_isRead = false
             };
             context.Notifications.Add(notif);
@@ -788,7 +788,7 @@ namespace BlueprintProWeb.Controllers
                         user_Id = tracker.Project.user_clientId,
                         notification_Title = "Compliance File Uploaded",
                         notification_Message = $"A new {fileType} compliance file has been uploaded for your project '{tracker.Project.project_Title}'.",
-                        notification_Date = DateTime.Now,
+                        notification_Date = DateTime.UtcNow,
                         notification_isRead = false
                     };
 
@@ -832,7 +832,7 @@ namespace BlueprintProWeb.Controllers
                 return Ok(new { success = false, message = "Project not found." });
 
             project.project_Status = "Finished";
-            project.project_endDate = DateTime.Now;
+            project.project_endDate = DateTime.UtcNow;
             await context.SaveChangesAsync();
 
             if (!string.IsNullOrEmpty(project.user_clientId))
@@ -842,7 +842,7 @@ namespace BlueprintProWeb.Controllers
                     user_Id = project.user_clientId,
                     notification_Title = "Project Completed",
                     notification_Message = $"Your project '{project.project_Title}' has been marked as finished by architect {project.Architect?.user_fname} {project.Architect?.user_lname}.",
-                    notification_Date = DateTime.Now,
+                    notification_Date = DateTime.UtcNow,
                     notification_isRead = false
                 };
                 context.Notifications.Add(notif);
@@ -879,7 +879,7 @@ namespace BlueprintProWeb.Controllers
                     user_Id = tracker.Project.user_clientId,
                     notification_Title = "Project Phase Updated",
                     notification_Message = $"Your project '{tracker.Project.project_Title}' is now in the {status} phase.",
-                    notification_Date = DateTime.Now,
+                    notification_Date = DateTime.UtcNow,
                     notification_isRead = false
                 };
 
@@ -981,7 +981,7 @@ namespace BlueprintProWeb.Controllers
                 user_Id = project.user_clientId,
                 notification_Title = "Project Deleted",
                 notification_Message = $"Your project '{project.project_Title}' has been removed by the architect.",
-                notification_Date = DateTime.Now,
+                notification_Date = DateTime.UtcNow,
                 notification_isRead = false
             };
 
@@ -1008,7 +1008,7 @@ namespace BlueprintProWeb.Controllers
                 user_Id = project.user_clientId,
                 notification_Title = "Project Restored",
                 notification_Message = $"Your project '{project.project_Title}' has been restored.",
-                notification_Date = DateTime.Now,
+                notification_Date = DateTime.UtcNow,
                 notification_isRead = false
             };
 

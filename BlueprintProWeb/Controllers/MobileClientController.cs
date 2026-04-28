@@ -763,7 +763,7 @@ namespace BlueprintProWeb.Controllers
                     user_Id = architect.Id,
                     notification_Title = "New Match Request",
                     notification_Message = $"{client.user_fname} {client.user_lname} wants to match with you.",
-                    notification_Date = DateTime.Now,
+                    notification_Date = DateTime.UtcNow,
                     notification_isRead = false
                 };
 

@@ -17,7 +17,7 @@ namespace BlueprintProWeb.Models
         public string notification_Message { get; set; }
         public bool notification_isRead { get; set; } = false;
 
-        public DateTime notification_Date { get; set; } = DateTime.Now;
+        public DateTime notification_Date { get; set; } = DateTime.UtcNow;
 
         // Navigation property
         public virtual User User { get; set; }
